@@ -1,0 +1,14 @@
+MY ROUTINE ACTIVE — PACOTE PARA GITHUB
+
+1. Extraia todo o conteúdo do ZIP.
+2. Crie um repositório VAZIO no GitHub.
+3. Execute 04_SUBIR_OU_ATUALIZAR_GITHUB.bat.
+4. Cole o link HTTPS do repositório quando for solicitado.
+
+O banco está zerado e nenhum dado pessoal foi incluído.
+
+Para instalar e testar antes de enviar:
+- execute 01_INSTALAR_DEPENDENCIAS.bat
+- execute 03_TESTAR_PROJETO.bat
+
+Consulte o README.md para a documentação completa.
