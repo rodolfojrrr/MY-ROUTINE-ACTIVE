@@ -161,7 +161,7 @@ class HomeScreen extends StatelessWidget {
                                   ];
                                   if (horizontal) {
                                     return Row(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: items
                                           .map((item) => Expanded(
                                                 child: Padding(

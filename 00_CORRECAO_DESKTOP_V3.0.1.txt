@@ -1,0 +1,13 @@
+MY ROUTINE ACTIVE v3.0.1 — CORREÇÃO HOME WINDOWS
+=================================================
+
+Corrige a Home no Windows que exibia apenas os três cards superiores e deixava o restante da tela vazio.
+
+Aplicação:
+1. Copie o conteúdo deste ZIP para a pasta atual My-Routine-Active.
+2. Confirme a substituição dos arquivos.
+3. Execute 07_SUBIR_GITHUB.bat.
+4. Baixe o novo artefato My-Routine-Active-Windows.
+5. Execute My-Routine-Active-Setup.exe por cima da instalação atual.
+
+O AppId do instalador permanece o mesmo; os dados locais não são apagados pela atualização.
