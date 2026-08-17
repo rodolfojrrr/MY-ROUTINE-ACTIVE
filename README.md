@@ -117,4 +117,4 @@ windows/      projeto Windows nativo
 test/         testes do backup e das parcelas
 ```
 
-Versão: **2.0.2 local final**.
+Versão: **2.0.3 local final**.
