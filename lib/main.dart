@@ -3,6 +3,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/app_store.dart';
 import 'core/app_theme.dart';
+import 'core/notification_service.dart';
 import 'core/wifi_sync_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/pin_screen.dart';
@@ -10,6 +11,9 @@ import 'screens/pin_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('pt_BR');
+  try {
+    await NotificationService.instance.initialize();
+  } catch (_) {}
   runApp(const MyRoutineBootstrap());
 }
 
@@ -31,7 +35,14 @@ class _MyRoutineBootstrapState extends State<MyRoutineBootstrap> {
     super.initState();
     store = AppStore();
     wifi = WifiSyncService(store);
-    initialization = store.initialize();
+    initialization = _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await store.initialize();
+    try {
+      await NotificationService.instance.syncReminders(store);
+    } catch (_) {}
   }
 
   @override

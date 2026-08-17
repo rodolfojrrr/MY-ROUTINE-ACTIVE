@@ -48,6 +48,11 @@ jobs:
     needs: validar
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    env:
+      MRA_KEYSTORE_B64: ${{ secrets.MRA_KEYSTORE_B64 }}
+      MRA_KEYSTORE_PASSWORD: ${{ secrets.MRA_KEYSTORE_PASSWORD }}
+      MRA_KEY_ALIAS: ${{ secrets.MRA_KEY_ALIAS }}
+      MRA_KEY_PASSWORD: ${{ secrets.MRA_KEY_PASSWORD }}
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
@@ -68,7 +73,27 @@ jobs:
       - name: Instalar dependências
         run: flutter pub get
 
+      - name: Validar configuração da assinatura Android
+        shell: bash
+        run: |
+          values=("$MRA_KEYSTORE_B64" "$MRA_KEYSTORE_PASSWORD" "$MRA_KEY_ALIAS" "$MRA_KEY_PASSWORD")
+          filled=0
+          for value in "${values[@]}"; do
+            if [ -n "$value" ]; then filled=$((filled + 1)); fi
+          done
+          if [ "$filled" -ne 0 ] && [ "$filled" -ne 4 ]; then
+            echo 'ERRO: configure os quatro Secrets MRA_* ou deixe todos vazios.'
+            exit 1
+          fi
+
+      - name: Preparar assinatura Android fixa
+        if: ${{ env.MRA_KEYSTORE_B64 != '' }}
+        shell: bash
+        run: echo "$MRA_KEYSTORE_B64" | base64 --decode > android/app/mra-release.jks
+
       - name: Compilar APK
+        env:
+          MRA_KEYSTORE_FILE: ${{ github.workspace }}/android/app/mra-release.jks
         run: flutter build apk --release
 
       - name: Publicar APK

@@ -23,6 +23,21 @@ class EntityTypes {
   static const card = 'card';
   static const debt = 'debt';
   static const loan = 'loan';
+  static const reminder = 'reminder';
+  static const studyGoal = 'study_goal';
+  static const studySession = 'study_session';
+  static const studyQuestion = 'study_question';
+  static const mockExam = 'mock_exam';
+  static const bodyMetric = 'body_metric';
+  static const cardioSession = 'cardio_session';
+  static const waterLog = 'water_log';
+  static const trainingGoal = 'training_goal';
+  static const financeAccount = 'finance_account';
+  static const financeTransfer = 'finance_transfer';
+  static const financeCategory = 'finance_category';
+  static const budget = 'budget';
+  static const financeGoal = 'finance_goal';
+  static const cardPayment = 'card_payment';
 }
 
 class AppStore extends ChangeNotifier {
@@ -205,6 +220,22 @@ class AppStore extends ChangeNotifier {
     );
     final bundle = BackupService.decodeBundle(bytes);
     return mergeRemote(bundle.entities);
+  }
+
+  Future<String?> readPreference(String key) => _database.readSetting(key);
+
+  Future<void> writePreference(String key, String value) async {
+    await _database.writeSetting(key, value);
+    notifyListeners();
+  }
+
+  Future<List<Map<String, Object?>>> unresolvedConflicts() =>
+      _database.unresolvedConflicts();
+
+  Future<void> resolveConflict(int id) async {
+    await _database.resolveConflict(id);
+    _conflictCount = await _database.unresolvedConflictCount();
+    notifyListeners();
   }
 
   Future<void> setPin(String pin) async {

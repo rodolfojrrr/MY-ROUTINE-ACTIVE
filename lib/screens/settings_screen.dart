@@ -5,6 +5,10 @@ import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/wifi_sync_service.dart';
 import '../widgets/premium_widgets.dart';
+import 'calendar_screen.dart';
+import 'conflicts_screen.dart';
+import 'reminders_screen.dart';
+import 'search_screen.dart';
 import 'wifi_sync_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -156,6 +160,48 @@ class SettingsScreen extends StatelessWidget {
                         onTap: () => importBackup(context),
                       ),
                       const SizedBox(height: 12),
+                      _SettingsCard(
+                        icon: Icons.notifications_active_outlined,
+                        color: AppColors.green,
+                        title: 'Lembretes locais',
+                        subtitle:
+                            'Crie lembretes e ative notificações no Android.',
+                        action: 'Abrir',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => RemindersScreen(store: store),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _SettingsCard(
+                        icon: Icons.calendar_month_outlined,
+                        color: AppColors.blue,
+                        title: 'Agenda geral',
+                        subtitle:
+                            'Veja provas, faturas, empréstimos e lembretes por data.',
+                        action: 'Abrir',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => CalendarScreen(store: store),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _SettingsCard(
+                        icon: Icons.search,
+                        color: AppColors.purple,
+                        title: 'Busca geral',
+                        subtitle:
+                            'Pesquise registros de todos os módulos no banco local.',
+                        action: 'Buscar',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => SearchScreen(store: store),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       FutureBuilder<bool>(
                         future: store.hasPin(),
                         builder: (context, snapshot) {
@@ -181,6 +227,21 @@ class SettingsScreen extends StatelessWidget {
                         },
                       ),
                       const SizedBox(height: 12),
+                      if (store.conflictCount > 0)
+                        _SettingsCard(
+                          icon: Icons.merge_type,
+                          color: AppColors.orange,
+                          title: '${store.conflictCount} conflito(s) preservado(s)',
+                          subtitle:
+                              'Revise as duas versões mantidas pela sincronização.',
+                          action: 'Revisar',
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => ConflictsScreen(store: store),
+                            ),
+                          ),
+                        ),
+                      if (store.conflictCount > 0) const SizedBox(height: 12),
                       PremiumCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

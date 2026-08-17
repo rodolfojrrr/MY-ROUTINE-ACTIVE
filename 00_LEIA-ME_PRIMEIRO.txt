@@ -1,26 +1,33 @@
-MY ROUTINE ACTIVE — VERSÃO LOCAL FINAL
-======================================
+MY ROUTINE ACTIVE — V3.0.0 FINAL LOCAL
+========================================
 
-Este repositório contém UM aplicativo Flutter para Android e Windows.
+Esta é a versão de escopo local final do aplicativo Flutter para Android e Windows.
 Não é site, não usa navegador, não usa nuvem e não exige conta externa.
 
-COMEÇO RÁPIDO
-1. Instale Flutter, Android Studio e Visual Studio 2022 (instruções no README.md).
-2. Execute 01_PREPARAR_PROJETO.bat.
-3. Para testar no PC, execute 02_EXECUTAR_WINDOWS.bat.
-4. Para gerar o APK, execute 05_GERAR_APK.bat.
-5. Para gerar o pacote Windows, execute 06_GERAR_WINDOWS.bat.
-6. Para enviar ao GitHub, execute 07_SUBIR_GITHUB.bat.
+PARA ATUALIZAR UMA PASTA QUE JÁ ESTÁ FUNCIONANDO
+1. Faça um backup .mra dentro do aplicativo se já houver dados importantes.
+2. Extraia o ZIP de atualização dentro da pasta atual do projeto.
+3. Confirme a substituição dos arquivos existentes.
+4. Execute 07_SUBIR_GITHUB.bat.
+5. Aguarde a execução verde em Actions.
+6. Baixe os novos artefatos Android e Windows.
 
-REPOSITÓRIO CONFIGURADO
+NOVIDADES PRINCIPAIS DA V3
+- Home integrada e agenda geral.
+- Busca global e lembretes locais.
+- Estudos com revisão espaçada, questões, simulados, Pomodoro e metas.
+- Treinos com biblioteca, PRs, volume, comparação, medidas, fotos, água e cardio.
+- Finanças com contas, transferências, categorias/subcategorias, orçamentos, metas,
+  faturas, pagamentos e relatórios.
+- Revisão de conflitos da sincronização.
+- Estrutura para assinatura fixa do APK e atualizações futuras sem trocar a chave.
+
+IMPORTANTE SOBRE A ASSINATURA DO ANDROID
+Leia docs\ASSINATURA_ANDROID.md e execute 09_GERAR_ASSINATURA_ANDROID.bat uma vez.
+Se você já tem dados no APK atual, exporte um .mra antes da primeira migração de chave.
+
+REPOSITÓRIO
 https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
-O banco deste ZIP está zerado: nenhum arquivo .db, .sqlite ou .mra é incluído.
-Os dados reais serão criados localmente ao abrir o app em cada aparelho.
-
-DOWNLOAD PELO GITHUB
-Depois do push, abra a aba Actions, escolha a execução verde mais recente e
-baixe os artefatos My-Routine-Active-Android e My-Routine-Active-Windows.
-O artefato Windows contém o pacote portátil e o My-Routine-Active-Setup.exe.
-
-Leia o README.md para os detalhes de sincronização Wi-Fi e privacidade.
+O repositório continua com banco zerado. Seus dados existem somente nos aparelhos
+e nos backups .mra que você criar.

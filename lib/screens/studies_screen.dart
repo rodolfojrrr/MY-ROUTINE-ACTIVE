@@ -9,6 +9,7 @@ import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
+import 'studies_extra_tabs.dart';
 
 class StudiesScreen extends StatelessWidget {
   const StudiesScreen({required this.store, super.key});
@@ -18,7 +19,7 @@ class StudiesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5,
+      length: 8,
       child: AnimatedBuilder(
         animation: store,
         builder: (context, _) => Scaffold(
@@ -27,22 +28,28 @@ class StudiesScreen extends StatelessWidget {
             bottom: const TabBar(
               isScrollable: true,
               tabs: <Widget>[
+                Tab(icon: Icon(Icons.today_outlined), text: 'Hoje'),
                 Tab(icon: Icon(Icons.calendar_view_week), text: 'Horário'),
                 Tab(icon: Icon(Icons.menu_book), text: 'Matérias'),
                 Tab(icon: Icon(Icons.event_available), text: 'Provas'),
                 Tab(icon: Icon(Icons.edit_note), text: 'Anotações'),
                 Tab(icon: Icon(Icons.style), text: 'Flashcards'),
+                Tab(icon: Icon(Icons.quiz_outlined), text: 'Questões'),
+                Tab(icon: Icon(Icons.timer_outlined), text: 'Foco'),
               ],
             ),
           ),
           body: PremiumBackground(
             child: TabBarView(
               children: <Widget>[
+                StudyTodayTab(store: store),
                 _ScheduleTab(store: store),
                 _SubjectsTab(store: store),
                 _ExamsTab(store: store),
                 _NotesTab(store: store),
                 _FlashcardsTab(store: store),
+                QuestionBankTab(store: store),
+                StudyFocusTab(store: store),
               ],
             ),
           ),
@@ -79,6 +86,11 @@ String _subjectName(AppStore store, String? id) {
   return store.byId(id)?.payload['name'] as String? ?? 'Matéria removida';
 }
 
+String _reviewDate(String? value) {
+  final date = DateTime.tryParse(value ?? '');
+  return date == null ? 'agora' : DateFormat('dd/MM HH:mm').format(date);
+}
+
 class _SubjectsTab extends StatelessWidget {
   const _SubjectsTab({required this.store});
 
@@ -90,6 +102,8 @@ class _SubjectsTab extends StatelessWidget {
       EntityTypes.exam,
       EntityTypes.studyNote,
       EntityTypes.flashcard,
+      EntityTypes.studyQuestion,
+      EntityTypes.studySession,
     ];
     for (final type in linkedTypes) {
       final linked = store
@@ -967,13 +981,30 @@ class _FlashcardsTab extends StatelessWidget {
           color: AppColors.purple,
         ),
         const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: () => showDialog<void>(
-            context: context,
-            builder: (_) => _FlashcardDialog(store: store),
-          ),
-          icon: const Icon(Icons.add),
-          label: const Text('Novo flashcard'),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: <Widget>[
+            ElevatedButton.icon(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => _FlashcardDialog(store: store),
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text('Novo flashcard'),
+            ),
+            FilledButton.tonalIcon(
+              onPressed: cards.isEmpty
+                  ? null
+                  : () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => FlashcardReviewScreen(store: store),
+                        ),
+                      ),
+              icon: const Icon(Icons.psychology_alt_outlined),
+              label: const Text('Revisar agora'),
+            ),
+          ],
         ),
         const SizedBox(height: 20),
         if (cards.isEmpty)
@@ -999,9 +1030,21 @@ class _FlashcardsTab extends StatelessWidget {
                   side: const BorderSide(color: AppColors.border),
                 ),
                 title: Text(card.payload['front'] as String? ?? ''),
-                subtitle: Text(
-                  _subjectName(store, card.payload['subjectId'] as String?),
-                  style: const TextStyle(color: AppColors.purple),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      _subjectName(store, card.payload['subjectId'] as String?),
+                      style: const TextStyle(color: AppColors.purple),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Acertos: ${card.payload['correctCount'] ?? 0} • '
+                      'Erros: ${card.payload['wrongCount'] ?? 0} • '
+                      'Próxima: ${_reviewDate(card.payload['nextReviewAt'] as String?)}',
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    ),
+                  ],
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1126,12 +1169,19 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
         FilledButton(
           onPressed: () async {
             if (front.text.trim().isEmpty) return;
+            final previous = widget.entity?.payload ?? <String, dynamic>{};
             await widget.store.save(
               EntityTypes.flashcard,
               <String, dynamic>{
+                ...previous,
                 'subjectId': subjectId,
                 'front': front.text.trim(),
                 'back': back.text.trim(),
+                'nextReviewAt': previous['nextReviewAt'] ?? DateTime.now().toIso8601String(),
+                'intervalDays': previous['intervalDays'] ?? 0,
+                'streak': previous['streak'] ?? 0,
+                'correctCount': previous['correctCount'] ?? 0,
+                'wrongCount': previous['wrongCount'] ?? 0,
               },
               id: widget.entity?.id,
             );

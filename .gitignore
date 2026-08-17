@@ -19,7 +19,9 @@ ENTREGAS/
 *.sqlite3
 *.mra
 *.keystore
+*.jks
 key.properties
+ASSINATURA_ANDROID_SECRETS.txt
 android/local.properties
 
 # Temporários

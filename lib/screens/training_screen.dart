@@ -6,7 +6,9 @@ import 'package:intl/intl.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
 import '../core/sync_entity.dart';
+import '../core/training_utils.dart';
 import '../widgets/premium_widgets.dart';
+import 'training_extra_tabs.dart';
 
 class TrainingScreen extends StatelessWidget {
   const TrainingScreen({required this.store, super.key});
@@ -16,15 +18,20 @@ class TrainingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 6,
       child: AnimatedBuilder(
         animation: store,
         builder: (context, _) => Scaffold(
           appBar: AppBar(
             title: const Text('Treinos'),
             bottom: const TabBar(
+              isScrollable: true,
               tabs: <Widget>[
                 Tab(icon: Icon(Icons.fitness_center), text: 'Fichas'),
+                Tab(icon: Icon(Icons.menu_book_outlined), text: 'Biblioteca'),
+                Tab(icon: Icon(Icons.insights), text: 'Evolução'),
+                Tab(icon: Icon(Icons.monitor_weight_outlined), text: 'Corpo'),
+                Tab(icon: Icon(Icons.water_drop_outlined), text: 'Hábitos'),
                 Tab(icon: Icon(Icons.history), text: 'Histórico'),
               ],
             ),
@@ -33,6 +40,10 @@ class TrainingScreen extends StatelessWidget {
             child: TabBarView(
               children: <Widget>[
                 _PlansTab(store: store),
+                ExerciseLibraryTab(store: store),
+                TrainingProgressTab(store: store),
+                BodyTrackingTab(store: store),
+                WellnessTab(store: store),
                 _WorkoutHistoryTab(store: store),
               ],
             ),
@@ -327,6 +338,15 @@ class _ExerciseSummary extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
+                  exercise.payload['group'] as String? ?? 'Geral',
+                  style: const TextStyle(
+                    color: AppColors.orange,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
                   sets.map((set) {
                     final type = set.payload['type'] as String? ?? 'Normal';
                     return '$type: ${set.payload['reps']} reps × ${set.payload['load']} kg';
@@ -393,6 +413,7 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
   late final TextEditingController name;
   late final TextEditingController notes;
   late final TextEditingController rest;
+  String group = 'Geral';
   final drafts = <_SetDraft>[];
 
   @override
@@ -403,6 +424,7 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
     rest = TextEditingController(
       text: (widget.entity?.payload['restSeconds'] as num? ?? 90).toString(),
     );
+    group = widget.entity?.payload['group'] as String? ?? 'Geral';
     if (widget.entity != null) {
       final existing = widget.store
           .records(EntityTypes.exerciseSet)
@@ -449,6 +471,7 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
         'planId': widget.planId,
         'name': name.text.trim(),
         'notes': notes.text.trim(),
+        'group': group,
         'restSeconds': int.tryParse(rest.text) ?? 90,
       },
       id: widget.entity?.id,
@@ -494,6 +517,26 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
                 controller: name,
                 autofocus: true,
                 decoration: const InputDecoration(labelText: 'Exercício'),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: group,
+                decoration: const InputDecoration(labelText: 'Grupo muscular'),
+                items: const <String>[
+                  'Geral',
+                  'Peito',
+                  'Costas',
+                  'Ombros',
+                  'Bíceps',
+                  'Tríceps',
+                  'Quadríceps',
+                  'Posterior',
+                  'Glúteos',
+                  'Panturrilhas',
+                  'Abdômen',
+                  'Cardio',
+                ].map((item) => DropdownMenuItem<String>(value: item, child: Text(item))).toList(),
+                onChanged: (value) => setState(() => group = value ?? group),
               ),
               const SizedBox(height: 12),
               Row(
@@ -685,6 +728,26 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     runningExerciseId = null;
     final exerciseTotal =
         exerciseSeconds.values.fold<int>(0, (sum, value) => sum + value);
+    final snapshots = <Map<String, dynamic>>[];
+    for (final exercise in exercises) {
+      final sets = widget.store
+          .records(EntityTypes.exerciseSet)
+          .where((item) => item.payload['exerciseId'] == exercise.id)
+          .toList();
+      for (final set in sets) {
+        if (!completedSets.contains(set.id)) continue;
+        snapshots.add(<String, dynamic>{
+          'exerciseId': exercise.id,
+          'exerciseName': exercise.payload['name'],
+          'group': exercise.payload['group'] as String? ?? 'Geral',
+          'setId': set.id,
+          'type': set.payload['type'],
+          'reps': (set.payload['reps'] as num? ?? 0).toInt(),
+          'load': (set.payload['load'] as num? ?? 0).toDouble(),
+        });
+      }
+    }
+    final volume = TrainingUtils.snapshotVolume(snapshots);
     await widget.store.save(EntityTypes.workoutSession, <String, dynamic>{
       'planId': widget.plan.id,
       'planName': widget.plan.payload['name'],
@@ -694,6 +757,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       'totalSeconds': exerciseTotal + totalRestSeconds,
       'exerciseTimes': exerciseSeconds,
       'completedSetIds': completedSets.toList(),
+      'setSnapshots': snapshots,
+      'volume': volume,
     });
     if (mounted) Navigator.pop(context);
   }

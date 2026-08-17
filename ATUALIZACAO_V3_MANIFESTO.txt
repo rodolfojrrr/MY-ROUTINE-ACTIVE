@@ -1,0 +1,46 @@
+MY ROUTINE ACTIVE — ATUALIZAÇÃO V3.0.0 FINAL
+=============================================
+
+Este ZIP contém somente arquivos novos ou alterados em relação à v2.0.4.
+Extraia dentro da pasta atual My-Routine-Active e confirme a substituição.
+
+Arquivos do projeto atualizados/adicionados: 36
+
+- .github/workflows/validar-e-gerar.yml
+- .gitignore
+- 00_COMO_APLICAR_ATUALIZACAO_V3.txt
+- 00_LEIA-ME_PRIMEIRO.txt
+- 09_GERAR_ASSINATURA_ANDROID.bat
+- android/app/build.gradle.kts
+- android/app/src/main/AndroidManifest.xml
+- android/app/src/main/res/drawable/ic_notification.xml
+- CHANGELOG.md
+- docs/ARQUITETURA_LOCAL.md
+- docs/ASSINATURA_ANDROID.md
+- installer/MyRoutineActive.iss
+- lib/core/app_store.dart
+- lib/core/finance_analytics.dart
+- lib/core/local_database.dart
+- lib/core/notification_service.dart
+- lib/core/study_utils.dart
+- lib/core/training_utils.dart
+- lib/main.dart
+- lib/screens/calendar_screen.dart
+- lib/screens/conflicts_screen.dart
+- lib/screens/finance_extra_tabs.dart
+- lib/screens/finance_screen.dart
+- lib/screens/home_screen.dart
+- lib/screens/reminders_screen.dart
+- lib/screens/search_screen.dart
+- lib/screens/settings_screen.dart
+- lib/screens/studies_extra_tabs.dart
+- lib/screens/studies_screen.dart
+- lib/screens/training_extra_tabs.dart
+- lib/screens/training_screen.dart
+- pubspec.yaml
+- README.md
+- test/finance_analytics_test.dart
+- test/study_utils_test.dart
+- test/training_utils_test.dart
+
+Nenhum banco .db/.sqlite, backup .mra, keystore .jks ou arquivo de secrets foi incluído.

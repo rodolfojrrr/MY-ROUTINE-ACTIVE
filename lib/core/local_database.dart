@@ -152,6 +152,25 @@ class LocalDatabase {
     });
   }
 
+  Future<List<Map<String, Object?>>> unresolvedConflicts() async {
+    final db = await database;
+    return db.query(
+      'sync_conflicts',
+      where: 'resolved = 0',
+      orderBy: 'created_at DESC',
+    );
+  }
+
+  Future<void> resolveConflict(int id) async {
+    final db = await database;
+    await db.update(
+      'sync_conflicts',
+      <String, Object?>{'resolved': 1},
+      where: 'id = ?',
+      whereArgs: <Object?>[id],
+    );
+  }
+
   Future<int> unresolvedConflictCount() async {
     final db = await database;
     final value = Sqflite.firstIntValue(

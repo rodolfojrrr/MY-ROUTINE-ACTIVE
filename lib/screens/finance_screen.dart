@@ -4,8 +4,10 @@ import 'package:intl/intl.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
 import '../core/finance_utils.dart';
+import '../core/finance_analytics.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
+import 'finance_extra_tabs.dart';
 
 final _money = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
@@ -30,7 +32,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5,
+      length: 8,
       child: AnimatedBuilder(
         animation: widget.store,
         builder: (context, _) => Scaffold(
@@ -41,9 +43,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
               tabs: <Widget>[
                 Tab(icon: Icon(Icons.dashboard_outlined), text: 'Visão geral'),
                 Tab(icon: Icon(Icons.swap_vert), text: 'Lançamentos'),
+                Tab(icon: Icon(Icons.account_balance_wallet_outlined), text: 'Contas'),
                 Tab(icon: Icon(Icons.credit_card), text: 'Cartões'),
                 Tab(icon: Icon(Icons.receipt_long), text: 'Dívidas'),
                 Tab(icon: Icon(Icons.account_balance), text: 'Empréstimos'),
+                Tab(icon: Icon(Icons.flag_outlined), text: 'Planejamento'),
+                Tab(icon: Icon(Icons.insights), text: 'Relatórios'),
               ],
             ),
           ),
@@ -66,9 +71,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
                         store: widget.store,
                         month: selectedMonth,
                       ),
-                      _CardsTab(store: widget.store),
+                      AccountsTab(store: widget.store),
+                      _CardsTab(store: widget.store, month: selectedMonth),
                       _DebtsTab(store: widget.store, month: selectedMonth),
                       _LoansTab(store: widget.store, month: selectedMonth),
+                      FinancePlanningTab(store: widget.store, month: selectedMonth),
+                      FinanceReportsTab(store: widget.store),
                     ],
                   ),
                 ),
@@ -131,6 +139,14 @@ bool _inMonth(String? isoDate, DateTime month) {
 
 double _amount(SyncEntity item) =>
     (item.payload['amount'] as num? ?? 0).toDouble();
+
+String _categoryLabel(AppStore store, SyncEntity category) {
+  final name = category.payload['name'] as String? ?? 'Categoria';
+  final parentId = category.payload['parentId'] as String?;
+  if (parentId == null) return name;
+  final parentName = store.byId(parentId)?.payload['name'] as String?;
+  return parentName == null || parentName.isEmpty ? name : '$parentName › $name';
+}
 
 double _incomeForMonth(AppStore store, DateTime month) {
   return store.records(EntityTypes.income).fold<double>(0, (sum, item) {
@@ -618,6 +634,8 @@ class _TransactionDialogState extends State<_TransactionDialog> {
   late final TextEditingController fixedDay;
   late DateTime date;
   late bool recurring;
+  String? accountId;
+  String? categoryId;
 
   @override
   void initState() {
@@ -632,6 +650,8 @@ class _TransactionDialogState extends State<_TransactionDialog> {
     date = DateTime.tryParse(widget.entity?.payload['date'] as String? ?? '') ??
         DateTime(widget.initialDate.year, widget.initialDate.month, 1);
     recurring = widget.entity?.payload['recurring'] == true;
+    accountId = widget.entity?.payload['accountId'] as String?;
+    categoryId = widget.entity?.payload['categoryId'] as String?;
   }
 
   @override
@@ -662,6 +682,42 @@ class _TransactionDialogState extends State<_TransactionDialog> {
                 controller: amount,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Valor'),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String?>(
+                initialValue: widget.store.records(EntityTypes.financeAccount).any((item) => item.id == accountId)
+                    ? accountId
+                    : null,
+                decoration: const InputDecoration(labelText: 'Conta (opcional)'),
+                items: <DropdownMenuItem<String?>>[
+                  const DropdownMenuItem<String?>(value: null, child: Text('Sem conta vinculada')),
+                  ...widget.store.records(EntityTypes.financeAccount).map(
+                    (item) => DropdownMenuItem<String?>(
+                      value: item.id,
+                      child: Text(item.payload['name'] as String? ?? ''),
+                    ),
+                  ),
+                ],
+                onChanged: (value) => setState(() => accountId = value),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String?>(
+                initialValue: widget.store.records(EntityTypes.financeCategory).any((item) => item.id == categoryId)
+                    ? categoryId
+                    : null,
+                decoration: const InputDecoration(labelText: 'Categoria (opcional)'),
+                items: <DropdownMenuItem<String?>>[
+                  const DropdownMenuItem<String?>(value: null, child: Text('Sem categoria')),
+                  ...widget.store.records(EntityTypes.financeCategory)
+                      .where((item) => item.payload['type'] == (income ? 'Receita' : 'Despesa'))
+                      .map(
+                    (item) => DropdownMenuItem<String?>(
+                      value: item.id,
+                      child: Text(_categoryLabel(widget.store, item)),
+                    ),
+                  ),
+                ],
+                onChanged: (value) => setState(() => categoryId = value),
               ),
               const SizedBox(height: 8),
               SwitchListTile(
@@ -710,6 +766,8 @@ class _TransactionDialogState extends State<_TransactionDialog> {
                     ? (int.tryParse(fixedDay.text) ?? 1).clamp(1, 31)
                     : null,
                 'date': recurring ? null : DateFormat('yyyy-MM-dd').format(date),
+                'accountId': accountId,
+                'categoryId': categoryId,
               },
               id: widget.entity?.id,
             );
@@ -724,9 +782,10 @@ class _TransactionDialogState extends State<_TransactionDialog> {
 }
 
 class _CardsTab extends StatelessWidget {
-  const _CardsTab({required this.store});
+  const _CardsTab({required this.store, required this.month});
 
   final AppStore store;
+  final DateTime month;
 
   @override
   Widget build(BuildContext context) {
@@ -752,13 +811,29 @@ class _CardsTab extends StatelessWidget {
                   subtitle: 'Cadastre limites, fechamento e vencimento de cada cartão.',
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (_) => _CardDialog(store: store),
-                  ),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Novo cartão'),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: <Widget>[
+                    ElevatedButton.icon(
+                      onPressed: () => showDialog<void>(
+                        context: context,
+                        builder: (_) => _CardDialog(store: store),
+                      ),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Novo cartão'),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: cards.isEmpty
+                          ? null
+                          : () => showDialog<void>(
+                                context: context,
+                                builder: (_) => _InvoiceHistoryDialog(store: store),
+                              ),
+                      icon: const Icon(Icons.history),
+                      label: const Text('Histórico de faturas'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 if (cards.isEmpty)
@@ -778,12 +853,18 @@ class _CardsTab extends StatelessWidget {
                           crossAxisCount: columns,
                           crossAxisSpacing: 14,
                           mainAxisSpacing: 14,
-                          childAspectRatio: 1.65,
+                          childAspectRatio: columns == 1 ? 1.15 : 1.55,
                         ),
                         itemCount: cards.length,
                         itemBuilder: (context, index) {
                           final card = cards[index];
                           final colors = gradients[index % gradients.length];
+                          final limit = (card.payload['limit'] as num? ?? 0).toDouble();
+                          final invoice = _cardInvoiceForMonth(store, card.id, month);
+                          final committed = _cardCommittedLimit(store, card.id, month);
+                          final available = (limit - committed).clamp(0.0, limit).toDouble();
+                          final paid = FinanceAnalytics.paymentsForMonth(store, card.id, month);
+                          final invoiceRemaining = (invoice - paid).clamp(0.0, invoice).toDouble();
                           return Container(
                             padding: const EdgeInsets.all(22),
                             decoration: BoxDecoration(
@@ -810,12 +891,47 @@ class _CardsTab extends StatelessWidget {
                                   ),
                                 ),
                                 const Spacer(),
-                                const Text('Limite', style: TextStyle(color: Colors.white70)),
-                                Text(
-                                  _money.format((card.payload['limit'] as num? ?? 0).toDouble()),
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                                Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: _CreditCardMetric(
+                                        label: 'Fatura de ${DateFormat('MMM', 'pt_BR').format(month)}',
+                                        value: _money.format(invoice),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 18),
+                                    Expanded(
+                                      child: _CreditCardMetric(
+                                        label: 'Limite disponível',
+                                        value: _money.format(available),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 8),
+                                Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        'Limite total: ${_money.format(limit)}',
+                                        style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                      ),
+                                    ),
+                                    Text(
+                                      invoice <= 0
+                                          ? 'Sem fatura'
+                                          : invoiceRemaining <= 0
+                                              ? 'Fatura paga'
+                                              : 'Aberta • falta ${_money.format(invoiceRemaining)}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: invoiceRemaining <= 0 ? AppColors.green : Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
                                 Row(
                                   children: <Widget>[
                                     Expanded(
@@ -824,6 +940,31 @@ class _CardsTab extends StatelessWidget {
                                         style: const TextStyle(fontSize: 12, color: Colors.white70),
                                       ),
                                     ),
+                                    IconButton(
+                                      tooltip: 'Nova compra neste cartão',
+                                      onPressed: () => showDialog<void>(
+                                        context: context,
+                                        builder: (_) => _DebtDialog(
+                                          store: store,
+                                          initialCardId: card.id,
+                                        ),
+                                      ),
+                                      icon: const Icon(Icons.add_shopping_cart_outlined),
+                                    ),
+                                    if (invoiceRemaining > 0)
+                                      IconButton(
+                                        tooltip: 'Registrar pagamento da fatura',
+                                        onPressed: () => showDialog<void>(
+                                          context: context,
+                                          builder: (_) => _CardPaymentDialog(
+                                            store: store,
+                                            card: card,
+                                            month: month,
+                                            remaining: invoiceRemaining,
+                                          ),
+                                        ),
+                                        icon: const Icon(Icons.payments_outlined),
+                                      ),
                                     IconButton(
                                       onPressed: () => showDialog<void>(
                                         context: context,
@@ -844,6 +985,237 @@ class _CardsTab extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+
+class _InvoiceHistoryDialog extends StatelessWidget {
+  const _InvoiceHistoryDialog({required this.store});
+
+  final AppStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final cards = store.records(EntityTypes.card);
+    final months = List<DateTime>.generate(
+      12,
+      (index) => DateTime(now.year, now.month - index),
+    );
+    return AlertDialog(
+      title: const Text('Histórico de faturas'),
+      content: SizedBox(
+        width: 760,
+        height: 560,
+        child: ListView(
+          children: <Widget>[
+            for (final month in months) ...<Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),
+                child: Text(
+                  DateFormat('MMMM \'de\' yyyy', 'pt_BR').format(month),
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+                ),
+              ),
+              ...cards.map((card) {
+                final invoice = FinanceAnalytics.invoiceForMonth(store, card.id, month);
+                final paid = FinanceAnalytics.paymentsForMonth(store, card.id, month);
+                final remaining = (invoice - paid).clamp(0.0, invoice).toDouble();
+                final closingDay = (card.payload['closingDay'] as num? ?? 1).toInt();
+                final isPastMonth = month.year < now.year ||
+                    (month.year == now.year && month.month < now.month);
+                final isClosed = isPastMonth ||
+                    (month.year == now.year && month.month == now.month && now.day > closingDay);
+                final status = invoice <= 0
+                    ? 'Sem fatura'
+                    : remaining <= 0
+                        ? 'Paga'
+                        : isClosed
+                            ? 'Fechada • falta ${_money.format(remaining)}'
+                            : 'Aberta • falta ${_money.format(remaining)}';
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.credit_card, color: AppColors.green),
+                  title: Text('${card.payload['bank'] ?? ''} • ${_money.format(invoice)}'),
+                  subtitle: Text('Pago: ${_money.format(paid)}'),
+                  trailing: Text(
+                    status,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: remaining <= 0 && invoice > 0
+                          ? AppColors.green
+                          : isClosed && remaining > 0
+                              ? AppColors.red
+                              : AppColors.textMuted,
+                    ),
+                  ),
+                );
+              }),
+              const Divider(height: 1),
+            ],
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
+      ],
+    );
+  }
+}
+
+class _CreditCardMetric extends StatelessWidget {
+  const _CreditCardMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+        ),
+      ],
+    );
+  }
+}
+
+double _cardInvoiceForMonth(AppStore store, String cardId, DateTime month) {
+  var total = 0.0;
+  for (final debt in store.records(EntityTypes.debt)) {
+    if (debt.payload['cardId'] != cardId || debt.payload['status'] == 'Quitada') continue;
+    final purchase = DateTime.tryParse(debt.payload['purchaseDate'] as String? ?? '');
+    if (purchase == null) continue;
+    final installments = (debt.payload['installments'] as num? ?? 1).toInt();
+    final current = FinanceUtils.installmentNumber(purchaseDate: purchase, month: month);
+    if (current < 1 || current > installments) continue;
+    total += FinanceUtils.installmentValue(
+      (debt.payload['total'] as num? ?? 0).toDouble(),
+      installments,
+    );
+  }
+  return total;
+}
+
+double _cardCommittedLimit(AppStore store, String cardId, DateTime month) {
+  var total = 0.0;
+  for (final debt in store.records(EntityTypes.debt)) {
+    if (debt.payload['cardId'] != cardId || debt.payload['status'] == 'Quitada') continue;
+    final purchase = DateTime.tryParse(debt.payload['purchaseDate'] as String? ?? '');
+    if (purchase == null) continue;
+    final installments = (debt.payload['installments'] as num? ?? 1).toInt();
+    final current = FinanceUtils.installmentNumber(purchaseDate: purchase, month: month);
+    if (current < 1 || current > installments) continue;
+    final installmentValue = FinanceUtils.installmentValue(
+      (debt.payload['total'] as num? ?? 0).toDouble(),
+      installments,
+    );
+    total += installmentValue * (installments - current + 1);
+  }
+  return total;
+}
+
+class _CardPaymentDialog extends StatefulWidget {
+  const _CardPaymentDialog({
+    required this.store,
+    required this.card,
+    required this.month,
+    required this.remaining,
+  });
+
+  final AppStore store;
+  final SyncEntity card;
+  final DateTime month;
+  final double remaining;
+
+  @override
+  State<_CardPaymentDialog> createState() => _CardPaymentDialogState();
+}
+
+class _CardPaymentDialogState extends State<_CardPaymentDialog> {
+  late final TextEditingController amount;
+  String? accountId;
+
+  @override
+  void initState() {
+    super.initState();
+    amount = TextEditingController(text: widget.remaining.toStringAsFixed(2));
+    final accounts = widget.store.records(EntityTypes.financeAccount);
+    accountId = accounts.isEmpty ? null : accounts.first.id;
+  }
+
+  @override
+  void dispose() {
+    amount.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Registrar pagamento da fatura'),
+      content: SizedBox(
+        width: 430,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(
+              '${widget.card.payload['bank'] ?? ''} • ${DateFormat('MMMM/yyyy', 'pt_BR').format(widget.month)}',
+              style: const TextStyle(color: AppColors.textMuted),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: amount,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Valor pago'),
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String?>(
+              initialValue: accountId,
+              decoration: const InputDecoration(labelText: 'Conta usada no pagamento'),
+              items: <DropdownMenuItem<String?>>[
+                const DropdownMenuItem<String?>(value: null, child: Text('Não vincular a uma conta')),
+                ...widget.store.records(EntityTypes.financeAccount).map(
+                  (item) => DropdownMenuItem<String?>(
+                    value: item.id,
+                    child: Text(item.payload['name'] as String? ?? 'Conta'),
+                  ),
+                ),
+              ],
+              onChanged: (value) => setState(() => accountId = value),
+            ),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        FilledButton(
+          onPressed: () async {
+            final value = parseMoney(amount.text);
+            if (value <= 0) return;
+            await widget.store.save(EntityTypes.cardPayment, <String, dynamic>{
+              'cardId': widget.card.id,
+              'monthKey': '${widget.month.year}-${widget.month.month.toString().padLeft(2, '0')}',
+              'amount': value,
+              'accountId': accountId,
+              'paidAt': DateTime.now().toIso8601String(),
+            });
+            if (!context.mounted) return;
+            Navigator.pop(context);
+          },
+          child: const Text('Registrar'),
         ),
       ],
     );
@@ -1063,10 +1435,11 @@ class _DebtCard extends StatelessWidget {
 }
 
 class _DebtDialog extends StatefulWidget {
-  const _DebtDialog({required this.store, this.entity});
+  const _DebtDialog({required this.store, this.entity, this.initialCardId});
 
   final AppStore store;
   final SyncEntity? entity;
+  final String? initialCardId;
 
   @override
   State<_DebtDialog> createState() => _DebtDialogState();
@@ -1088,7 +1461,7 @@ class _DebtDialogState extends State<_DebtDialog> {
     total = TextEditingController(text: (p?['total'] as num?)?.toString() ?? '');
     installments = TextEditingController(text: (p?['installments'] as num? ?? 1).toString());
     purchaseDate = DateTime.tryParse(p?['purchaseDate'] as String? ?? '') ?? DateTime.now();
-    cardId = p?['cardId'] as String?;
+    cardId = p?['cardId'] as String? ?? widget.initialCardId;
     status = p?['status'] as String? ?? 'Ativa';
   }
 
