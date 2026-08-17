@@ -500,7 +500,8 @@ class _ClassDialogState extends State<_ClassDialog> {
               },
               id: widget.entity?.id,
             );
-            if (mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            Navigator.pop(context);
           },
           child: const Text('Salvar'),
         ),
@@ -684,19 +685,20 @@ class _ExamDialogState extends State<_ExamDialog> {
         ),
         FilledButton(
           onPressed: () async {
-                  if (title.text.trim().isEmpty) return;
-                  await widget.store.save(
-                    EntityTypes.exam,
-                    <String, dynamic>{
-                      'title': title.text.trim(),
-                      'subjectId': subjectId,
-                      'date': DateFormat('yyyy-MM-dd').format(date),
-                      'notes': notes.text.trim(),
-                    },
-                    id: widget.entity?.id,
-                  );
-                  if (mounted) Navigator.pop(context);
-                },
+            if (title.text.trim().isEmpty) return;
+            await widget.store.save(
+              EntityTypes.exam,
+              <String, dynamic>{
+                'title': title.text.trim(),
+                'subjectId': subjectId,
+                'date': DateFormat('yyyy-MM-dd').format(date),
+                'notes': notes.text.trim(),
+              },
+              id: widget.entity?.id,
+            );
+            if (!context.mounted) return;
+            Navigator.pop(context);
+          },
           child: const Text('Salvar'),
         ),
       ],
@@ -938,7 +940,8 @@ class _NoteDialogState extends State<_NoteDialog> {
               },
               id: widget.entity?.id,
             );
-            if (mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            Navigator.pop(context);
           },
           child: const Text('Salvar'),
         ),
@@ -1132,7 +1135,8 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
               },
               id: widget.entity?.id,
             );
-            if (mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            Navigator.pop(context);
           },
           child: const Text('Salvar'),
         ),

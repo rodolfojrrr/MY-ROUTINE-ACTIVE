@@ -1,5 +1,5 @@
 #define MyAppName "My Routine Active"
-#define MyAppVersion "2.0.0"
+#define MyAppVersion "2.0.1"
 #define MyAppPublisher "Rodolfo Junior"
 #define MyAppExeName "my_routine_active.exe"
 

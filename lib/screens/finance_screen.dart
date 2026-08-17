@@ -411,7 +411,8 @@ class _SalaryDialogState extends State<_SalaryDialog> {
               },
               id: widget.salary?.id,
             );
-            if (mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            Navigator.pop(context);
           },
           child: const Text('Salvar'),
         ),
@@ -712,7 +713,8 @@ class _TransactionDialogState extends State<_TransactionDialog> {
               },
               id: widget.entity?.id,
             );
-            if (mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            Navigator.pop(context);
           },
           child: const Text('Salvar'),
         ),
@@ -920,7 +922,8 @@ class _CardDialogState extends State<_CardDialog> {
               'closingDay': (int.tryParse(fields[4].text) ?? 1).clamp(1, 31),
               'dueDay': (int.tryParse(fields[5].text) ?? 10).clamp(1, 31),
             }, id: widget.entity?.id);
-            if (mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            Navigator.pop(context);
           },
           child: const Text('Salvar'),
         ),
@@ -1174,7 +1177,8 @@ class _DebtDialogState extends State<_DebtDialog> {
               'cardId': cardId,
               'status': status,
             }, id: widget.entity?.id);
-            if (mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            Navigator.pop(context);
           },
           child: const Text('Salvar'),
         ),
@@ -1370,7 +1374,8 @@ class _LoanDialogState extends State<_LoanDialog> {
               'startDate': DateFormat('yyyy-MM-dd').format(start),
               'status': status,
             }, id: widget.entity?.id);
-            if (mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            Navigator.pop(context);
           },
           child: const Text('Salvar'),
         ),
