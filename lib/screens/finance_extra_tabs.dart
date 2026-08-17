@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -990,7 +992,7 @@ class _FinanceChartPainter extends CustomPainter {
     for (final value in <double>[...incomes, ...expenses]) {
       if (value > maxValue) maxValue = value;
     }
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
     final groupWidth = size.width / months.length;
     final barWidth = (groupWidth * .24).clamp(6.0, 28.0);
     for (var index = 0; index < months.length; index++) {

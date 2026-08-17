@@ -724,7 +724,7 @@ class WellnessTab extends StatelessWidget {
                   children: <Widget>[
                     MetricCard(
                       label: 'Água hoje',
-                      value: '${water} ml',
+                      value: '$water ml',
                       caption: 'Meta sugerida: 2.000 ml',
                       icon: Icons.water_drop_outlined,
                       color: AppColors.blue,

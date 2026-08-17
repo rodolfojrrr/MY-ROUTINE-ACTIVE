@@ -55,7 +55,7 @@ class NotificationService {
     final date = DateTime.tryParse(reminder.payload['dateTime'] as String? ?? '');
     if (!enabled || date == null || !date.isAfter(DateTime.now())) return;
     await _plugin.zonedSchedule(
-      id,
+      id: id,
       title: reminder.payload['title'] as String? ?? 'My Routine Active',
       body: reminder.payload['notes'] as String? ?? 'Você tem um lembrete agendado.',
       scheduledDate: tz.TZDateTime.from(date, tz.local),
