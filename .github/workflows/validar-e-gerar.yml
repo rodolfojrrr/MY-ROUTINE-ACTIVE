@@ -1,0 +1,125 @@
+name: Validar e gerar aplicativos
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Analisar e testar
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Confirmar banco zerado no repositório
+        shell: bash
+        run: |
+          if find . -type f \( -name '*.db' -o -name '*.sqlite' -o -name '*.sqlite3' -o -name '*.mra' \) | grep -q .; then
+            echo 'ERRO: arquivo de dados local encontrado no repositório.'
+            exit 1
+          fi
+
+      - name: Executar análise estática
+        run: flutter analyze
+
+      - name: Executar testes
+        run: flutter test
+
+  android:
+    name: Gerar APK Android
+    needs: validar
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Compilar APK
+        run: flutter build apk --release
+
+      - name: Publicar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: My-Routine-Active-Android
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  windows:
+    name: Gerar aplicativo Windows
+    needs: validar
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Habilitar Windows e instalar dependências
+        shell: pwsh
+        run: |
+          flutter config --enable-windows-desktop
+          flutter pub get
+
+      - name: Compilar Windows
+        run: flutter build windows --release
+
+      - name: Compactar pacote Windows
+        shell: pwsh
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath My-Routine-Active-Windows.zip
+
+      - name: Instalar Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Gerar instalador Windows
+        shell: pwsh
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\MyRoutineActive.iss'
+
+      - name: Publicar aplicativo Windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: My-Routine-Active-Windows
+          path: |
+            My-Routine-Active-Windows.zip
+            ENTREGAS/My-Routine-Active-Setup.exe
+          if-no-files-found: error

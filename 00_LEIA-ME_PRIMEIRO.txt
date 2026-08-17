@@ -1,14 +1,26 @@
-MY ROUTINE ACTIVE — PACOTE PARA GITHUB
+MY ROUTINE ACTIVE — VERSÃO LOCAL FINAL
+======================================
 
-1. Extraia todo o conteúdo do ZIP.
-2. Crie um repositório VAZIO no GitHub.
-3. Execute 04_SUBIR_OU_ATUALIZAR_GITHUB.bat.
-4. Cole o link HTTPS do repositório quando for solicitado.
+Este repositório contém UM aplicativo Flutter para Android e Windows.
+Não é site, não usa navegador, não usa nuvem e não exige conta externa.
 
-O banco está zerado e nenhum dado pessoal foi incluído.
+COMEÇO RÁPIDO
+1. Instale Flutter, Android Studio e Visual Studio 2022 (instruções no README.md).
+2. Execute 01_PREPARAR_PROJETO.bat.
+3. Para testar no PC, execute 02_EXECUTAR_WINDOWS.bat.
+4. Para gerar o APK, execute 05_GERAR_APK.bat.
+5. Para gerar o pacote Windows, execute 06_GERAR_WINDOWS.bat.
+6. Para enviar ao GitHub, execute 07_SUBIR_GITHUB.bat.
 
-Para instalar e testar antes de enviar:
-- execute 01_INSTALAR_DEPENDENCIAS.bat
-- execute 03_TESTAR_PROJETO.bat
+REPOSITÓRIO CONFIGURADO
+https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
-Consulte o README.md para a documentação completa.
+O banco deste ZIP está zerado: nenhum arquivo .db, .sqlite ou .mra é incluído.
+Os dados reais serão criados localmente ao abrir o app em cada aparelho.
+
+DOWNLOAD PELO GITHUB
+Depois do push, abra a aba Actions, escolha a execução verde mais recente e
+baixe os artefatos My-Routine-Active-Android e My-Routine-Active-Windows.
+O artefato Windows contém o pacote portátil e o My-Routine-Active-Setup.exe.
+
+Leia o README.md para os detalhes de sincronização Wi-Fi e privacidade.
