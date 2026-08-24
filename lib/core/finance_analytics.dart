@@ -36,10 +36,13 @@ class FinanceAnalytics {
   static double invoiceForMonth(AppStore store, String cardId, DateTime month) {
     var total = 0.0;
     for (final debt in store.records(EntityTypes.debt)) {
-      if (debt.payload['cardId'] != cardId || debt.payload['status'] == 'Quitada') {
+      if (debt.payload['cardId'] != cardId ||
+          debt.payload['status'] == 'Quitada') {
         continue;
       }
-      final purchase = DateTime.tryParse(debt.payload['purchaseDate'] as String? ?? '');
+      final purchase = DateTime.tryParse(
+        debt.payload['purchaseDate'] as String? ?? '',
+      );
       if (purchase == null) continue;
       final installments = (debt.payload['installments'] as num? ?? 1).toInt();
       final current = FinanceUtils.installmentNumber(
@@ -56,7 +59,11 @@ class FinanceAnalytics {
     return total;
   }
 
-  static double paymentsForMonth(AppStore store, String cardId, DateTime month) {
+  static double paymentsForMonth(
+    AppStore store,
+    String cardId,
+    DateTime month,
+  ) {
     final key = '${month.year}-${month.month.toString().padLeft(2, '0')}';
     return store.records(EntityTypes.cardPayment).fold<double>(0, (sum, item) {
       if (item.payload['cardId'] != cardId || item.payload['monthKey'] != key) {

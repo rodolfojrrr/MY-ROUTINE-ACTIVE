@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../core/app_store.dart';
+import '../core/academic_data.dart';
 import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/sync_entity.dart';
@@ -118,10 +119,15 @@ class _SubjectsTab extends StatelessWidget {
   }
 
   Future<void> _edit(BuildContext context, [SyncEntity? entity]) async {
-    final name = TextEditingController(text: entity?.payload['name'] as String?);
-    final professor =
-        TextEditingController(text: entity?.payload['professor'] as String?);
-    final room = TextEditingController(text: entity?.payload['room'] as String?);
+    final name = TextEditingController(
+      text: entity?.payload['name'] as String?,
+    );
+    final professor = TextEditingController(
+      text: entity?.payload['professor'] as String?,
+    );
+    final room = TextEditingController(
+      text: entity?.payload['room'] as String?,
+    );
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -144,7 +150,9 @@ class _SubjectsTab extends StatelessWidget {
               const SizedBox(height: 12),
               TextField(
                 controller: room,
-                decoration: const InputDecoration(labelText: 'Sala / laboratório'),
+                decoration: const InputDecoration(
+                  labelText: 'Sala / laboratório',
+                ),
               ),
             ],
           ),
@@ -156,7 +164,9 @@ class _SubjectsTab extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () {
-              if (name.text.trim().isNotEmpty) Navigator.pop(dialogContext, true);
+              if (name.text.trim().isNotEmpty) {
+                Navigator.pop(dialogContext, true);
+              }
             },
             child: const Text('Salvar'),
           ),
@@ -165,14 +175,13 @@ class _SubjectsTab extends StatelessWidget {
     );
     if (saved == true) {
       await store.save(
-        EntityTypes.subject,
-        <String, dynamic>{
-          'name': name.text.trim(),
-          'professor': professor.text.trim(),
-          'room': room.text.trim(),
-        },
-        id: entity?.id,
-      );
+          EntityTypes.subject,
+          <String, dynamic>{
+            'name': name.text.trim(),
+            'professor': professor.text.trim(),
+            'room': room.text.trim(),
+          },
+          id: entity?.id);
     }
     name.dispose();
     professor.dispose();
@@ -293,11 +302,13 @@ class _ScheduleTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final sessions = store.records(EntityTypes.classSession);
     sessions.sort((a, b) {
-      final day = (a.payload['weekday'] as num? ?? 1)
-          .compareTo(b.payload['weekday'] as num? ?? 1);
+      final day = (a.payload['weekday'] as num? ?? 1).compareTo(
+        b.payload['weekday'] as num? ?? 1,
+      );
       if (day != 0) return day;
-      return (a.payload['start'] as String? ?? '')
-          .compareTo(b.payload['start'] as String? ?? '');
+      return (a.payload['start'] as String? ?? '').compareTo(
+        b.payload['start'] as String? ?? '',
+      );
     });
     return _TabBody(
       children: <Widget>[
@@ -319,7 +330,8 @@ class _ScheduleTab extends StatelessWidget {
           const EmptyState(
             icon: Icons.calendar_view_week_outlined,
             title: 'Seu horário está vazio',
-            message: 'Cadastre as matérias e distribua as aulas durante a semana.',
+            message:
+                'Cadastre as matérias e distribua as aulas durante a semana.',
           )
         else
           ...days.entries.map((day) {
@@ -350,7 +362,10 @@ class _ScheduleTab extends StatelessWidget {
                           color: AppColors.purple,
                         ),
                         title: Text(
-                          _subjectName(store, item.payload['subjectId'] as String?),
+                          _subjectName(
+                            store,
+                            item.payload['subjectId'] as String?,
+                          ),
                         ),
                         subtitle: Text(
                           '${item.payload['start']} – ${item.payload['end']}',
@@ -505,15 +520,14 @@ class _ClassDialogState extends State<_ClassDialog> {
         FilledButton(
           onPressed: () async {
             await widget.store.save(
-              EntityTypes.classSession,
-              <String, dynamic>{
-                'subjectId': subjectId,
-                'weekday': weekday,
-                'start': start.text.trim(),
-                'end': end.text.trim(),
-              },
-              id: widget.entity?.id,
-            );
+                EntityTypes.classSession,
+                <String, dynamic>{
+                  'subjectId': subjectId,
+                  'weekday': weekday,
+                  'start': start.text.trim(),
+                  'end': end.text.trim(),
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -532,8 +546,11 @@ class _ExamsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final exams = store.records(EntityTypes.exam)
-      ..sort((a, b) => (a.payload['date'] as String? ?? '')
-          .compareTo(b.payload['date'] as String? ?? ''));
+      ..sort(
+        (a, b) => (a.payload['date'] as String? ?? '').compareTo(
+          b.payload['date'] as String? ?? '',
+        ),
+      );
     return _TabBody(
       children: <Widget>[
         const PageIntro(
@@ -580,10 +597,8 @@ class _ExamsTab extends StatelessWidget {
                       IconButton(
                         onPressed: () => showDialog<void>(
                           context: context,
-                          builder: (_) => _ExamDialog(
-                            store: store,
-                            entity: exam,
-                          ),
+                          builder: (_) =>
+                              _ExamDialog(store: store, entity: exam),
                         ),
                         icon: const Icon(Icons.edit_outlined),
                       ),
@@ -621,8 +636,12 @@ class _ExamDialogState extends State<_ExamDialog> {
   void initState() {
     super.initState();
     final subjects = widget.store.records(EntityTypes.subject);
-    title = TextEditingController(text: widget.entity?.payload['title'] as String?);
-    notes = TextEditingController(text: widget.entity?.payload['notes'] as String?);
+    title = TextEditingController(
+      text: widget.entity?.payload['title'] as String?,
+    );
+    notes = TextEditingController(
+      text: widget.entity?.payload['notes'] as String?,
+    );
     final existingSubjectId = widget.entity?.payload['subjectId'] as String?;
     subjectId = subjects.any((item) => item.id == existingSubjectId)
         ? existingSubjectId
@@ -642,7 +661,9 @@ class _ExamDialogState extends State<_ExamDialog> {
   Widget build(BuildContext context) {
     final subjects = widget.store.records(EntityTypes.subject);
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Nova avaliação' : 'Editar avaliação'),
+      title: Text(
+        widget.entity == null ? 'Nova avaliação' : 'Editar avaliação',
+      ),
       content: SizedBox(
         width: 450,
         child: SingleChildScrollView(
@@ -701,15 +722,14 @@ class _ExamDialogState extends State<_ExamDialog> {
           onPressed: () async {
             if (title.text.trim().isEmpty) return;
             await widget.store.save(
-              EntityTypes.exam,
-              <String, dynamic>{
-                'title': title.text.trim(),
-                'subjectId': subjectId,
-                'date': DateFormat('yyyy-MM-dd').format(date),
-                'notes': notes.text.trim(),
-              },
-              id: widget.entity?.id,
-            );
+                EntityTypes.exam,
+                <String, dynamic>{
+                  'title': title.text.trim(),
+                  'subjectId': subjectId,
+                  'date': DateFormat('yyyy-MM-dd').format(date),
+                  'notes': notes.text.trim(),
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -779,9 +799,7 @@ class _NotesTab extends StatelessWidget {
                                   store,
                                   note.payload['subjectId'] as String?,
                                 ),
-                                style: const TextStyle(
-                                  color: AppColors.purple,
-                                ),
+                                style: const TextStyle(color: AppColors.purple),
                               ),
                             ],
                           ),
@@ -789,10 +807,8 @@ class _NotesTab extends StatelessWidget {
                         IconButton(
                           onPressed: () => showDialog<void>(
                             context: context,
-                            builder: (_) => _NoteDialog(
-                              store: store,
-                              entity: note,
-                            ),
+                            builder: (_) =>
+                                _NoteDialog(store: store, entity: note),
                           ),
                           icon: const Icon(Icons.edit_outlined),
                         ),
@@ -806,7 +822,8 @@ class _NotesTab extends StatelessWidget {
                       note.payload['body'] as String? ?? '',
                       style: const TextStyle(height: 1.5),
                     ),
-                    if ((note.payload['imageBase64'] as String? ?? '').isNotEmpty)
+                    if ((note.payload['imageBase64'] as String? ?? '')
+                        .isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 14),
                         child: ClipRRect(
@@ -854,8 +871,12 @@ class _NoteDialogState extends State<_NoteDialog> {
   void initState() {
     super.initState();
     final subjects = widget.store.records(EntityTypes.subject);
-    title = TextEditingController(text: widget.entity?.payload['title'] as String?);
-    body = TextEditingController(text: widget.entity?.payload['body'] as String?);
+    title = TextEditingController(
+      text: widget.entity?.payload['title'] as String?,
+    );
+    body = TextEditingController(
+      text: widget.entity?.payload['body'] as String?,
+    );
     final existingSubjectId = widget.entity?.payload['subjectId'] as String?;
     subjectId = subjects.any((item) => item.id == existingSubjectId)
         ? existingSubjectId
@@ -944,16 +965,15 @@ class _NoteDialogState extends State<_NoteDialog> {
           onPressed: () async {
             if (title.text.trim().isEmpty) return;
             await widget.store.save(
-              EntityTypes.studyNote,
-              <String, dynamic>{
-                'title': title.text.trim(),
-                'body': body.text.trim(),
-                'subjectId': subjectId,
-                'imageName': imageName,
-                'imageBase64': imageBase64,
-              },
-              id: widget.entity?.id,
-            );
+                EntityTypes.studyNote,
+                <String, dynamic>{
+                  'title': title.text.trim(),
+                  'body': body.text.trim(),
+                  'subjectId': subjectId,
+                  'imageName': imageName,
+                  'imageBase64': imageBase64,
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -977,7 +997,8 @@ class _FlashcardsTab extends StatelessWidget {
         const PageIntro(
           eyebrow: 'Memorização ativa',
           title: 'Flashcards',
-          subtitle: 'Crie perguntas e respostas rápidas ligadas às suas matérias.',
+          subtitle:
+              'Crie perguntas e respostas rápidas ligadas às suas matérias.',
           color: AppColors.purple,
         ),
         const SizedBox(height: 20),
@@ -1037,12 +1058,25 @@ class _FlashcardsTab extends StatelessWidget {
                       _subjectName(store, card.payload['subjectId'] as String?),
                       style: const TextStyle(color: AppColors.purple),
                     ),
+                    Text(
+                      AcademicData.contentName(
+                        store,
+                        card.payload['contentId'] as String?,
+                      ),
+                      style: const TextStyle(
+                        color: AppColors.blue,
+                        fontSize: 12,
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       'Acertos: ${card.payload['correctCount'] ?? 0} • '
                       'Erros: ${card.payload['wrongCount'] ?? 0} • '
                       'Próxima: ${_reviewDate(card.payload['nextReviewAt'] as String?)}',
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -1053,16 +1087,12 @@ class _FlashcardsTab extends StatelessWidget {
                       tooltip: 'Editar',
                       onPressed: () => showDialog<void>(
                         context: context,
-                        builder: (_) => _FlashcardDialog(
-                          store: store,
-                          entity: card,
-                        ),
+                        builder: (_) =>
+                            _FlashcardDialog(store: store, entity: card),
                       ),
                       icon: const Icon(Icons.edit_outlined),
                     ),
-                    ConfirmDeleteButton(
-                      onDelete: () => store.remove(card.id),
-                    ),
+                    ConfirmDeleteButton(onDelete: () => store.remove(card.id)),
                   ],
                 ),
                 children: <Widget>[
@@ -1099,6 +1129,7 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
   late final TextEditingController front;
   late final TextEditingController back;
   String? subjectId;
+  String? contentId;
 
   @override
   void initState() {
@@ -1114,6 +1145,11 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
     subjectId = subjects.any((item) => item.id == existingSubjectId)
         ? existingSubjectId
         : (subjects.isEmpty ? null : subjects.first.id);
+    final contents = AcademicData.contentsForSubject(widget.store, subjectId);
+    final existingContentId = widget.entity?.payload['contentId'] as String?;
+    contentId = contents.any((item) => item.id == existingContentId)
+        ? existingContentId
+        : (contents.isEmpty ? null : contents.first.id);
   }
 
   @override
@@ -1126,8 +1162,11 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
   @override
   Widget build(BuildContext context) {
     final subjects = widget.store.records(EntityTypes.subject);
+    final contents = AcademicData.contentsForSubject(widget.store, subjectId);
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Novo flashcard' : 'Editar flashcard'),
+      title: Text(
+        widget.entity == null ? 'Novo flashcard' : 'Editar flashcard',
+      ),
       content: SizedBox(
         width: 470,
         child: Column(
@@ -1144,7 +1183,28 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
                     ),
                   )
                   .toList(),
-              onChanged: (value) => setState(() => subjectId = value),
+              onChanged: (value) => setState(() {
+                subjectId = value;
+                final available = AcademicData.contentsForSubject(
+                  widget.store,
+                  value,
+                );
+                contentId = available.isEmpty ? null : available.first.id;
+              }),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: contentId,
+              decoration: const InputDecoration(labelText: 'Conteúdo'),
+              items: contents
+                  .map(
+                    (item) => DropdownMenuItem<String>(
+                      value: item.id,
+                      child: Text(item.payload['title'] as String? ?? ''),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) => setState(() => contentId = value),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -1168,23 +1228,28 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
         ),
         FilledButton(
           onPressed: () async {
-            if (front.text.trim().isEmpty) return;
+            if (front.text.trim().isEmpty ||
+                subjectId == null ||
+                contentId == null) {
+              return;
+            }
             final previous = widget.entity?.payload ?? <String, dynamic>{};
             await widget.store.save(
-              EntityTypes.flashcard,
-              <String, dynamic>{
-                ...previous,
-                'subjectId': subjectId,
-                'front': front.text.trim(),
-                'back': back.text.trim(),
-                'nextReviewAt': previous['nextReviewAt'] ?? DateTime.now().toIso8601String(),
-                'intervalDays': previous['intervalDays'] ?? 0,
-                'streak': previous['streak'] ?? 0,
-                'correctCount': previous['correctCount'] ?? 0,
-                'wrongCount': previous['wrongCount'] ?? 0,
-              },
-              id: widget.entity?.id,
-            );
+                EntityTypes.flashcard,
+                <String, dynamic>{
+                  ...previous,
+                  'subjectId': subjectId,
+                  'contentId': contentId,
+                  'front': front.text.trim(),
+                  'back': back.text.trim(),
+                  'nextReviewAt': previous['nextReviewAt'] ??
+                      DateTime.now().toIso8601String(),
+                  'intervalDays': previous['intervalDays'] ?? 0,
+                  'streak': previous['streak'] ?? 0,
+                  'correctCount': previous['correctCount'] ?? 0,
+                  'wrongCount': previous['wrongCount'] ?? 0,
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -1198,4 +1263,15 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
 String _formatIsoDate(String? value) {
   final parsed = DateTime.tryParse(value ?? '');
   return parsed == null ? 'Sem data' : DateFormat('dd/MM/yyyy').format(parsed);
+}
+
+class StudyFlashcardsPage extends StatelessWidget {
+  const StudyFlashcardsPage({required this.store, super.key});
+
+  final AppStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    return PremiumBackground(child: _FlashcardsTab(store: store));
+  }
 }

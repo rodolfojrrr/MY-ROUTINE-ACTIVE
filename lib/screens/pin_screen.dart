@@ -5,11 +5,7 @@ import '../core/app_theme.dart';
 import '../widgets/premium_widgets.dart';
 
 class PinScreen extends StatefulWidget {
-  const PinScreen({
-    required this.store,
-    required this.onUnlocked,
-    super.key,
-  });
+  const PinScreen({required this.store, required this.onUnlocked, super.key});
 
   final AppStore store;
   final VoidCallback onUnlocked;
@@ -57,7 +53,7 @@ class _PinScreenState extends State<PinScreen> {
               constraints: const BoxConstraints(maxWidth: 430),
               child: PremiumCard(
                 padding: const EdgeInsets.all(28),
-                borderColor: AppColors.green.withValues(alpha: .6),
+                borderColor: AppColors.purple.withValues(alpha: .6),
                 child: Column(
                   children: <Widget>[
                     Container(
@@ -65,15 +61,15 @@ class _PinScreenState extends State<PinScreen> {
                       height: 70,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: <Color>[AppColors.green, Color(0xFF0AAECA)],
+                          colors: <Color>[AppColors.purple, Color(0xFF5334E3)],
                         ),
                         borderRadius: BorderRadius.circular(22),
                       ),
-                      child: const Icon(Icons.lock_outline, size: 34),
+                      child: const Icon(Icons.school_rounded, size: 34),
                     ),
                     const SizedBox(height: 22),
                     const Text(
-                      'My Routine Active',
+                      'Smart Routine SI',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
@@ -106,7 +102,9 @@ class _PinScreenState extends State<PinScreen> {
                         icon: loading
                             ? const SizedBox.square(
                                 dimension: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.login),
                         label: const Text('Entrar'),

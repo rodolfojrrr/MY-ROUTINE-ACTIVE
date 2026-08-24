@@ -1,4 +1,4 @@
-# Assinatura Android fixa
+# Assinatura Android fixa — Smart Routine SI
 
 A assinatura é a identidade criptográfica do APK. Para que o Android aceite uma versão nova por cima da antiga, as duas versões precisam usar a mesma chave.
 
@@ -14,13 +14,15 @@ A assinatura é a identidade criptográfica do APK. Para que o Android aceite um
    - `MRA_KEYSTORE_PASSWORD`
    - `MRA_KEY_ALIAS`
    - `MRA_KEY_PASSWORD`
-7. Execute `07_SUBIR_GITHUB.bat` e baixe o novo APK em Actions.
+7. Execute `07_SUBIR_GITHUB.bat` e baixe `Smart-Routine-SI-Android` em Actions.
 
 ## Primeira migração
 
 Se o APK instalado anteriormente tiver outra assinatura, o Android poderá recusar a instalação por cima. Nesse caso, confirme primeiro que o backup `.mra` está salvo, desinstale a versão antiga, instale o APK assinado pela chave fixa e importe o backup.
 
 Depois dessa migração, não gere outra chave. Todas as atualizações futuras devem usar a mesma `mra-release.jks` e os mesmos Secrets.
+
+Os nomes `MRA_*`, o alias e o `applicationId` antigo foram mantidos de propósito. Alterá-los sem planejamento pode impedir que o Android instale a nova versão sobre a anterior.
 
 ## Segurança
 

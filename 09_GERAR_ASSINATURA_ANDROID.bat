@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-title My Routine Active - Assinatura Android fixa
+title Smart Routine SI - Assinatura Android fixa
 cd /d "%~dp0"
 
 where keytool >nul 2>nul
@@ -28,7 +28,7 @@ if not defined PASS (
   exit /b 1
 )
 
-keytool -genkeypair -v -keystore "%KEYSTORE%" -storepass "%PASS%" -keypass "%PASS%" -alias "%ALIAS%" -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=My Routine Active, OU=Personal, O=Rodolfo Junior, L=Local, ST=Local, C=BR"
+keytool -genkeypair -v -keystore "%KEYSTORE%" -storepass "%PASS%" -keypass "%PASS%" -alias "%ALIAS%" -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=Smart Routine SI, OU=Personal, O=Rodolfo Junior, L=Local, ST=Local, C=BR"
 if errorlevel 1 goto :erro
 
 for /f "usebackq delims=" %%A in (`powershell -NoProfile -Command "[Convert]::ToBase64String([IO.File]::ReadAllBytes('%KEYSTORE%'))"`) do set "B64=%%A"

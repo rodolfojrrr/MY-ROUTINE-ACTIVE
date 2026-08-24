@@ -1,0 +1,24 @@
+MIGRAÇÃO PARA O SMART ROUTINE SI V4
+====================================
+
+1. No aplicativo antigo, abra Configurações e exporte um backup .mra.
+2. Não apague a chave android\app\mra-release.jks se ela já existir.
+3. Envie esta versão ao mesmo repositório GitHub.
+4. Gere o APK com os mesmos Secrets MRA_* usados anteriormente.
+5. Instale o novo APK por cima do antigo.
+6. No Windows, execute o novo Setup sobre a instalação anterior.
+7. Confirme seus dados e só então faça um novo backup.
+
+COMPATIBILIDADE MANTIDA
+- applicationId Android: com.rodolfo.myroutineactive
+- executável Windows: my_routine_active.exe
+- identidade do instalador Windows: mantida
+- banco SQLite e formato de backup .mra: mantidos
+- protocolo de sincronização Wi-Fi: mantido
+
+Os registros antigos não são enviados à nuvem nem apagados pela atualização.
+As áreas de finanças e treinos deixam de aparecer no menu acadêmico, mas a
+estrutura compatível do banco é preservada para uma atualização segura.
+
+Se o Android disser que o pacote é inválido ou tem assinatura diferente, não
+desinstale antes de conferir o backup .mra. Consulte docs\ASSINATURA_ANDROID.md.

@@ -47,7 +47,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       onChanged: (value) => setState(() => query = value),
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.search),
-                        labelText: 'Buscar matéria, treino, nota, gasto, cartão...',
+                        labelText:
+                            'Buscar matéria, treino, nota, gasto, cartão...',
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -64,19 +65,24 @@ class _SearchScreenState extends State<SearchScreen> {
                         message: 'Tente outro termo.',
                       )
                     else
-                      ...results.take(100).map(
-                        (item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: PremiumCard(
-                            child: ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: Icon(_icon(item.type), color: _color(item.type)),
-                              title: Text(_title(item)),
-                              subtitle: Text(_label(item.type)),
+                      ...results
+                          .take(100)
+                          .map(
+                            (item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: PremiumCard(
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: Icon(
+                                    _icon(item.type),
+                                    color: _color(item.type),
+                                  ),
+                                  title: Text(_title(item)),
+                                  subtitle: Text(_label(item.type)),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -126,7 +132,16 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   String _title(SyncEntity item) {
-    for (final key in const <String>['title', 'name', 'description', 'front', 'question', 'planName', 'bank', 'creditor']) {
+    for (final key in const <String>[
+      'title',
+      'name',
+      'description',
+      'front',
+      'question',
+      'planName',
+      'bank',
+      'creditor',
+    ]) {
       final value = item.payload[key];
       if (value is String && value.trim().isNotEmpty) return value;
     }
@@ -164,10 +179,24 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   IconData _icon(String type) {
-    if (<String>[EntityTypes.subject, EntityTypes.classSession, EntityTypes.exam, EntityTypes.studyNote, EntityTypes.flashcard, EntityTypes.studyQuestion, EntityTypes.mockExam].contains(type)) {
+    if (<String>[
+      EntityTypes.subject,
+      EntityTypes.classSession,
+      EntityTypes.exam,
+      EntityTypes.studyNote,
+      EntityTypes.flashcard,
+      EntityTypes.studyQuestion,
+      EntityTypes.mockExam,
+    ].contains(type)) {
       return Icons.school_outlined;
     }
-    if (<String>[EntityTypes.workoutPlan, EntityTypes.exercise, EntityTypes.workoutSession, EntityTypes.bodyMetric, EntityTypes.cardioSession].contains(type)) {
+    if (<String>[
+      EntityTypes.workoutPlan,
+      EntityTypes.exercise,
+      EntityTypes.workoutSession,
+      EntityTypes.bodyMetric,
+      EntityTypes.cardioSession,
+    ].contains(type)) {
       return Icons.fitness_center;
     }
     if (type == EntityTypes.reminder) return Icons.notifications_outlined;
@@ -175,10 +204,24 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Color _color(String type) {
-    if (<String>[EntityTypes.subject, EntityTypes.classSession, EntityTypes.exam, EntityTypes.studyNote, EntityTypes.flashcard, EntityTypes.studyQuestion, EntityTypes.mockExam].contains(type)) {
+    if (<String>[
+      EntityTypes.subject,
+      EntityTypes.classSession,
+      EntityTypes.exam,
+      EntityTypes.studyNote,
+      EntityTypes.flashcard,
+      EntityTypes.studyQuestion,
+      EntityTypes.mockExam,
+    ].contains(type)) {
       return AppColors.purple;
     }
-    if (<String>[EntityTypes.workoutPlan, EntityTypes.exercise, EntityTypes.workoutSession, EntityTypes.bodyMetric, EntityTypes.cardioSession].contains(type)) {
+    if (<String>[
+      EntityTypes.workoutPlan,
+      EntityTypes.exercise,
+      EntityTypes.workoutSession,
+      EntityTypes.bodyMetric,
+      EntityTypes.cardioSession,
+    ].contains(type)) {
       return AppColors.orange;
     }
     return AppColors.green;

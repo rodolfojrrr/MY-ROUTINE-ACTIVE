@@ -55,7 +55,7 @@ class _MyRoutineBootstrapState extends State<MyRoutineBootstrap> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'My Routine Active',
+      title: 'Smart Routine SI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
       home: FutureBuilder<void>(
@@ -98,7 +98,7 @@ class _StartupLoading extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(Icons.auto_awesome, color: AppColors.green, size: 44),
+            Icon(Icons.school_rounded, color: AppColors.purple, size: 44),
             SizedBox(height: 18),
             CircularProgressIndicator(),
             SizedBox(height: 14),

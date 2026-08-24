@@ -129,11 +129,10 @@ class LocalDatabase {
 
   Future<void> writeSetting(String key, String value) async {
     final db = await database;
-    await db.insert(
-      'settings',
-      <String, Object?>{'key': key, 'value': value},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('settings', <String, Object?>{
+      'key': key,
+      'value': value,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> addConflict({
@@ -186,4 +185,3 @@ class LocalDatabase {
     _database = null;
   }
 }
-

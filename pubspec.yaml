@@ -1,7 +1,7 @@
 name: my_routine_active
-description: Organizador pessoal local para estudos, treinos e finanças.
+description: Organizador acadêmico local para Sistemas de Informação.
 publish_to: "none"
-version: 3.0.1+31
+version: 4.0.0+40
 environment:
   sdk: ">=3.5.0 <4.0.0"
 
@@ -16,6 +16,7 @@ dependencies:
   intl: ^0.20.2
   path: ^1.9.1
   path_provider: ^2.1.5
+  pdf: ^3.11.3
   qr_flutter: ^4.1.0
   sqflite: ^2.4.2
   sqflite_common_ffi: ^2.3.6
@@ -29,4 +30,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-

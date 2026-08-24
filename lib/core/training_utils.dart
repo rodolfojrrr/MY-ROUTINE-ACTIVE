@@ -8,7 +8,9 @@ class TrainingUtils {
       if (raw is! Map) continue;
       final load = raw['load'];
       final reps = raw['reps'];
-      if (load is num && reps is num) total += setVolume(load: load, reps: reps);
+      if (load is num && reps is num) {
+        total += setVolume(load: load, reps: reps);
+      }
     }
     return total;
   }

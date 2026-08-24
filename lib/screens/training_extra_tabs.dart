@@ -46,11 +46,16 @@ class ExerciseLibraryTab extends StatelessWidget {
     <String, String>{'name': 'Abdominal máquina', 'group': 'Abdômen'},
   ];
 
-  Future<void> _addToPlan(BuildContext context, Map<String, String> template) async {
+  Future<void> _addToPlan(
+    BuildContext context,
+    Map<String, String> template,
+  ) async {
     final plans = store.records(EntityTypes.workoutPlan);
     if (plans.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Crie uma ficha antes de usar a biblioteca.')),
+        const SnackBar(
+          content: Text('Crie uma ficha antes de usar a biblioteca.'),
+        ),
       );
       return;
     }
@@ -123,7 +128,9 @@ class ExerciseLibraryTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final grouped = <String, List<Map<String, String>>>{};
     for (final item in templates) {
-      grouped.putIfAbsent(item['group'] ?? 'Geral', () => <Map<String, String>>[]).add(item);
+      grouped
+          .putIfAbsent(item['group'] ?? 'Geral', () => <Map<String, String>>[])
+          .add(item);
     }
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -148,12 +155,21 @@ class ExerciseLibraryTab extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(entry.key, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                          Text(
+                            entry.key,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           ...entry.value.map(
                             (item) => ListTile(
                               contentPadding: EdgeInsets.zero,
-                              leading: const Icon(Icons.fitness_center, color: AppColors.orange),
+                              leading: const Icon(
+                                Icons.fitness_center,
+                                color: AppColors.orange,
+                              ),
                               title: Text(item['name'] ?? ''),
                               trailing: IconButton(
                                 tooltip: 'Adicionar à ficha',
@@ -230,11 +246,9 @@ class TrainingProgressTab extends StatelessWidget {
     );
     controller.dispose();
     if (value == null) return;
-    await store.save(
-      EntityTypes.trainingGoal,
-      <String, dynamic>{'weeklySessions': value},
-      id: goals.isEmpty ? null : goals.first.id,
-    );
+    await store.save(EntityTypes.trainingGoal, <String, dynamic>{
+      'weeklySessions': value,
+    }, id: goals.isEmpty ? null : goals.first.id);
   }
 
   @override
@@ -252,29 +266,42 @@ class TrainingProgressTab extends StatelessWidget {
       final raw = item.payload['setSnapshots'];
       return sum + (raw is List ? TrainingUtils.snapshotVolume(raw) : 0);
     });
-    final exerciseNames = snapshots
-        .map((item) => item['exerciseName'] as String? ?? '')
-        .where((item) => item.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+    final exerciseNames =
+        snapshots
+            .map((item) => item['exerciseName'] as String? ?? '')
+            .where((item) => item.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
     final exerciseHistories = <String, List<Map<String, dynamic>>>{};
     for (final item in snapshots) {
       final name = item['exerciseName'] as String? ?? '';
       if (name.isEmpty) continue;
-      exerciseHistories.putIfAbsent(name, () => <Map<String, dynamic>>[]).add(item);
+      exerciseHistories
+          .putIfAbsent(name, () => <Map<String, dynamic>>[])
+          .add(item);
     }
     for (final history in exerciseHistories.values) {
-      history.sort((a, b) => (a['sessionDate'] as String? ?? '')
-          .compareTo(b['sessionDate'] as String? ?? ''));
+      history.sort(
+        (a, b) => (a['sessionDate'] as String? ?? '').compareTo(
+          b['sessionDate'] as String? ?? '',
+        ),
+      );
     }
-    final prs = exerciseNames.map((name) {
-      final best = TrainingUtils.maxLoadForExercise(snapshots, name);
-      return (name: name, load: best);
-    }).where((item) => item.load > 0).toList()
-      ..sort((a, b) => b.load.compareTo(a.load));
-    final weekStart = DateTime(now.year, now.month, now.day)
-        .subtract(Duration(days: now.weekday - 1));
+    final prs =
+        exerciseNames
+            .map((name) {
+              final best = TrainingUtils.maxLoadForExercise(snapshots, name);
+              return (name: name, load: best);
+            })
+            .where((item) => item.load > 0)
+            .toList()
+          ..sort((a, b) => b.load.compareTo(a.load));
+    final weekStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
     final weekSessions = sessions.where((item) {
       final date = DateTime.tryParse(item.payload['date'] as String? ?? '');
       return date != null && !date.isBefore(weekStart);
@@ -291,22 +318,31 @@ class TrainingProgressTab extends StatelessWidget {
       final group = item['group'] as String? ?? 'Geral';
       final load = item['load'] as num? ?? 0;
       final reps = item['reps'] as num? ?? 0;
-      groupVolume[group] = (groupVolume[group] ?? 0) +
+      groupVolume[group] =
+          (groupVolume[group] ?? 0) +
           TrainingUtils.setVolume(load: load, reps: reps);
     }
     final groupEntries = groupVolume.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final orderedSessions = sessions.toList()
-      ..sort((a, b) => (b.payload['date'] as String? ?? '')
-          .compareTo(a.payload['date'] as String? ?? ''));
+      ..sort(
+        (a, b) => (b.payload['date'] as String? ?? '').compareTo(
+          a.payload['date'] as String? ?? '',
+        ),
+      );
     double sessionVolume(SyncEntity item) {
       final saved = item.payload['volume'];
       if (saved is num) return saved.toDouble();
       final raw = item.payload['setSnapshots'];
       return raw is List ? TrainingUtils.snapshotVolume(raw) : 0.0;
     }
-    final latestVolume = orderedSessions.isEmpty ? 0.0 : sessionVolume(orderedSessions.first);
-    final previousVolume = orderedSessions.length < 2 ? 0.0 : sessionVolume(orderedSessions[1]);
+
+    final latestVolume = orderedSessions.isEmpty
+        ? 0.0
+        : sessionVolume(orderedSessions.first);
+    final previousVolume = orderedSessions.length < 2
+        ? 0.0
+        : sessionVolume(orderedSessions[1]);
     final volumeDelta = previousVolume <= 0
         ? null
         : ((latestVolume - previousVolume) / previousVolume) * 100;
@@ -323,8 +359,7 @@ class TrainingProgressTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Evolução real',
                   title: 'Progresso e recordes',
-                  subtitle:
-                      'Acompanhe frequência, volume de treino e maiores cargas registradas.',
+                  subtitle: 'Acompanhe frequência, volume de treino e maiores cargas registradas.',
                   color: AppColors.orange,
                 ),
                 const SizedBox(height: 20),
@@ -394,7 +429,9 @@ class TrainingProgressTab extends StatelessWidget {
                               Text(
                                 '${latestVolume.toStringAsFixed(0)} kg vs ${previousVolume.toStringAsFixed(0)} kg'
                                 '${volumeDelta == null ? '' : ' • ${volumeDelta >= 0 ? '+' : ''}${volumeDelta.toStringAsFixed(1)}%'}',
-                                style: const TextStyle(color: AppColors.textMuted),
+                                style: const TextStyle(
+                                  color: AppColors.textMuted,
+                                ),
                               ),
                             ],
                           ),
@@ -417,13 +454,20 @@ class TrainingProgressTab extends StatelessWidget {
                       children: <Widget>[
                         const Text(
                           'Volume dos últimos treinos',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         SizedBox(
                           height: 180,
                           child: _TrainingVolumeChart(
-                            sessions: sessions.take(10).toList().reversed.toList(),
+                            sessions: sessions
+                                .take(10)
+                                .toList()
+                                .reversed
+                                .toList(),
                           ),
                         ),
                       ],
@@ -436,7 +480,10 @@ class TrainingProgressTab extends StatelessWidget {
                       children: <Widget>[
                         const Text(
                           'Recordes de carga',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                         const SizedBox(height: 10),
                         if (prs.isEmpty)
@@ -445,20 +492,24 @@ class TrainingProgressTab extends StatelessWidget {
                             style: TextStyle(color: AppColors.textMuted),
                           )
                         else
-                          ...prs.take(12).map(
-                            (item) => ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: const Icon(
-                                Icons.emoji_events_outlined,
-                                color: AppColors.orange,
+                          ...prs
+                              .take(12)
+                              .map(
+                                (item) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(
+                                    Icons.emoji_events_outlined,
+                                    color: AppColors.orange,
+                                  ),
+                                  title: Text(item.name),
+                                  trailing: Text(
+                                    '${item.load.toStringAsFixed(item.load % 1 == 0 ? 0 : 1)} kg',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              title: Text(item.name),
-                              trailing: Text(
-                                '${item.load.toStringAsFixed(item.load % 1 == 0 ? 0 : 1)} kg',
-                                style: const TextStyle(fontWeight: FontWeight.w900),
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                   ),
@@ -469,20 +520,36 @@ class TrainingProgressTab extends StatelessWidget {
                       children: <Widget>[
                         const Text(
                           'Evolução de carga por exercício',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                         const SizedBox(height: 10),
                         ...exerciseNames.take(10).map((name) {
-                          final history = exerciseHistories[name] ?? <Map<String, dynamic>>[];
+                          final history =
+                              exerciseHistories[name] ??
+                              <Map<String, dynamic>>[];
                           final loads = history
-                              .map((item) => (item['load'] as num? ?? 0).toDouble())
+                              .map(
+                                (item) =>
+                                    (item['load'] as num? ?? 0).toDouble(),
+                              )
                               .where((value) => value > 0)
                               .toList();
                           final latest = loads.isEmpty ? 0.0 : loads.last;
-                          final previous = loads.length < 2 ? null : loads[loads.length - 2];
-                          final best = loads.isEmpty ? 0.0 : loads.reduce((a, b) => a > b ? a : b);
-                          final latestRaw = history.isEmpty ? null : history.last;
-                          final date = DateTime.tryParse(latestRaw?['sessionDate'] as String? ?? '');
+                          final previous = loads.length < 2
+                              ? null
+                              : loads[loads.length - 2];
+                          final best = loads.isEmpty
+                              ? 0.0
+                              : loads.reduce((a, b) => a > b ? a : b);
+                          final latestRaw = history.isEmpty
+                              ? null
+                              : history.last;
+                          final date = DateTime.tryParse(
+                            latestRaw?['sessionDate'] as String? ?? '',
+                          );
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Row(
@@ -490,16 +557,25 @@ class TrainingProgressTab extends StatelessWidget {
                                 Expanded(
                                   flex: 3,
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: <Widget>[
-                                      Text(name, style: const TextStyle(fontWeight: FontWeight.w800)),
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
                                       const SizedBox(height: 3),
                                       Text(
                                         'Atual ${latest.toStringAsFixed(latest % 1 == 0 ? 0 : 1)} kg'
                                         '${previous == null ? '' : ' • anterior ${previous.toStringAsFixed(previous % 1 == 0 ? 0 : 1)} kg'}'
                                         ' • PR ${best.toStringAsFixed(best % 1 == 0 ? 0 : 1)} kg'
                                         '${date == null ? '' : ' • ${DateFormat('dd/MM').format(date)}'}',
-                                        style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                                        style: const TextStyle(
+                                          color: AppColors.textMuted,
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -509,7 +585,11 @@ class TrainingProgressTab extends StatelessWidget {
                                   width: 150,
                                   height: 46,
                                   child: CustomPaint(
-                                    painter: _MiniLoadChartPainter(loads.length <= 12 ? loads : loads.sublist(loads.length - 12)),
+                                    painter: _MiniLoadChartPainter(
+                                      loads.length <= 12
+                                          ? loads
+                                          : loads.sublist(loads.length - 12),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -526,7 +606,10 @@ class TrainingProgressTab extends StatelessWidget {
                       children: <Widget>[
                         const Text(
                           'Volume por grupo muscular',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                         const SizedBox(height: 10),
                         if (groupEntries.isEmpty)
@@ -535,17 +618,24 @@ class TrainingProgressTab extends StatelessWidget {
                             style: TextStyle(color: AppColors.textMuted),
                           )
                         else
-                          ...groupEntries.take(10).map(
-                            (item) => ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: const Icon(Icons.donut_large, color: AppColors.orange),
-                              title: Text(item.key),
-                              trailing: Text(
-                                '${item.value.toStringAsFixed(0)} kg',
-                                style: const TextStyle(fontWeight: FontWeight.w900),
+                          ...groupEntries
+                              .take(10)
+                              .map(
+                                (item) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(
+                                    Icons.donut_large,
+                                    color: AppColors.orange,
+                                  ),
+                                  title: Text(item.key),
+                                  trailing: Text(
+                                    '${item.value.toStringAsFixed(0)} kg',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
                       ],
                     ),
                   ),
@@ -567,8 +657,11 @@ class BodyTrackingTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metrics = store.records(EntityTypes.bodyMetric)
-      ..sort((a, b) => (b.payload['date'] as String? ?? '')
-          .compareTo(a.payload['date'] as String? ?? ''));
+      ..sort(
+        (a, b) => (b.payload['date'] as String? ?? '').compareTo(
+          a.payload['date'] as String? ?? '',
+        ),
+      );
     final latest = metrics.isEmpty ? null : metrics.first;
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -582,8 +675,7 @@ class BodyTrackingTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Acompanhamento corporal',
                   title: 'Peso, medidas e fotos',
-                  subtitle:
-                      'Registre sua evolução corporal sem enviar nenhuma imagem para a nuvem.',
+                  subtitle: 'Registre sua evolução corporal sem enviar nenhuma imagem para a nuvem.',
                   color: AppColors.orange,
                 ),
                 const SizedBox(height: 20),
@@ -602,19 +694,22 @@ class BodyTrackingTab extends StatelessWidget {
                     children: <Widget>[
                       MetricCard(
                         label: 'Peso atual',
-                        value: '${(latest.payload['weight'] as num? ?? 0).toStringAsFixed(1)} kg',
+                        value:
+                            '${(latest.payload['weight'] as num? ?? 0).toStringAsFixed(1)} kg',
                         icon: Icons.monitor_weight_outlined,
                         color: AppColors.orange,
                       ),
                       MetricCard(
                         label: 'Cintura',
-                        value: '${(latest.payload['waist'] as num? ?? 0).toStringAsFixed(1)} cm',
+                        value:
+                            '${(latest.payload['waist'] as num? ?? 0).toStringAsFixed(1)} cm',
                         icon: Icons.straighten,
                         color: AppColors.green,
                       ),
                       MetricCard(
                         label: 'Braço',
-                        value: '${(latest.payload['arm'] as num? ?? 0).toStringAsFixed(1)} cm',
+                        value:
+                            '${(latest.payload['arm'] as num? ?? 0).toStringAsFixed(1)} cm',
                         icon: Icons.fitness_center,
                         color: AppColors.purple,
                       ),
@@ -642,7 +737,9 @@ class BodyTrackingTab extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   Text(
-                                    _formatDate(item.payload['date'] as String?),
+                                    _formatDate(
+                                      item.payload['date'] as String?,
+                                    ),
                                     style: const TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w900,
@@ -655,9 +752,12 @@ class BodyTrackingTab extends StatelessWidget {
                                     'Cintura ${(item.payload['waist'] as num? ?? 0).toStringAsFixed(1)} cm • '
                                     'Braço ${(item.payload['arm'] as num? ?? 0).toStringAsFixed(1)} cm • '
                                     'Coxa ${(item.payload['thigh'] as num? ?? 0).toStringAsFixed(1)} cm',
-                                    style: const TextStyle(color: AppColors.textMuted),
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                    ),
                                   ),
-                                  if ((item.payload['notes'] as String? ?? '').isNotEmpty) ...<Widget>[
+                                  if ((item.payload['notes'] as String? ?? '')
+                                      .isNotEmpty) ...<Widget>[
                                     const SizedBox(height: 6),
                                     Text(item.payload['notes'] as String),
                                   ],
@@ -674,7 +774,9 @@ class BodyTrackingTab extends StatelessWidget {
                               ),
                               icon: const Icon(Icons.edit_outlined),
                             ),
-                            ConfirmDeleteButton(onDelete: () => store.remove(item.id)),
+                            ConfirmDeleteButton(
+                              onDelete: () => store.remove(item.id),
+                            ),
                           ],
                         ),
                       ),
@@ -697,12 +799,19 @@ class WellnessTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final water = store.records(EntityTypes.waterLog)
+    final water = store
+        .records(EntityTypes.waterLog)
         .where((item) => item.payload['date'] == today)
-        .fold<int>(0, (sum, item) => sum + (item.payload['ml'] as num? ?? 0).toInt());
+        .fold<int>(
+          0,
+          (sum, item) => sum + (item.payload['ml'] as num? ?? 0).toInt(),
+        );
     final cardio = store.records(EntityTypes.cardioSession)
-      ..sort((a, b) => (b.payload['date'] as String? ?? '')
-          .compareTo(a.payload['date'] as String? ?? ''));
+      ..sort(
+        (a, b) => (b.payload['date'] as String? ?? '').compareTo(
+          a.payload['date'] as String? ?? '',
+        ),
+      );
     return ListView(
       padding: const EdgeInsets.all(20),
       children: <Widget>[
@@ -770,24 +879,33 @@ class WellnessTab extends StatelessWidget {
                     message: 'Corrida, caminhada, bicicleta e outros cardios podem ser salvos aqui.',
                   )
                 else
-                  ...cardio.take(20).map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: PremiumCard(
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.directions_run, color: AppColors.orange),
-                          title: Text(item.payload['type'] as String? ?? 'Cardio'),
-                          subtitle: Text(
-                            '${_formatDate(item.payload['date'] as String?)} • '
-                            '${item.payload['minutes'] ?? 0} min • '
-                            '${(item.payload['distanceKm'] as num? ?? 0).toStringAsFixed(1)} km',
+                  ...cardio
+                      .take(20)
+                      .map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: PremiumCard(
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: const Icon(
+                                Icons.directions_run,
+                                color: AppColors.orange,
+                              ),
+                              title: Text(
+                                item.payload['type'] as String? ?? 'Cardio',
+                              ),
+                              subtitle: Text(
+                                '${_formatDate(item.payload['date'] as String?)} • '
+                                '${item.payload['minutes'] ?? 0} min • '
+                                '${(item.payload['distanceKm'] as num? ?? 0).toStringAsFixed(1)} km',
+                              ),
+                              trailing: ConfirmDeleteButton(
+                                onDelete: () => store.remove(item.id),
+                              ),
+                            ),
                           ),
-                          trailing: ConfirmDeleteButton(onDelete: () => store.remove(item.id)),
                         ),
                       ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -803,9 +921,8 @@ class WellnessTab extends StatelessWidget {
       'time': DateTime.now().toIso8601String(),
     });
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('+$ml ml registrados.')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('+$ml ml registrados.')));
     }
   }
 }
@@ -875,11 +992,19 @@ class _BarChartPainter extends CustomPainter {
     final axis = Paint()
       ..color = AppColors.border
       ..strokeWidth = 1;
-    canvas.drawLine(Offset(0, size.height - 1), Offset(size.width, size.height - 1), axis);
+    canvas.drawLine(
+      Offset(0, size.height - 1),
+      Offset(size.width, size.height - 1),
+      axis,
+    );
     if (values.isEmpty) return;
-    final maxValue = values.fold<double>(1, (best, value) => value > best ? value : best);
+    final maxValue = values.fold<double>(
+      1,
+      (best, value) => value > best ? value : best,
+    );
     final gap = 7.0;
-    final width = ((size.width - gap * (values.length - 1)) / values.length).clamp(5.0, 80.0);
+    final width = ((size.width - gap * (values.length - 1)) / values.length)
+        .clamp(5.0, 80.0);
     final paint = Paint()..color = AppColors.orange;
     for (var i = 0; i < values.length; i++) {
       final height = (values[i] / maxValue) * (size.height - 12);
@@ -893,7 +1018,8 @@ class _BarChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _BarChartPainter oldDelegate) => oldDelegate.values != values;
+  bool shouldRepaint(covariant _BarChartPainter oldDelegate) =>
+      oldDelegate.values != values;
 }
 
 class _BodyPhoto extends StatelessWidget {
@@ -952,32 +1078,47 @@ class _BodyMetricDialogState extends State<_BodyMetricDialog> {
   @override
   void initState() {
     super.initState();
-    date = DateTime.tryParse(widget.entity?.payload['date'] as String? ?? '') ?? DateTime.now();
+    date =
+        DateTime.tryParse(widget.entity?.payload['date'] as String? ?? '') ??
+        DateTime.now();
     weight = _controller('weight');
     chest = _controller('chest');
     waist = _controller('waist');
     arm = _controller('arm');
     thigh = _controller('thigh');
     bodyFat = _controller('bodyFat');
-    notes = TextEditingController(text: widget.entity?.payload['notes'] as String? ?? '');
+    notes = TextEditingController(
+      text: widget.entity?.payload['notes'] as String? ?? '',
+    );
     photoName = widget.entity?.payload['photoName'] as String? ?? '';
     photoBase64 = widget.entity?.payload['photoBase64'] as String? ?? '';
   }
 
   TextEditingController _controller(String key) => TextEditingController(
-        text: widget.entity?.payload[key]?.toString() ?? '',
-      );
+    text: widget.entity?.payload[key]?.toString() ?? '',
+  );
 
   @override
   void dispose() {
-    for (final item in <TextEditingController>[weight, chest, waist, arm, thigh, bodyFat, notes]) {
+    for (final item in <TextEditingController>[
+      weight,
+      chest,
+      waist,
+      arm,
+      thigh,
+      bodyFat,
+      notes,
+    ]) {
       item.dispose();
     }
     super.dispose();
   }
 
   Future<void> _pickPhoto() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
     if (result == null || result.files.isEmpty) return;
     final file = result.files.single;
     final bytes = file.bytes;
@@ -991,7 +1132,9 @@ class _BodyMetricDialogState extends State<_BodyMetricDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Novo registro corporal' : 'Editar registro'),
+      title: Text(
+        widget.entity == null ? 'Novo registro corporal' : 'Editar registro',
+      ),
       content: SizedBox(
         width: 520,
         child: SingleChildScrollView(
@@ -1044,7 +1187,10 @@ class _BodyMetricDialogState extends State<_BodyMetricDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
             await widget.store.save(EntityTypes.bodyMetric, <String, dynamic>{
@@ -1069,10 +1215,10 @@ class _BodyMetricDialogState extends State<_BodyMetricDialog> {
   }
 
   Widget _number(TextEditingController controller, String label) => TextField(
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: InputDecoration(labelText: label),
-      );
+    controller: controller,
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    decoration: InputDecoration(labelText: label),
+  );
 
   double _numberValue(TextEditingController controller) =>
       double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
@@ -1112,9 +1258,20 @@ class _CardioDialogState extends State<_CardioDialog> {
             DropdownButtonFormField<String>(
               initialValue: type,
               decoration: const InputDecoration(labelText: 'Tipo'),
-              items: const <String>['Caminhada', 'Corrida', 'Bicicleta', 'Elíptico', 'Escada', 'Outro']
-                  .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-                  .toList(),
+              items:
+                  const <String>[
+                        'Caminhada',
+                        'Corrida',
+                        'Bicicleta',
+                        'Elíptico',
+                        'Escada',
+                        'Outro',
+                      ]
+                      .map(
+                        (item) =>
+                            DropdownMenuItem(value: item, child: Text(item)),
+                      )
+                      .toList(),
               onChanged: (value) => setState(() => type = value ?? type),
             ),
             const SizedBox(height: 10),
@@ -1126,8 +1283,12 @@ class _CardioDialogState extends State<_CardioDialog> {
             const SizedBox(height: 10),
             TextField(
               controller: distance,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Distância (km, opcional)'),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Distância (km, opcional)',
+              ),
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -1142,15 +1303,22 @@ class _CardioDialogState extends State<_CardioDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
-            await widget.store.save(EntityTypes.cardioSession, <String, dynamic>{
-              'type': type,
-              'date': DateFormat('yyyy-MM-dd').format(date),
-              'minutes': int.tryParse(minutes.text) ?? 0,
-              'distanceKm': double.tryParse(distance.text.replaceAll(',', '.')) ?? 0,
-            });
+            await widget.store.save(
+              EntityTypes.cardioSession,
+              <String, dynamic>{
+                'type': type,
+                'date': DateFormat('yyyy-MM-dd').format(date),
+                'minutes': int.tryParse(minutes.text) ?? 0,
+                'distanceKm':
+                    double.tryParse(distance.text.replaceAll(',', '.')) ?? 0,
+              },
+            );
             if (!context.mounted) return;
             Navigator.pop(context);
           },

@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title My Routine Active - Validar
+title Smart Routine SI - Validar
 cd /d "%~dp0"
 
 where flutter >nul 2>nul
@@ -27,4 +27,3 @@ echo.
 echo A validacao encontrou um problema. Leia a mensagem acima.
 pause
 exit /b 1
-

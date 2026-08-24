@@ -43,7 +43,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
               tabs: <Widget>[
                 Tab(icon: Icon(Icons.dashboard_outlined), text: 'Visão geral'),
                 Tab(icon: Icon(Icons.swap_vert), text: 'Lançamentos'),
-                Tab(icon: Icon(Icons.account_balance_wallet_outlined), text: 'Contas'),
+                Tab(
+                  icon: Icon(Icons.account_balance_wallet_outlined),
+                  text: 'Contas',
+                ),
                 Tab(icon: Icon(Icons.credit_card), text: 'Cartões'),
                 Tab(icon: Icon(Icons.receipt_long), text: 'Dívidas'),
                 Tab(icon: Icon(Icons.account_balance), text: 'Empréstimos'),
@@ -63,10 +66,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 Expanded(
                   child: TabBarView(
                     children: <Widget>[
-                      _OverviewTab(
-                        store: widget.store,
-                        month: selectedMonth,
-                      ),
+                      _OverviewTab(store: widget.store, month: selectedMonth),
                       _TransactionsTab(
                         store: widget.store,
                         month: selectedMonth,
@@ -75,7 +75,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
                       _CardsTab(store: widget.store, month: selectedMonth),
                       _DebtsTab(store: widget.store, month: selectedMonth),
                       _LoansTab(store: widget.store, month: selectedMonth),
-                      FinancePlanningTab(store: widget.store, month: selectedMonth),
+                      FinancePlanningTab(
+                        store: widget.store,
+                        month: selectedMonth,
+                      ),
                       FinanceReportsTab(store: widget.store),
                     ],
                   ),
@@ -111,7 +114,10 @@ class _MonthPicker extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: Row(
               children: <Widget>[
-                IconButton(onPressed: previous, icon: const Icon(Icons.chevron_left)),
+                IconButton(
+                  onPressed: previous,
+                  icon: const Icon(Icons.chevron_left),
+                ),
                 Expanded(
                   child: Text(
                     DateFormat('MMMM \'de\' yyyy', 'pt_BR').format(month),
@@ -122,7 +128,10 @@ class _MonthPicker extends StatelessWidget {
                     ),
                   ),
                 ),
-                IconButton(onPressed: next, icon: const Icon(Icons.chevron_right)),
+                IconButton(
+                  onPressed: next,
+                  icon: const Icon(Icons.chevron_right),
+                ),
               ],
             ),
           ),
@@ -145,26 +154,42 @@ String _categoryLabel(AppStore store, SyncEntity category) {
   final parentId = category.payload['parentId'] as String?;
   if (parentId == null) return name;
   final parentName = store.byId(parentId)?.payload['name'] as String?;
-  return parentName == null || parentName.isEmpty ? name : '$parentName › $name';
+  return parentName == null || parentName.isEmpty
+      ? name
+      : '$parentName › $name';
 }
 
 double _incomeForMonth(AppStore store, DateTime month) {
   return store.records(EntityTypes.income).fold<double>(0, (sum, item) {
     final recurring = item.payload['recurring'] == true;
-    return sum + (recurring || _inMonth(item.payload['date'] as String?, month) ? _amount(item) : 0);
+    return sum +
+        (recurring || _inMonth(item.payload['date'] as String?, month)
+            ? _amount(item)
+            : 0);
   });
 }
 
 double _expenseForMonth(AppStore store, DateTime month) {
-  final direct = store.records(EntityTypes.expense).fold<double>(0, (sum, item) {
+  final direct = store.records(EntityTypes.expense).fold<double>(0, (
+    sum,
+    item,
+  ) {
     final recurring = item.payload['recurring'] == true;
-    return sum + (recurring || _inMonth(item.payload['date'] as String?, month) ? _amount(item) : 0);
+    return sum +
+        (recurring || _inMonth(item.payload['date'] as String?, month)
+            ? _amount(item)
+            : 0);
   });
   final debts = store.records(EntityTypes.debt).fold<double>(0, (sum, debt) {
-    final purchase = DateTime.tryParse(debt.payload['purchaseDate'] as String? ?? '');
+    final purchase = DateTime.tryParse(
+      debt.payload['purchaseDate'] as String? ?? '',
+    );
     final installments = (debt.payload['installments'] as num? ?? 1).toInt();
     if (purchase == null || debt.payload['status'] == 'Quitada') return sum;
-    final number = FinanceUtils.installmentNumber(purchaseDate: purchase, month: month);
+    final number = FinanceUtils.installmentNumber(
+      purchaseDate: purchase,
+      month: month,
+    );
     if (number < 1 || number > installments) return sum;
     final total = (debt.payload['total'] as num? ?? 0).toDouble();
     return sum + FinanceUtils.installmentValue(total, installments);
@@ -173,7 +198,10 @@ double _expenseForMonth(AppStore store, DateTime month) {
     final start = DateTime.tryParse(loan.payload['startDate'] as String? ?? '');
     final installments = (loan.payload['installments'] as num? ?? 1).toInt();
     if (start == null || loan.payload['status'] == 'Quitado') return sum;
-    final number = FinanceUtils.installmentNumber(purchaseDate: start, month: month);
+    final number = FinanceUtils.installmentNumber(
+      purchaseDate: start,
+      month: month,
+    );
     return sum +
         (number >= 1 && number <= installments
             ? (loan.payload['monthlyPayment'] as num? ?? 0).toDouble()
@@ -249,7 +277,11 @@ class _OverviewTab extends StatelessWidget {
                   borderColor: AppColors.green.withValues(alpha: .5),
                   child: Row(
                     children: <Widget>[
-                      const Icon(Icons.payments_outlined, color: AppColors.green, size: 36),
+                      const Icon(
+                        Icons.payments_outlined,
+                        color: AppColors.green,
+                        size: 36,
+                      ),
                       const SizedBox(width: 15),
                       Expanded(
                         child: Column(
@@ -257,19 +289,27 @@ class _OverviewTab extends StatelessWidget {
                           children: <Widget>[
                             const Text(
                               'Salário mensal fixo',
-                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               salary == null
                                   ? 'Ainda não configurado.'
                                   : '${_money.format(_amount(salary))} • todo dia ${salary.payload['fixedDay']}',
-                              style: const TextStyle(color: AppColors.textMuted),
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                              ),
                             ),
                             const SizedBox(height: 3),
                             const Text(
                               'O dia é permanente e se repete em todos os meses, sem guardar um mês específico.',
-                              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -277,7 +317,8 @@ class _OverviewTab extends StatelessWidget {
                       FilledButton.tonalIcon(
                         onPressed: () => showDialog<void>(
                           context: context,
-                          builder: (_) => _SalaryDialog(store: store, salary: salary),
+                          builder: (_) =>
+                              _SalaryDialog(store: store, salary: salary),
                         ),
                         icon: const Icon(Icons.edit_outlined),
                         label: Text(salary == null ? 'Configurar' : 'Editar'),
@@ -292,7 +333,10 @@ class _OverviewTab extends StatelessWidget {
                     children: <Widget>[
                       const Text(
                         'Calendário do mês',
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 19),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 19,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       if (events.isEmpty)
@@ -308,7 +352,9 @@ class _OverviewTab extends StatelessWidget {
                           (event) => ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: CircleAvatar(
-                              backgroundColor: event.color.withValues(alpha: .16),
+                              backgroundColor: event.color.withValues(
+                                alpha: .16,
+                              ),
                               child: Text(
                                 event.day.toString(),
                                 style: TextStyle(
@@ -393,7 +439,9 @@ class _SalaryDialogState extends State<_SalaryDialog> {
             const SizedBox(height: 12),
             TextField(
               controller: amount,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Valor mensal'),
             ),
             const SizedBox(height: 12),
@@ -416,17 +464,16 @@ class _SalaryDialogState extends State<_SalaryDialog> {
         FilledButton(
           onPressed: () async {
             await widget.store.save(
-              EntityTypes.income,
-              <String, dynamic>{
-                'kind': 'salary',
-                'description': description.text.trim(),
-                'amount': parseMoney(amount.text),
-                'recurring': true,
-                'fixedDay': (int.tryParse(day.text) ?? 5).clamp(1, 31),
-                'date': null,
-              },
-              id: widget.salary?.id,
-            );
+                EntityTypes.income,
+                <String, dynamic>{
+                  'kind': 'salary',
+                  'description': description.text.trim(),
+                  'amount': parseMoney(amount.text),
+                  'recurring': true,
+                  'fixedDay': (int.tryParse(day.text) ?? 5).clamp(1, 31),
+                  'date': null,
+                },
+                id: widget.salary?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -465,7 +512,8 @@ class _TransactionsTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Entradas e saídas',
                   title: 'Lançamentos',
-                  subtitle: 'Cadastre rendas e despesas avulsas ou recorrentes.',
+                  subtitle:
+                      'Cadastre rendas e despesas avulsas ou recorrentes.',
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -557,13 +605,20 @@ class _TransactionSection extends StatelessWidget {
         children: <Widget>[
           Text(
             title,
-            style: TextStyle(color: color, fontSize: 19, fontWeight: FontWeight.w900),
+            style: TextStyle(
+              color: color,
+              fontSize: 19,
+              fontWeight: FontWeight.w900,
+            ),
           ),
           const SizedBox(height: 8),
           if (items.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 18),
-              child: Text('Nenhum lançamento.', style: TextStyle(color: AppColors.textMuted)),
+              child: Text(
+                'Nenhum lançamento.',
+                style: TextStyle(color: AppColors.textMuted),
+              ),
             )
           else
             ...items.map(
@@ -581,13 +636,17 @@ class _TransactionSection extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       _money.format(_amount(item)),
-                      style: TextStyle(color: color, fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     IconButton(
                       onPressed: item.payload['kind'] == 'salary'
                           ? () => showDialog<void>(
                                 context: context,
-                                builder: (_) => _SalaryDialog(store: store, salary: item),
+                                builder: (_) =>
+                                    _SalaryDialog(store: store, salary: item),
                               )
                           : () => showDialog<void>(
                                 context: context,
@@ -640,7 +699,9 @@ class _TransactionDialogState extends State<_TransactionDialog> {
   @override
   void initState() {
     super.initState();
-    description = TextEditingController(text: widget.entity?.payload['description'] as String?);
+    description = TextEditingController(
+      text: widget.entity?.payload['description'] as String?,
+    );
     amount = TextEditingController(
       text: (widget.entity?.payload['amount'] as num?)?.toString() ?? '',
     );
@@ -666,7 +727,9 @@ class _TransactionDialogState extends State<_TransactionDialog> {
   Widget build(BuildContext context) {
     final income = widget.type == EntityTypes.income;
     return AlertDialog(
-      title: Text('${widget.entity == null ? 'Nova' : 'Editar'} ${income ? 'renda' : 'despesa'}'),
+      title: Text(
+        '${widget.entity == null ? 'Nova' : 'Editar'} ${income ? 'renda' : 'despesa'}',
+      ),
       content: SizedBox(
         width: 450,
         child: SingleChildScrollView(
@@ -680,42 +743,63 @@ class _TransactionDialogState extends State<_TransactionDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: amount,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(labelText: 'Valor'),
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String?>(
-                initialValue: widget.store.records(EntityTypes.financeAccount).any((item) => item.id == accountId)
+                initialValue: widget.store
+                        .records(EntityTypes.financeAccount)
+                        .any((item) => item.id == accountId)
                     ? accountId
                     : null,
-                decoration: const InputDecoration(labelText: 'Conta (opcional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Conta (opcional)',
+                ),
                 items: <DropdownMenuItem<String?>>[
-                  const DropdownMenuItem<String?>(value: null, child: Text('Sem conta vinculada')),
-                  ...widget.store.records(EntityTypes.financeAccount).map(
-                    (item) => DropdownMenuItem<String?>(
-                      value: item.id,
-                      child: Text(item.payload['name'] as String? ?? ''),
-                    ),
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('Sem conta vinculada'),
                   ),
+                  ...widget.store.records(EntityTypes.financeAccount).map(
+                        (item) => DropdownMenuItem<String?>(
+                          value: item.id,
+                          child: Text(item.payload['name'] as String? ?? ''),
+                        ),
+                      ),
                 ],
                 onChanged: (value) => setState(() => accountId = value),
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String?>(
-                initialValue: widget.store.records(EntityTypes.financeCategory).any((item) => item.id == categoryId)
+                initialValue: widget.store
+                        .records(EntityTypes.financeCategory)
+                        .any((item) => item.id == categoryId)
                     ? categoryId
                     : null,
-                decoration: const InputDecoration(labelText: 'Categoria (opcional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Categoria (opcional)',
+                ),
                 items: <DropdownMenuItem<String?>>[
-                  const DropdownMenuItem<String?>(value: null, child: Text('Sem categoria')),
-                  ...widget.store.records(EntityTypes.financeCategory)
-                      .where((item) => item.payload['type'] == (income ? 'Receita' : 'Despesa'))
-                      .map(
-                    (item) => DropdownMenuItem<String?>(
-                      value: item.id,
-                      child: Text(_categoryLabel(widget.store, item)),
-                    ),
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('Sem categoria'),
                   ),
+                  ...widget.store
+                      .records(EntityTypes.financeCategory)
+                      .where(
+                        (item) =>
+                            item.payload['type'] ==
+                            (income ? 'Receita' : 'Despesa'),
+                      )
+                      .map(
+                        (item) => DropdownMenuItem<String?>(
+                          value: item.id,
+                          child: Text(_categoryLabel(widget.store, item)),
+                        ),
+                      ),
                 ],
                 onChanged: (value) => setState(() => categoryId = value),
               ),
@@ -729,7 +813,9 @@ class _TransactionDialogState extends State<_TransactionDialog> {
                 TextField(
                   controller: fixedDay,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Dia fixo do mês'),
+                  decoration: const InputDecoration(
+                    labelText: 'Dia fixo do mês',
+                  ),
                 )
               else
                 ListTile(
@@ -757,20 +843,20 @@ class _TransactionDialogState extends State<_TransactionDialog> {
           onPressed: () async {
             if (description.text.trim().isEmpty) return;
             await widget.store.save(
-              widget.type,
-              <String, dynamic>{
-                'description': description.text.trim(),
-                'amount': parseMoney(amount.text),
-                'recurring': recurring,
-                'fixedDay': recurring
-                    ? (int.tryParse(fixedDay.text) ?? 1).clamp(1, 31)
-                    : null,
-                'date': recurring ? null : DateFormat('yyyy-MM-dd').format(date),
-                'accountId': accountId,
-                'categoryId': categoryId,
-              },
-              id: widget.entity?.id,
-            );
+                widget.type,
+                <String, dynamic>{
+                  'description': description.text.trim(),
+                  'amount': parseMoney(amount.text),
+                  'recurring': recurring,
+                  'fixedDay': recurring
+                      ? (int.tryParse(fixedDay.text) ?? 1).clamp(1, 31)
+                      : null,
+                  'date':
+                      recurring ? null : DateFormat('yyyy-MM-dd').format(date),
+                  'accountId': accountId,
+                  'categoryId': categoryId,
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -808,7 +894,8 @@ class _CardsTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Crédito organizado',
                   title: 'Cartões',
-                  subtitle: 'Cadastre limites, fechamento e vencimento de cada cartão.',
+                  subtitle:
+                      'Cadastre limites, fechamento e vencimento de cada cartão.',
                 ),
                 const SizedBox(height: 20),
                 Wrap(
@@ -828,7 +915,8 @@ class _CardsTab extends StatelessWidget {
                           ? null
                           : () => showDialog<void>(
                                 context: context,
-                                builder: (_) => _InvoiceHistoryDialog(store: store),
+                                builder: (_) =>
+                                    _InvoiceHistoryDialog(store: store),
                               ),
                       icon: const Icon(Icons.history),
                       label: const Text('Histórico de faturas'),
@@ -840,7 +928,8 @@ class _CardsTab extends StatelessWidget {
                   const EmptyState(
                     icon: Icons.credit_card,
                     title: 'Nenhum cartão cadastrado',
-                    message: 'Adicione seus cartões para relacionar compras parceladas.',
+                    message:
+                        'Adicione seus cartões para relacionar compras parceladas.',
                   )
                 else
                   LayoutBuilder(
@@ -859,12 +948,27 @@ class _CardsTab extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final card = cards[index];
                           final colors = gradients[index % gradients.length];
-                          final limit = (card.payload['limit'] as num? ?? 0).toDouble();
-                          final invoice = _cardInvoiceForMonth(store, card.id, month);
-                          final committed = _cardCommittedLimit(store, card.id, month);
-                          final available = (limit - committed).clamp(0.0, limit).toDouble();
-                          final paid = FinanceAnalytics.paymentsForMonth(store, card.id, month);
-                          final invoiceRemaining = (invoice - paid).clamp(0.0, invoice).toDouble();
+                          final limit =
+                              (card.payload['limit'] as num? ?? 0).toDouble();
+                          final invoice = _cardInvoiceForMonth(
+                            store,
+                            card.id,
+                            month,
+                          );
+                          final committed = _cardCommittedLimit(
+                            store,
+                            card.id,
+                            month,
+                          );
+                          final available =
+                              (limit - committed).clamp(0.0, limit).toDouble();
+                          final paid = FinanceAnalytics.paymentsForMonth(
+                            store,
+                            card.id,
+                            month,
+                          );
+                          final invoiceRemaining =
+                              (invoice - paid).clamp(0.0, invoice).toDouble();
                           return Container(
                             padding: const EdgeInsets.all(22),
                             decoration: BoxDecoration(
@@ -879,7 +983,9 @@ class _CardsTab extends StatelessWidget {
                                   children: <Widget>[
                                     Text(card.payload['bank'] as String? ?? ''),
                                     const Spacer(),
-                                    Text(card.payload['brand'] as String? ?? ''),
+                                    Text(
+                                      card.payload['brand'] as String? ?? '',
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 10),
@@ -895,7 +1001,8 @@ class _CardsTab extends StatelessWidget {
                                   children: <Widget>[
                                     Expanded(
                                       child: _CreditCardMetric(
-                                        label: 'Fatura de ${DateFormat('MMM', 'pt_BR').format(month)}',
+                                        label:
+                                            'Fatura de ${DateFormat('MMM', 'pt_BR').format(month)}',
                                         value: _money.format(invoice),
                                       ),
                                     ),
@@ -914,7 +1021,10 @@ class _CardsTab extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         'Limite total: ${_money.format(limit)}',
-                                        style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white70,
+                                        ),
                                       ),
                                     ),
                                     Text(
@@ -926,7 +1036,9 @@ class _CardsTab extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w800,
-                                        color: invoiceRemaining <= 0 ? AppColors.green : Colors.white,
+                                        color: invoiceRemaining <= 0
+                                            ? AppColors.green
+                                            : Colors.white,
                                       ),
                                     ),
                                   ],
@@ -937,7 +1049,10 @@ class _CardsTab extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         'Fecha dia ${card.payload['closingDay']} • vence dia ${card.payload['dueDay']}',
-                                        style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white70,
+                                        ),
                                       ),
                                     ),
                                     IconButton(
@@ -949,11 +1064,14 @@ class _CardsTab extends StatelessWidget {
                                           initialCardId: card.id,
                                         ),
                                       ),
-                                      icon: const Icon(Icons.add_shopping_cart_outlined),
+                                      icon: const Icon(
+                                        Icons.add_shopping_cart_outlined,
+                                      ),
                                     ),
                                     if (invoiceRemaining > 0)
                                       IconButton(
-                                        tooltip: 'Registrar pagamento da fatura',
+                                        tooltip:
+                                            'Registrar pagamento da fatura',
                                         onPressed: () => showDialog<void>(
                                           context: context,
                                           builder: (_) => _CardPaymentDialog(
@@ -963,16 +1081,23 @@ class _CardsTab extends StatelessWidget {
                                             remaining: invoiceRemaining,
                                           ),
                                         ),
-                                        icon: const Icon(Icons.payments_outlined),
+                                        icon: const Icon(
+                                          Icons.payments_outlined,
+                                        ),
                                       ),
                                     IconButton(
                                       onPressed: () => showDialog<void>(
                                         context: context,
-                                        builder: (_) => _CardDialog(store: store, entity: card),
+                                        builder: (_) => _CardDialog(
+                                          store: store,
+                                          entity: card,
+                                        ),
                                       ),
                                       icon: const Icon(Icons.edit_outlined),
                                     ),
-                                    ConfirmDeleteButton(onDelete: () => store.remove(card.id)),
+                                    ConfirmDeleteButton(
+                                      onDelete: () => store.remove(card.id),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -990,7 +1115,6 @@ class _CardsTab extends StatelessWidget {
     );
   }
 }
-
 
 class _InvoiceHistoryDialog extends StatelessWidget {
   const _InvoiceHistoryDialog({required this.store});
@@ -1017,18 +1141,33 @@ class _InvoiceHistoryDialog extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),
                 child: Text(
                   DateFormat('MMMM \'de\' yyyy', 'pt_BR').format(month),
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               ...cards.map((card) {
-                final invoice = FinanceAnalytics.invoiceForMonth(store, card.id, month);
-                final paid = FinanceAnalytics.paymentsForMonth(store, card.id, month);
-                final remaining = (invoice - paid).clamp(0.0, invoice).toDouble();
-                final closingDay = (card.payload['closingDay'] as num? ?? 1).toInt();
+                final invoice = FinanceAnalytics.invoiceForMonth(
+                  store,
+                  card.id,
+                  month,
+                );
+                final paid = FinanceAnalytics.paymentsForMonth(
+                  store,
+                  card.id,
+                  month,
+                );
+                final remaining =
+                    (invoice - paid).clamp(0.0, invoice).toDouble();
+                final closingDay =
+                    (card.payload['closingDay'] as num? ?? 1).toInt();
                 final isPastMonth = month.year < now.year ||
                     (month.year == now.year && month.month < now.month);
                 final isClosed = isPastMonth ||
-                    (month.year == now.year && month.month == now.month && now.day > closingDay);
+                    (month.year == now.year &&
+                        month.month == now.month &&
+                        now.day > closingDay);
                 final status = invoice <= 0
                     ? 'Sem fatura'
                     : remaining <= 0
@@ -1038,8 +1177,13 @@ class _InvoiceHistoryDialog extends StatelessWidget {
                             : 'Aberta • falta ${_money.format(remaining)}';
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.credit_card, color: AppColors.green),
-                  title: Text('${card.payload['bank'] ?? ''} • ${_money.format(invoice)}'),
+                  leading: const Icon(
+                    Icons.credit_card,
+                    color: AppColors.green,
+                  ),
+                  title: Text(
+                    '${card.payload['bank'] ?? ''} • ${_money.format(invoice)}',
+                  ),
                   subtitle: Text('Pago: ${_money.format(paid)}'),
                   trailing: Text(
                     status,
@@ -1061,7 +1205,10 @@ class _InvoiceHistoryDialog extends StatelessWidget {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Fechar'),
+        ),
       ],
     );
   }
@@ -1078,7 +1225,10 @@ class _CreditCardMetric extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Colors.white70),
+        ),
         const SizedBox(height: 2),
         Text(
           value,
@@ -1094,11 +1244,19 @@ class _CreditCardMetric extends StatelessWidget {
 double _cardInvoiceForMonth(AppStore store, String cardId, DateTime month) {
   var total = 0.0;
   for (final debt in store.records(EntityTypes.debt)) {
-    if (debt.payload['cardId'] != cardId || debt.payload['status'] == 'Quitada') continue;
-    final purchase = DateTime.tryParse(debt.payload['purchaseDate'] as String? ?? '');
+    if (debt.payload['cardId'] != cardId ||
+        debt.payload['status'] == 'Quitada') {
+      continue;
+    }
+    final purchase = DateTime.tryParse(
+      debt.payload['purchaseDate'] as String? ?? '',
+    );
     if (purchase == null) continue;
     final installments = (debt.payload['installments'] as num? ?? 1).toInt();
-    final current = FinanceUtils.installmentNumber(purchaseDate: purchase, month: month);
+    final current = FinanceUtils.installmentNumber(
+      purchaseDate: purchase,
+      month: month,
+    );
     if (current < 1 || current > installments) continue;
     total += FinanceUtils.installmentValue(
       (debt.payload['total'] as num? ?? 0).toDouble(),
@@ -1111,11 +1269,19 @@ double _cardInvoiceForMonth(AppStore store, String cardId, DateTime month) {
 double _cardCommittedLimit(AppStore store, String cardId, DateTime month) {
   var total = 0.0;
   for (final debt in store.records(EntityTypes.debt)) {
-    if (debt.payload['cardId'] != cardId || debt.payload['status'] == 'Quitada') continue;
-    final purchase = DateTime.tryParse(debt.payload['purchaseDate'] as String? ?? '');
+    if (debt.payload['cardId'] != cardId ||
+        debt.payload['status'] == 'Quitada') {
+      continue;
+    }
+    final purchase = DateTime.tryParse(
+      debt.payload['purchaseDate'] as String? ?? '',
+    );
     if (purchase == null) continue;
     final installments = (debt.payload['installments'] as num? ?? 1).toInt();
-    final current = FinanceUtils.installmentNumber(purchaseDate: purchase, month: month);
+    final current = FinanceUtils.installmentNumber(
+      purchaseDate: purchase,
+      month: month,
+    );
     if (current < 1 || current > installments) continue;
     final installmentValue = FinanceUtils.installmentValue(
       (debt.payload['total'] as num? ?? 0).toDouble(),
@@ -1178,21 +1344,28 @@ class _CardPaymentDialogState extends State<_CardPaymentDialog> {
             const SizedBox(height: 12),
             TextField(
               controller: amount,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Valor pago'),
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String?>(
               initialValue: accountId,
-              decoration: const InputDecoration(labelText: 'Conta usada no pagamento'),
+              decoration: const InputDecoration(
+                labelText: 'Conta usada no pagamento',
+              ),
               items: <DropdownMenuItem<String?>>[
-                const DropdownMenuItem<String?>(value: null, child: Text('Não vincular a uma conta')),
-                ...widget.store.records(EntityTypes.financeAccount).map(
-                  (item) => DropdownMenuItem<String?>(
-                    value: item.id,
-                    child: Text(item.payload['name'] as String? ?? 'Conta'),
-                  ),
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text('Não vincular a uma conta'),
                 ),
+                ...widget.store.records(EntityTypes.financeAccount).map(
+                      (item) => DropdownMenuItem<String?>(
+                        value: item.id,
+                        child: Text(item.payload['name'] as String? ?? 'Conta'),
+                      ),
+                    ),
               ],
               onChanged: (value) => setState(() => accountId = value),
             ),
@@ -1200,14 +1373,18 @@ class _CardPaymentDialogState extends State<_CardPaymentDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
             final value = parseMoney(amount.text);
             if (value <= 0) return;
             await widget.store.save(EntityTypes.cardPayment, <String, dynamic>{
               'cardId': widget.card.id,
-              'monthKey': '${widget.month.year}-${widget.month.month.toString().padLeft(2, '0')}',
+              'monthKey':
+                  '${widget.month.year}-${widget.month.month.toString().padLeft(2, '0')}',
               'amount': value,
               'accountId': accountId,
               'paidAt': DateTime.now().toIso8601String(),
@@ -1259,7 +1436,14 @@ class _CardDialogState extends State<_CardDialog> {
 
   @override
   Widget build(BuildContext context) {
-    const labels = <String>['Banco', 'Nome no cartão', 'Bandeira', 'Limite', 'Dia do fechamento', 'Dia do vencimento'];
+    const labels = <String>[
+      'Banco',
+      'Nome no cartão',
+      'Bandeira',
+      'Limite',
+      'Dia do fechamento',
+      'Dia do vencimento',
+    ];
     return AlertDialog(
       title: Text(widget.entity == null ? 'Novo cartão' : 'Editar cartão'),
       content: SizedBox(
@@ -1283,17 +1467,24 @@ class _CardDialogState extends State<_CardDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
-            await widget.store.save(EntityTypes.card, <String, dynamic>{
-              'bank': fields[0].text.trim(),
-              'name': fields[1].text.trim(),
-              'brand': fields[2].text.trim(),
-              'limit': parseMoney(fields[3].text),
-              'closingDay': (int.tryParse(fields[4].text) ?? 1).clamp(1, 31),
-              'dueDay': (int.tryParse(fields[5].text) ?? 10).clamp(1, 31),
-            }, id: widget.entity?.id);
+            await widget.store.save(
+                EntityTypes.card,
+                <String, dynamic>{
+                  'bank': fields[0].text.trim(),
+                  'name': fields[1].text.trim(),
+                  'brand': fields[2].text.trim(),
+                  'limit': parseMoney(fields[3].text),
+                  'closingDay':
+                      (int.tryParse(fields[4].text) ?? 1).clamp(1, 31),
+                  'dueDay': (int.tryParse(fields[5].text) ?? 10).clamp(1, 31),
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -1342,10 +1533,13 @@ class _DebtsTab extends StatelessWidget {
                   const EmptyState(
                     icon: Icons.receipt_long,
                     title: 'Nenhuma dívida cadastrada',
-                    message: 'Compras parceladas aparecerão como compromisso fixo até a última parcela.',
+                    message:
+                        'Compras parceladas aparecerão como compromisso fixo até a última parcela.',
                   )
                 else
-                  ...debts.map((debt) => _DebtCard(store: store, debt: debt, month: month)),
+                  ...debts.map(
+                    (debt) => _DebtCard(store: store, debt: debt, month: month),
+                  ),
               ],
             ),
           ),
@@ -1356,7 +1550,11 @@ class _DebtsTab extends StatelessWidget {
 }
 
 class _DebtCard extends StatelessWidget {
-  const _DebtCard({required this.store, required this.debt, required this.month});
+  const _DebtCard({
+    required this.store,
+    required this.debt,
+    required this.month,
+  });
 
   final AppStore store;
   final SyncEntity debt;
@@ -1364,10 +1562,15 @@ class _DebtCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final purchase = DateTime.tryParse(debt.payload['purchaseDate'] as String? ?? '') ?? DateTime.now();
+    final purchase =
+        DateTime.tryParse(debt.payload['purchaseDate'] as String? ?? '') ??
+            DateTime.now();
     final installments = (debt.payload['installments'] as num? ?? 1).toInt();
     final total = (debt.payload['total'] as num? ?? 0).toDouble();
-    final current = FinanceUtils.installmentNumber(purchaseDate: purchase, month: month);
+    final current = FinanceUtils.installmentNumber(
+      purchaseDate: purchase,
+      month: month,
+    );
     final remaining = FinanceUtils.remainingInstallments(
       purchaseDate: purchase,
       installments: installments,
@@ -1390,7 +1593,10 @@ class _DebtCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     debt.payload['description'] as String? ?? '',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
                 Chip(label: Text(debt.payload['status'] as String? ?? 'Ativa')),
@@ -1410,7 +1616,9 @@ class _DebtCard extends StatelessWidget {
               runSpacing: 8,
               children: <Widget>[
                 Text('Total: ${_money.format(total)}'),
-                Text('Parcela: ${_money.format(FinanceUtils.installmentValue(total, installments))}'),
+                Text(
+                  'Parcela: ${_money.format(FinanceUtils.installmentValue(total, installments))}',
+                ),
                 Text('Atual: ${current.clamp(0, installments)}/$installments'),
                 Text('Restantes: $remaining'),
                 Text('Termina: ${DateFormat('MM/yyyy').format(end)}'),
@@ -1458,9 +1666,14 @@ class _DebtDialogState extends State<_DebtDialog> {
     super.initState();
     final p = widget.entity?.payload;
     description = TextEditingController(text: p?['description'] as String?);
-    total = TextEditingController(text: (p?['total'] as num?)?.toString() ?? '');
-    installments = TextEditingController(text: (p?['installments'] as num? ?? 1).toString());
-    purchaseDate = DateTime.tryParse(p?['purchaseDate'] as String? ?? '') ?? DateTime.now();
+    total = TextEditingController(
+      text: (p?['total'] as num?)?.toString() ?? '',
+    );
+    installments = TextEditingController(
+      text: (p?['installments'] as num? ?? 1).toString(),
+    );
+    purchaseDate = DateTime.tryParse(p?['purchaseDate'] as String? ?? '') ??
+        DateTime.now();
     cardId = p?['cardId'] as String? ?? widget.initialCardId;
     status = p?['status'] as String? ?? 'Ativa';
   }
@@ -1477,25 +1690,34 @@ class _DebtDialogState extends State<_DebtDialog> {
   Widget build(BuildContext context) {
     final cards = widget.store.records(EntityTypes.card);
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Nova dívida parcelada' : 'Editar dívida'),
+      title: Text(
+        widget.entity == null ? 'Nova dívida parcelada' : 'Editar dívida',
+      ),
       content: SizedBox(
         width: 500,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              TextField(controller: description, decoration: const InputDecoration(labelText: 'Descrição')),
+              TextField(
+                controller: description,
+                decoration: const InputDecoration(labelText: 'Descrição'),
+              ),
               const SizedBox(height: 10),
               TextField(
                 controller: total,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(labelText: 'Valor total'),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: installments,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Quantidade de parcelas'),
+                decoration: const InputDecoration(
+                  labelText: 'Quantidade de parcelas',
+                ),
               ),
               const SizedBox(height: 10),
               ListTile(
@@ -1504,7 +1726,9 @@ class _DebtDialogState extends State<_DebtDialog> {
                   side: const BorderSide(color: AppColors.border),
                 ),
                 leading: const Icon(Icons.calendar_month),
-                title: Text('Compra: ${DateFormat('dd/MM/yyyy').format(purchaseDate)}'),
+                title: Text(
+                  'Compra: ${DateFormat('dd/MM/yyyy').format(purchaseDate)}',
+                ),
                 onTap: () async {
                   final picked = await pickAppDate(context, purchaseDate);
                   if (picked != null) setState(() => purchaseDate = picked);
@@ -1513,13 +1737,20 @@ class _DebtDialogState extends State<_DebtDialog> {
               const SizedBox(height: 10),
               DropdownButtonFormField<String?>(
                 initialValue: cardId,
-                decoration: const InputDecoration(labelText: 'Cartão (opcional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Cartão (opcional)',
+                ),
                 items: <DropdownMenuItem<String?>>[
-                  const DropdownMenuItem<String?>(value: null, child: Text('Sem cartão')),
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('Sem cartão'),
+                  ),
                   ...cards.map(
                     (card) => DropdownMenuItem<String?>(
                       value: card.id,
-                      child: Text('${card.payload['bank']} • ${card.payload['name']}'),
+                      child: Text(
+                        '${card.payload['bank']} • ${card.payload['name']}',
+                      ),
                     ),
                   ),
                 ],
@@ -1530,7 +1761,12 @@ class _DebtDialogState extends State<_DebtDialog> {
                 initialValue: status,
                 decoration: const InputDecoration(labelText: 'Status'),
                 items: const <String>['Ativa', 'Pausada', 'Quitada']
-                    .map((item) => DropdownMenuItem<String>(value: item, child: Text(item)))
+                    .map(
+                      (item) => DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(item),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) => setState(() => status = value!),
               ),
@@ -1539,17 +1775,26 @@ class _DebtDialogState extends State<_DebtDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
-            await widget.store.save(EntityTypes.debt, <String, dynamic>{
-              'description': description.text.trim(),
-              'total': parseMoney(total.text),
-              'purchaseDate': DateFormat('yyyy-MM-dd').format(purchaseDate),
-              'installments': (int.tryParse(installments.text) ?? 1).clamp(1, 600),
-              'cardId': cardId,
-              'status': status,
-            }, id: widget.entity?.id);
+            await widget.store.save(
+                EntityTypes.debt,
+                <String, dynamic>{
+                  'description': description.text.trim(),
+                  'total': parseMoney(total.text),
+                  'purchaseDate': DateFormat('yyyy-MM-dd').format(purchaseDate),
+                  'installments': (int.tryParse(installments.text) ?? 1).clamp(
+                    1,
+                    600,
+                  ),
+                  'cardId': cardId,
+                  'status': status,
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -1581,7 +1826,8 @@ class _LoansTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Compromissos de longo prazo',
                   title: 'Empréstimos',
-                  subtitle: 'Acompanhe credor, parcela, vencimento, prazo e status.',
+                  subtitle:
+                      'Acompanhe credor, parcela, vencimento, prazo e status.',
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
@@ -1597,19 +1843,30 @@ class _LoansTab extends StatelessWidget {
                   const EmptyState(
                     icon: Icons.account_balance,
                     title: 'Nenhum empréstimo',
-                    message: 'Cadastre somente quando precisar acompanhar um contrato.',
+                    message:
+                        'Cadastre somente quando precisar acompanhar um contrato.',
                   )
                 else
                   ...loans.map((loan) {
-                    final start = DateTime.tryParse(loan.payload['startDate'] as String? ?? '') ?? DateTime.now();
-                    final count = (loan.payload['installments'] as num? ?? 1).toInt();
-                    final current = FinanceUtils.installmentNumber(purchaseDate: start, month: month);
+                    final start = DateTime.tryParse(
+                          loan.payload['startDate'] as String? ?? '',
+                        ) ??
+                        DateTime.now();
+                    final count =
+                        (loan.payload['installments'] as num? ?? 1).toInt();
+                    final current = FinanceUtils.installmentNumber(
+                      purchaseDate: start,
+                      month: month,
+                    );
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 14),
                       child: PremiumCard(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.account_balance, color: AppColors.blue),
+                          leading: const Icon(
+                            Icons.account_balance,
+                            color: AppColors.blue,
+                          ),
                           title: Text(
                             loan.payload['description'] as String? ?? '',
                             style: const TextStyle(fontWeight: FontWeight.w900),
@@ -1622,17 +1879,26 @@ class _LoansTab extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
                               Text(
-                                _money.format((loan.payload['monthlyPayment'] as num? ?? 0).toDouble()),
-                                style: const TextStyle(color: AppColors.blue, fontWeight: FontWeight.w900),
+                                _money.format(
+                                  (loan.payload['monthlyPayment'] as num? ?? 0)
+                                      .toDouble(),
+                                ),
+                                style: const TextStyle(
+                                  color: AppColors.blue,
+                                  fontWeight: FontWeight.w900,
+                                ),
                               ),
                               IconButton(
                                 onPressed: () => showDialog<void>(
                                   context: context,
-                                  builder: (_) => _LoanDialog(store: store, entity: loan),
+                                  builder: (_) =>
+                                      _LoanDialog(store: store, entity: loan),
                                 ),
                                 icon: const Icon(Icons.edit_outlined),
                               ),
-                              ConfirmDeleteButton(onDelete: () => store.remove(loan.id)),
+                              ConfirmDeleteButton(
+                                onDelete: () => store.remove(loan.id),
+                              ),
                             ],
                           ),
                         ),
@@ -1671,11 +1937,14 @@ class _LoanDialogState extends State<_LoanDialog> {
       TextEditingController(text: p?['description'] as String?),
       TextEditingController(text: p?['lender'] as String?),
       TextEditingController(text: (p?['total'] as num?)?.toString() ?? ''),
-      TextEditingController(text: (p?['monthlyPayment'] as num?)?.toString() ?? ''),
+      TextEditingController(
+        text: (p?['monthlyPayment'] as num?)?.toString() ?? '',
+      ),
       TextEditingController(text: (p?['installments'] as num? ?? 1).toString()),
       TextEditingController(text: (p?['dueDay'] as num? ?? 10).toString()),
     ];
-    start = DateTime.tryParse(p?['startDate'] as String? ?? '') ?? DateTime.now();
+    start =
+        DateTime.tryParse(p?['startDate'] as String? ?? '') ?? DateTime.now();
     status = p?['status'] as String? ?? 'Ativo';
   }
 
@@ -1689,31 +1958,45 @@ class _LoanDialogState extends State<_LoanDialog> {
 
   @override
   Widget build(BuildContext context) {
-    const labels = <String>['Descrição', 'Banco / credor', 'Valor total', 'Valor da parcela', 'Parcelas', 'Dia do vencimento'];
+    const labels = <String>[
+      'Descrição',
+      'Banco / credor',
+      'Valor total',
+      'Valor da parcela',
+      'Parcelas',
+      'Dia do vencimento',
+    ];
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Novo empréstimo' : 'Editar empréstimo'),
+      title: Text(
+        widget.entity == null ? 'Novo empréstimo' : 'Editar empréstimo',
+      ),
       content: SizedBox(
         width: 480,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              ...List<Widget>.generate(fields.length, (index) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: TextField(
-                      controller: fields[index],
-                      keyboardType: index >= 2
-                          ? const TextInputType.numberWithOptions(decimal: true)
-                          : TextInputType.text,
-                      decoration: InputDecoration(labelText: labels[index]),
-                    ),
-                  )),
+              ...List<Widget>.generate(
+                fields.length,
+                (index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: TextField(
+                    controller: fields[index],
+                    keyboardType: index >= 2
+                        ? const TextInputType.numberWithOptions(decimal: true)
+                        : TextInputType.text,
+                    decoration: InputDecoration(labelText: labels[index]),
+                  ),
+                ),
+              ),
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                   side: const BorderSide(color: AppColors.border),
                 ),
-                title: Text('Início: ${DateFormat('dd/MM/yyyy').format(start)}'),
+                title: Text(
+                  'Início: ${DateFormat('dd/MM/yyyy').format(start)}',
+                ),
                 leading: const Icon(Icons.calendar_month),
                 onTap: () async {
                   final picked = await pickAppDate(context, start);
@@ -1725,7 +2008,12 @@ class _LoanDialogState extends State<_LoanDialog> {
                 initialValue: status,
                 decoration: const InputDecoration(labelText: 'Status'),
                 items: const <String>['Ativo', 'Pausado', 'Quitado']
-                    .map((item) => DropdownMenuItem<String>(value: item, child: Text(item)))
+                    .map(
+                      (item) => DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(item),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) => setState(() => status = value!),
               ),
@@ -1734,19 +2022,26 @@ class _LoanDialogState extends State<_LoanDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
-            await widget.store.save(EntityTypes.loan, <String, dynamic>{
-              'description': fields[0].text.trim(),
-              'lender': fields[1].text.trim(),
-              'total': parseMoney(fields[2].text),
-              'monthlyPayment': parseMoney(fields[3].text),
-              'installments': (int.tryParse(fields[4].text) ?? 1).clamp(1, 600),
-              'dueDay': (int.tryParse(fields[5].text) ?? 10).clamp(1, 31),
-              'startDate': DateFormat('yyyy-MM-dd').format(start),
-              'status': status,
-            }, id: widget.entity?.id);
+            await widget.store.save(
+                EntityTypes.loan,
+                <String, dynamic>{
+                  'description': fields[0].text.trim(),
+                  'lender': fields[1].text.trim(),
+                  'total': parseMoney(fields[2].text),
+                  'monthlyPayment': parseMoney(fields[3].text),
+                  'installments':
+                      (int.tryParse(fields[4].text) ?? 1).clamp(1, 600),
+                  'dueDay': (int.tryParse(fields[5].text) ?? 10).clamp(1, 31),
+                  'startDate': DateFormat('yyyy-MM-dd').format(start),
+                  'status': status,
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -1776,65 +2071,83 @@ class _FinanceEvent {
 List<_FinanceEvent> _calendarEvents(AppStore store, DateTime month) {
   final events = <_FinanceEvent>[];
   for (final income in store.records(EntityTypes.income)) {
-    if (income.payload['recurring'] == true || _inMonth(income.payload['date'] as String?, month)) {
+    if (income.payload['recurring'] == true ||
+        _inMonth(income.payload['date'] as String?, month)) {
       final date = DateTime.tryParse(income.payload['date'] as String? ?? '');
-      events.add(_FinanceEvent(
-        day: income.payload['recurring'] == true
-            ? (income.payload['fixedDay'] as num? ?? 1).toInt()
-            : date?.day ?? 1,
-        title: income.payload['description'] as String? ?? 'Renda',
-        subtitle: 'Recebimento',
-        value: _amount(income),
-        color: AppColors.green,
-      ));
+      events.add(
+        _FinanceEvent(
+          day: income.payload['recurring'] == true
+              ? (income.payload['fixedDay'] as num? ?? 1).toInt()
+              : date?.day ?? 1,
+          title: income.payload['description'] as String? ?? 'Renda',
+          subtitle: 'Recebimento',
+          value: _amount(income),
+          color: AppColors.green,
+        ),
+      );
     }
   }
   for (final expense in store.records(EntityTypes.expense)) {
-    if (expense.payload['recurring'] == true || _inMonth(expense.payload['date'] as String?, month)) {
+    if (expense.payload['recurring'] == true ||
+        _inMonth(expense.payload['date'] as String?, month)) {
       final date = DateTime.tryParse(expense.payload['date'] as String? ?? '');
-      events.add(_FinanceEvent(
-        day: expense.payload['recurring'] == true
-            ? (expense.payload['fixedDay'] as num? ?? 1).toInt()
-            : date?.day ?? 1,
-        title: expense.payload['description'] as String? ?? 'Despesa',
-        subtitle: 'Pagamento',
-        value: _amount(expense),
-        color: AppColors.red,
-      ));
+      events.add(
+        _FinanceEvent(
+          day: expense.payload['recurring'] == true
+              ? (expense.payload['fixedDay'] as num? ?? 1).toInt()
+              : date?.day ?? 1,
+          title: expense.payload['description'] as String? ?? 'Despesa',
+          subtitle: 'Pagamento',
+          value: _amount(expense),
+          color: AppColors.red,
+        ),
+      );
     }
   }
   for (final debt in store.records(EntityTypes.debt)) {
-    final purchase = DateTime.tryParse(debt.payload['purchaseDate'] as String? ?? '');
+    final purchase = DateTime.tryParse(
+      debt.payload['purchaseDate'] as String? ?? '',
+    );
     final installments = (debt.payload['installments'] as num? ?? 1).toInt();
     if (purchase == null || debt.payload['status'] == 'Quitada') continue;
-    final current = FinanceUtils.installmentNumber(purchaseDate: purchase, month: month);
+    final current = FinanceUtils.installmentNumber(
+      purchaseDate: purchase,
+      month: month,
+    );
     if (current < 1 || current > installments) continue;
     final card = store.byId(debt.payload['cardId'] as String? ?? '');
     final day = (card?.payload['dueDay'] as num? ?? purchase.day).toInt();
-    events.add(_FinanceEvent(
-      day: day,
-      title: debt.payload['description'] as String? ?? 'Parcela',
-      subtitle: 'Parcela $current/$installments',
-      value: FinanceUtils.installmentValue(
-        (debt.payload['total'] as num? ?? 0).toDouble(),
-        installments,
+    events.add(
+      _FinanceEvent(
+        day: day,
+        title: debt.payload['description'] as String? ?? 'Parcela',
+        subtitle: 'Parcela $current/$installments',
+        value: FinanceUtils.installmentValue(
+          (debt.payload['total'] as num? ?? 0).toDouble(),
+          installments,
+        ),
+        color: AppColors.orange,
       ),
-      color: AppColors.orange,
-    ));
+    );
   }
   for (final loan in store.records(EntityTypes.loan)) {
     final start = DateTime.tryParse(loan.payload['startDate'] as String? ?? '');
     final installments = (loan.payload['installments'] as num? ?? 1).toInt();
     if (start == null || loan.payload['status'] == 'Quitado') continue;
-    final current = FinanceUtils.installmentNumber(purchaseDate: start, month: month);
+    final current = FinanceUtils.installmentNumber(
+      purchaseDate: start,
+      month: month,
+    );
     if (current < 1 || current > installments) continue;
-    events.add(_FinanceEvent(
-      day: (loan.payload['dueDay'] as num? ?? 1).toInt(),
-      title: loan.payload['description'] as String? ?? 'Empréstimo',
-      subtitle: 'Empréstimo $current/$installments',
-      value: (loan.payload['monthlyPayment'] as num? ?? 0).toDouble(),
-      color: AppColors.blue,
-    ));
+    events.add(
+      _FinanceEvent(
+        day: (loan.payload['dueDay'] as num? ?? 1).toInt(),
+        title: loan.payload['description'] as String? ?? 'Empréstimo',
+        subtitle: 'Empréstimo $current/$installments',
+        value: (loan.payload['monthlyPayment'] as num? ?? 0).toDouble(),
+        color: AppColors.blue,
+      ),
+    );
   }
   events.sort((a, b) => a.day.compareTo(b.day));
   return events;

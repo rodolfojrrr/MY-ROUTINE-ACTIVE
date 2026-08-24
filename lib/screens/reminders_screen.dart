@@ -18,8 +18,11 @@ class RemindersScreen extends StatelessWidget {
       animation: store,
       builder: (context, _) {
         final reminders = store.records(EntityTypes.reminder)
-          ..sort((a, b) => (a.payload['dateTime'] as String? ?? '')
-              .compareTo(b.payload['dateTime'] as String? ?? ''));
+          ..sort(
+            (a, b) => (a.payload['dateTime'] as String? ?? '').compareTo(
+              b.payload['dateTime'] as String? ?? '',
+            ),
+          );
         return Scaffold(
           appBar: AppBar(title: const Text('Lembretes')),
           body: PremiumBackground(
@@ -35,8 +38,7 @@ class RemindersScreen extends StatelessWidget {
                         const PageIntro(
                           eyebrow: 'Rotina',
                           title: 'Lembretes locais',
-                          subtitle:
-                              'No Android, os lembretes podem aparecer como notificação. No Windows, continuam visíveis no painel do aplicativo.',
+                          subtitle: 'No Android, os lembretes podem aparecer como notificação. No Windows, continuam visíveis no painel do aplicativo.',
                         ),
                         const SizedBox(height: 18),
                         Wrap(
@@ -53,7 +55,9 @@ class RemindersScreen extends StatelessWidget {
                             ),
                             FilledButton.tonalIcon(
                               onPressed: () async {
-                                final allowed = await NotificationService.instance.requestPermission();
+                                final allowed = await NotificationService
+                                    .instance
+                                    .requestPermission();
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -65,7 +69,9 @@ class RemindersScreen extends StatelessWidget {
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.notifications_active_outlined),
+                              icon: const Icon(
+                                Icons.notifications_active_outlined,
+                              ),
                               label: const Text('Ativar notificações'),
                             ),
                           ],
@@ -78,48 +84,63 @@ class RemindersScreen extends StatelessWidget {
                             message: 'Crie lembretes para provas, contas, treinos ou qualquer compromisso da rotina.',
                           )
                         else
-                          ...reminders.map(
-                            (item) {
-                              final date = DateTime.tryParse(item.payload['dateTime'] as String? ?? '');
-                              final past = date != null && date.isBefore(DateTime.now());
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: PremiumCard(
-                                  borderColor: past ? AppColors.border : AppColors.green.withValues(alpha: .5),
-                                  child: ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    leading: Icon(
-                                      past ? Icons.notifications_paused_outlined : Icons.notifications_active_outlined,
-                                      color: past ? AppColors.textMuted : AppColors.green,
-                                    ),
-                                    title: Text(item.payload['title'] as String? ?? ''),
-                                    subtitle: Text(
-                                      '${_formatDateTime(item.payload['dateTime'] as String?)}\n${item.payload['notes'] ?? ''}',
-                                    ),
-                                    isThreeLine: (item.payload['notes'] as String? ?? '').isNotEmpty,
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        IconButton(
-                                          onPressed: () => showDialog<void>(
-                                            context: context,
-                                            builder: (_) => _ReminderDialog(store: store, entity: item),
+                          ...reminders.map((item) {
+                            final date = DateTime.tryParse(
+                              item.payload['dateTime'] as String? ?? '',
+                            );
+                            final past =
+                                date != null && date.isBefore(DateTime.now());
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: PremiumCard(
+                                borderColor: past
+                                    ? AppColors.border
+                                    : AppColors.green.withValues(alpha: .5),
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: Icon(
+                                    past
+                                        ? Icons.notifications_paused_outlined
+                                        : Icons.notifications_active_outlined,
+                                    color: past
+                                        ? AppColors.textMuted
+                                        : AppColors.green,
+                                  ),
+                                  title: Text(
+                                    item.payload['title'] as String? ?? '',
+                                  ),
+                                  subtitle: Text(
+                                    '${_formatDateTime(item.payload['dateTime'] as String?)}\n${item.payload['notes'] ?? ''}',
+                                  ),
+                                  isThreeLine:
+                                      (item.payload['notes'] as String? ?? '')
+                                          .isNotEmpty,
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      IconButton(
+                                        onPressed: () => showDialog<void>(
+                                          context: context,
+                                          builder: (_) => _ReminderDialog(
+                                            store: store,
+                                            entity: item,
                                           ),
-                                          icon: const Icon(Icons.edit_outlined),
                                         ),
-                                        ConfirmDeleteButton(
-                                          onDelete: () async {
-                                            await NotificationService.instance.cancelReminder(item.id);
-                                            await store.remove(item.id);
-                                          },
-                                        ),
-                                      ],
-                                    ),
+                                        icon: const Icon(Icons.edit_outlined),
+                                      ),
+                                      ConfirmDeleteButton(
+                                        onDelete: () async {
+                                          await NotificationService.instance
+                                              .cancelReminder(item.id);
+                                          await store.remove(item.id);
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              );
-                            },
-                          ),
+                              ),
+                            );
+                          }),
                       ],
                     ),
                   ),
@@ -153,9 +174,16 @@ class _ReminderDialogState extends State<_ReminderDialog> {
   @override
   void initState() {
     super.initState();
-    title = TextEditingController(text: widget.entity?.payload['title'] as String? ?? '');
-    notes = TextEditingController(text: widget.entity?.payload['notes'] as String? ?? '');
-    dateTime = DateTime.tryParse(widget.entity?.payload['dateTime'] as String? ?? '') ??
+    title = TextEditingController(
+      text: widget.entity?.payload['title'] as String? ?? '',
+    );
+    notes = TextEditingController(
+      text: widget.entity?.payload['notes'] as String? ?? '',
+    );
+    dateTime =
+        DateTime.tryParse(
+          widget.entity?.payload['dateTime'] as String? ?? '',
+        ) ??
         DateTime.now().add(const Duration(hours: 1));
     category = widget.entity?.payload['category'] as String? ?? 'Geral';
     enabled = widget.entity?.payload['enabled'] != false;
@@ -177,7 +205,13 @@ class _ReminderDialogState extends State<_ReminderDialog> {
     );
     if (time == null || !mounted) return;
     setState(() {
-      dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      dateTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
@@ -190,15 +224,21 @@ class _ReminderDialogState extends State<_ReminderDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            TextField(controller: title, decoration: const InputDecoration(labelText: 'Título')),
+            TextField(
+              controller: title,
+              decoration: const InputDecoration(labelText: 'Título'),
+            ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: category,
               decoration: const InputDecoration(labelText: 'Categoria'),
               items: const <String>['Geral', 'Estudos', 'Treinos', 'Finanças']
-                  .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+                  .map(
+                    (item) => DropdownMenuItem(value: item, child: Text(item)),
+                  )
                   .toList(),
-              onChanged: (value) => setState(() => category = value ?? category),
+              onChanged: (value) =>
+                  setState(() => category = value ?? category),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -225,17 +265,24 @@ class _ReminderDialogState extends State<_ReminderDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
             if (title.text.trim().isEmpty) return;
-            final entity = await widget.store.save(EntityTypes.reminder, <String, dynamic>{
-              'title': title.text.trim(),
-              'notes': notes.text.trim(),
-              'category': category,
-              'dateTime': dateTime.toIso8601String(),
-              'enabled': enabled,
-            }, id: widget.entity?.id);
+            final entity = await widget.store.save(
+              EntityTypes.reminder,
+              <String, dynamic>{
+                'title': title.text.trim(),
+                'notes': notes.text.trim(),
+                'category': category,
+                'dateTime': dateTime.toIso8601String(),
+                'enabled': enabled,
+              },
+              id: widget.entity?.id,
+            );
             await NotificationService.instance.scheduleReminder(entity);
             if (!context.mounted) return;
             Navigator.pop(context);
@@ -249,5 +296,7 @@ class _ReminderDialogState extends State<_ReminderDialog> {
 
 String _formatDateTime(String? value) {
   final date = DateTime.tryParse(value ?? '');
-  return date == null ? 'Sem data' : DateFormat('dd/MM/yyyy HH:mm').format(date);
+  return date == null
+      ? 'Sem data'
+      : DateFormat('dd/MM/yyyy HH:mm').format(date);
 }

@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title My Routine Active - Gerar Windows
+title Smart Routine SI - Gerar Windows
 cd /d "%~dp0"
 
 where flutter >nul 2>nul
@@ -12,9 +12,9 @@ flutter build windows --release
 if errorlevel 1 goto :erro
 
 if not exist "ENTREGAS" mkdir "ENTREGAS"
-if exist "ENTREGAS\My-Routine-Active-Windows" rmdir /s /q "ENTREGAS\My-Routine-Active-Windows"
-xcopy /e /i /y "build\windows\x64\runner\Release" "ENTREGAS\My-Routine-Active-Windows" >nul
-powershell -NoProfile -Command "Compress-Archive -Path 'ENTREGAS\My-Routine-Active-Windows\*' -DestinationPath 'ENTREGAS\My-Routine-Active-Windows.zip' -Force"
+if exist "ENTREGAS\Smart-Routine-SI-Windows" rmdir /s /q "ENTREGAS\Smart-Routine-SI-Windows"
+xcopy /e /i /y "build\windows\x64\runner\Release" "ENTREGAS\Smart-Routine-SI-Windows" >nul
+powershell -NoProfile -Command "Compress-Archive -Path 'ENTREGAS\Smart-Routine-SI-Windows\*' -DestinationPath 'ENTREGAS\Smart-Routine-SI-Windows.zip' -Force"
 if errorlevel 1 goto :erro
 
 set "ISCC=%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe"
@@ -30,8 +30,8 @@ if exist "%ISCC%" (
 
 echo.
 echo Pacote Windows criado em:
-echo %CD%\ENTREGAS\My-Routine-Active-Windows.zip
-if exist "ENTREGAS\My-Routine-Active-Setup.exe" echo %CD%\ENTREGAS\My-Routine-Active-Setup.exe
+echo %CD%\ENTREGAS\Smart-Routine-SI-Windows.zip
+if exist "ENTREGAS\Smart-Routine-SI-Setup.exe" echo %CD%\ENTREGAS\Smart-Routine-SI-Setup.exe
 explorer "%CD%\ENTREGAS"
 pause
 exit /b 0

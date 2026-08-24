@@ -51,8 +51,7 @@ class _ConflictsScreenState extends State<ConflictsScreen> {
                         const PageIntro(
                           eyebrow: 'Sincronização',
                           title: 'Conflitos preservados',
-                          subtitle:
-                              'Quando PC e celular alteram o mesmo registro, o aplicativo guarda as duas versões para auditoria em vez de apagar silenciosamente.',
+                          subtitle: 'Quando PC e celular alteram o mesmo registro, o aplicativo guarda as duas versões para auditoria em vez de apagar silenciosamente.',
                         ),
                         const SizedBox(height: 18),
                         if (conflicts.isEmpty)
@@ -75,41 +74,67 @@ class _ConflictsScreenState extends State<ConflictsScreen> {
                                   children: <Widget>[
                                     Row(
                                       children: <Widget>[
-                                        const Icon(Icons.merge_type, color: AppColors.orange),
+                                        const Icon(
+                                          Icons.merge_type,
+                                          color: AppColors.orange,
+                                        ),
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
                                             'Registro ${item['entity_id'] ?? ''}',
-                                            style: const TextStyle(fontWeight: FontWeight.w900),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                            ),
                                           ),
                                         ),
-                                        Text(DateFormat('dd/MM/yyyy HH:mm').format(created)),
+                                        Text(
+                                          DateFormat('dd/MM/yyyy HH:mm')
+                                              .format(created),
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
                                       'Versão vencedora: ${item['winner_device_id'] ?? ''}',
-                                      style: const TextStyle(color: AppColors.textMuted),
+                                      style: const TextStyle(
+                                        color: AppColors.textMuted,
+                                      ),
                                     ),
                                     const SizedBox(height: 10),
                                     ExpansionTile(
                                       tilePadding: EdgeInsets.zero,
-                                      title: const Text('Ver versões preservadas'),
+                                      title: const Text(
+                                        'Ver versões preservadas',
+                                      ),
                                       children: <Widget>[
-                                        _JsonBox(label: 'Local', value: item['local_json']?.toString() ?? ''),
+                                        _JsonBox(
+                                          label: 'Local',
+                                          value:
+                                              item['local_json']?.toString() ??
+                                              '',
+                                        ),
                                         const SizedBox(height: 8),
-                                        _JsonBox(label: 'Remota', value: item['remote_json']?.toString() ?? ''),
+                                        _JsonBox(
+                                          label: 'Remota',
+                                          value:
+                                              item['remote_json']?.toString() ??
+                                              '',
+                                        ),
                                       ],
                                     ),
                                     Align(
                                       alignment: Alignment.centerRight,
                                       child: FilledButton.tonalIcon(
                                         onPressed: () async {
-                                          await widget.store.resolveConflict((item['id'] as num).toInt());
+                                          await widget.store.resolveConflict(
+                                            (item['id'] as num).toInt(),
+                                          );
                                           _reload();
                                         },
                                         icon: const Icon(Icons.check),
-                                        label: const Text('Marcar como revisado'),
+                                        label: const Text(
+                                          'Marcar como revisado',
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -150,7 +175,10 @@ class _JsonBox extends StatelessWidget {
         children: <Widget>[
           Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
           const SizedBox(height: 5),
-          SelectableText(value, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          SelectableText(
+            value,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          ),
         ],
       ),
     );

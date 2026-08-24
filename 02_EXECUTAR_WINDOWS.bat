@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title My Routine Active - Executar no Windows
+title Smart Routine SI - Executar no Windows
 cd /d "%~dp0"
 
 where flutter >nul 2>nul
@@ -22,4 +22,3 @@ echo.
 echo Falha ao executar. Confira o README.md e a saida acima.
 pause
 exit /b 1
-

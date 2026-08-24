@@ -61,7 +61,9 @@ class _PlansTab extends StatelessWidget {
 
   Future<void> _editPlan(BuildContext context, [SyncEntity? plan]) async {
     final name = TextEditingController(text: plan?.payload['name'] as String?);
-    final focus = TextEditingController(text: plan?.payload['focus'] as String?);
+    final focus = TextEditingController(
+      text: plan?.payload['focus'] as String?,
+    );
     final day = TextEditingController(text: plan?.payload['day'] as String?);
     final saved = await showDialog<bool>(
       context: context,
@@ -89,9 +91,7 @@ class _PlansTab extends StatelessWidget {
               const SizedBox(height: 12),
               TextField(
                 controller: day,
-                decoration: const InputDecoration(
-                  labelText: 'Dia sugerido',
-                ),
+                decoration: const InputDecoration(labelText: 'Dia sugerido'),
               ),
             ],
           ),
@@ -109,15 +109,11 @@ class _PlansTab extends StatelessWidget {
       ),
     );
     if (saved == true && name.text.trim().isNotEmpty) {
-      await store.save(
-        EntityTypes.workoutPlan,
-        <String, dynamic>{
-          'name': name.text.trim(),
-          'focus': focus.text.trim(),
-          'day': day.text.trim(),
-        },
-        id: plan?.id,
-      );
+      await store.save(EntityTypes.workoutPlan, <String, dynamic>{
+        'name': name.text.trim(),
+        'focus': focus.text.trim(),
+        'day': day.text.trim(),
+      }, id: plan?.id);
     }
     name.dispose();
     focus.dispose();
@@ -156,8 +152,7 @@ class _PlansTab extends StatelessWidget {
               const PageIntro(
                 eyebrow: 'Evolução mensurável',
                 title: 'Suas fichas de treino',
-                subtitle:
-                    'Cada série tem repetições, carga e tipo próprios. Cronometre exercícios e descansos separadamente.',
+                subtitle: 'Cada série tem repetições, carga e tipo próprios. Cronometre exercícios e descansos separadamente.',
                 color: AppColors.orange,
               ),
               const SizedBox(height: 20),
@@ -192,7 +187,9 @@ class _PlansTab extends StatelessWidget {
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: AppColors.orange.withValues(alpha: .16),
+                                  color: AppColors.orange.withValues(
+                                    alpha: .16,
+                                  ),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: const Icon(
@@ -214,9 +211,13 @@ class _PlansTab extends StatelessWidget {
                                     ),
                                     Text(
                                       <String>[
-                                        plan.payload['focus'] as String? ?? '',
-                                        plan.payload['day'] as String? ?? '',
-                                      ].where((item) => item.isNotEmpty).join(' • '),
+                                            plan.payload['focus'] as String? ??
+                                                '',
+                                            plan.payload['day'] as String? ??
+                                                '',
+                                          ]
+                                          .where((item) => item.isNotEmpty)
+                                          .join(' • '),
                                       style: const TextStyle(
                                         color: AppColors.textMuted,
                                       ),
@@ -275,13 +276,13 @@ class _PlansTab extends StatelessWidget {
                                 onPressed: exercises.isEmpty
                                     ? null
                                     : () => Navigator.of(context).push(
-                                          MaterialPageRoute<void>(
-                                            builder: (_) => WorkoutSessionScreen(
-                                              store: store,
-                                              plan: plan,
-                                            ),
+                                        MaterialPageRoute<void>(
+                                          builder: (_) => WorkoutSessionScreen(
+                                            store: store,
+                                            plan: plan,
                                           ),
                                         ),
+                                      ),
                                 icon: const Icon(Icons.play_arrow),
                                 label: const Text('Iniciar treino'),
                               ),
@@ -313,12 +314,16 @@ class _ExerciseSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sets = store
-        .records(EntityTypes.exerciseSet)
-        .where((item) => item.payload['exerciseId'] == exercise.id)
-        .toList()
-      ..sort((a, b) => (a.payload['position'] as num? ?? 0)
-          .compareTo(b.payload['position'] as num? ?? 0));
+    final sets =
+        store
+            .records(EntityTypes.exerciseSet)
+            .where((item) => item.payload['exerciseId'] == exercise.id)
+            .toList()
+          ..sort(
+            (a, b) => (a.payload['position'] as num? ?? 0).compareTo(
+              b.payload['position'] as num? ?? 0,
+            ),
+          );
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -347,10 +352,12 @@ class _ExerciseSummary extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  sets.map((set) {
-                    final type = set.payload['type'] as String? ?? 'Normal';
-                    return '$type: ${set.payload['reps']} reps × ${set.payload['load']} kg';
-                  }).join('  •  '),
+                  sets
+                      .map((set) {
+                        final type = set.payload['type'] as String? ?? 'Normal';
+                        return '$type: ${set.payload['reps']} reps × ${set.payload['load']} kg';
+                      })
+                      .join('  •  '),
                   style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 13,
@@ -380,8 +387,8 @@ class _SetDraft {
     this.type = 'Normal',
     String reps = '10',
     String load = '0',
-  })  : reps = TextEditingController(text: reps),
-        load = TextEditingController(text: load);
+  }) : reps = TextEditingController(text: reps),
+       load = TextEditingController(text: load);
 
   final String? id;
   String type;
@@ -419,19 +426,27 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
   @override
   void initState() {
     super.initState();
-    name = TextEditingController(text: widget.entity?.payload['name'] as String?);
-    notes = TextEditingController(text: widget.entity?.payload['notes'] as String?);
+    name = TextEditingController(
+      text: widget.entity?.payload['name'] as String?,
+    );
+    notes = TextEditingController(
+      text: widget.entity?.payload['notes'] as String?,
+    );
     rest = TextEditingController(
       text: (widget.entity?.payload['restSeconds'] as num? ?? 90).toString(),
     );
     group = widget.entity?.payload['group'] as String? ?? 'Geral';
     if (widget.entity != null) {
-      final existing = widget.store
-          .records(EntityTypes.exerciseSet)
-          .where((item) => item.payload['exerciseId'] == widget.entity!.id)
-          .toList()
-        ..sort((a, b) => (a.payload['position'] as num? ?? 0)
-            .compareTo(b.payload['position'] as num? ?? 0));
+      final existing =
+          widget.store
+              .records(EntityTypes.exerciseSet)
+              .where((item) => item.payload['exerciseId'] == widget.entity!.id)
+              .toList()
+            ..sort(
+              (a, b) => (a.payload['position'] as num? ?? 0).compareTo(
+                b.payload['position'] as num? ?? 0,
+              ),
+            );
       for (final item in existing) {
         drafts.add(
           _SetDraft(
@@ -479,26 +494,25 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
     final original = widget.entity == null
         ? <SyncEntity>[]
         : widget.store
-            .records(EntityTypes.exerciseSet)
-            .where((item) => item.payload['exerciseId'] == widget.entity!.id)
-            .toList();
-    final retainedIds = drafts.map((item) => item.id).whereType<String>().toSet();
+              .records(EntityTypes.exerciseSet)
+              .where((item) => item.payload['exerciseId'] == widget.entity!.id)
+              .toList();
+    final retainedIds = drafts
+        .map((item) => item.id)
+        .whereType<String>()
+        .toSet();
     for (final item in original) {
       if (!retainedIds.contains(item.id)) await widget.store.remove(item.id);
     }
     for (var index = 0; index < drafts.length; index++) {
       final draft = drafts[index];
-      await widget.store.save(
-        EntityTypes.exerciseSet,
-        <String, dynamic>{
-          'exerciseId': exercise.id,
-          'position': index + 1,
-          'type': draft.type,
-          'reps': int.tryParse(draft.reps.text) ?? 0,
-          'load': double.tryParse(draft.load.text.replaceAll(',', '.')) ?? 0,
-        },
-        id: draft.id,
-      );
+      await widget.store.save(EntityTypes.exerciseSet, <String, dynamic>{
+        'exerciseId': exercise.id,
+        'position': index + 1,
+        'type': draft.type,
+        'reps': int.tryParse(draft.reps.text) ?? 0,
+        'load': double.tryParse(draft.load.text.replaceAll(',', '.')) ?? 0,
+      }, id: draft.id);
     }
     if (mounted) Navigator.pop(context);
   }
@@ -506,7 +520,9 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Novo exercício' : 'Editar exercício'),
+      title: Text(
+        widget.entity == null ? 'Novo exercício' : 'Editar exercício',
+      ),
       content: SizedBox(
         width: 650,
         child: SingleChildScrollView(
@@ -522,20 +538,28 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
               DropdownButtonFormField<String>(
                 initialValue: group,
                 decoration: const InputDecoration(labelText: 'Grupo muscular'),
-                items: const <String>[
-                  'Geral',
-                  'Peito',
-                  'Costas',
-                  'Ombros',
-                  'Bíceps',
-                  'Tríceps',
-                  'Quadríceps',
-                  'Posterior',
-                  'Glúteos',
-                  'Panturrilhas',
-                  'Abdômen',
-                  'Cardio',
-                ].map((item) => DropdownMenuItem<String>(value: item, child: Text(item))).toList(),
+                items:
+                    const <String>[
+                          'Geral',
+                          'Peito',
+                          'Costas',
+                          'Ombros',
+                          'Bíceps',
+                          'Tríceps',
+                          'Quadríceps',
+                          'Posterior',
+                          'Glúteos',
+                          'Panturrilhas',
+                          'Abdômen',
+                          'Cardio',
+                        ]
+                        .map(
+                          (item) => DropdownMenuItem<String>(
+                            value: item,
+                            child: Text(item),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (value) => setState(() => group = value ?? group),
               ),
               const SizedBox(height: 12),
@@ -554,7 +578,9 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
                   Expanded(
                     child: TextField(
                       controller: notes,
-                      decoration: const InputDecoration(labelText: 'Observações'),
+                      decoration: const InputDecoration(
+                        labelText: 'Observações',
+                      ),
                     ),
                   ),
                 ],
@@ -586,19 +612,20 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
                         child: DropdownButtonFormField<String>(
                           initialValue: draft.type,
                           decoration: const InputDecoration(labelText: 'Tipo'),
-                          items: const <String>[
-                            'Aquecimento',
-                            'Normal',
-                            'Falha',
-                            'Drop-set',
-                          ]
-                              .map(
-                                (type) => DropdownMenuItem<String>(
-                                  value: type,
-                                  child: Text(type),
-                                ),
-                              )
-                              .toList(),
+                          items:
+                              const <String>[
+                                    'Aquecimento',
+                                    'Normal',
+                                    'Falha',
+                                    'Drop-set',
+                                  ]
+                                  .map(
+                                    (type) => DropdownMenuItem<String>(
+                                      value: type,
+                                      child: Text(type),
+                                    ),
+                                  )
+                                  .toList(),
                           onChanged: (value) => draft.type = value!,
                         ),
                       ),
@@ -627,9 +654,9 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
                         onPressed: drafts.length == 1
                             ? null
                             : () => setState(() {
-                                  final removed = drafts.removeAt(index);
-                                  removed.dispose();
-                                }),
+                                final removed = drafts.removeAt(index);
+                                removed.dispose();
+                              }),
                         icon: const Icon(Icons.remove_circle_outline),
                       ),
                     ],
@@ -657,7 +684,11 @@ class _ExerciseDialogState extends State<_ExerciseDialog> {
 }
 
 class WorkoutSessionScreen extends StatefulWidget {
-  const WorkoutSessionScreen({required this.store, required this.plan, super.key});
+  const WorkoutSessionScreen({
+    required this.store,
+    required this.plan,
+    super.key,
+  });
 
   final AppStore store;
   final SyncEntity plan;
@@ -726,8 +757,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   Future<void> finish() async {
     runningExerciseId = null;
-    final exerciseTotal =
-        exerciseSeconds.values.fold<int>(0, (sum, value) => sum + value);
+    final exerciseTotal = exerciseSeconds.values.fold<int>(
+      0,
+      (sum, value) => sum + value,
+    );
     final snapshots = <Map<String, dynamic>>[];
     for (final exercise in exercises) {
       final sets = widget.store
@@ -765,8 +798,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exerciseTotal =
-        exerciseSeconds.values.fold<int>(0, (sum, value) => sum + value);
+    final exerciseTotal = exerciseSeconds.values.fold<int>(
+      0,
+      (sum, value) => sum + value,
+    );
     return AnimatedBuilder(
       animation: widget.store,
       builder: (context, _) => Scaffold(
@@ -823,7 +858,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           borderColor: AppColors.blue,
                           child: Row(
                             children: <Widget>[
-                              const Icon(Icons.self_improvement, color: AppColors.blue),
+                              const Icon(
+                                Icons.self_improvement,
+                                color: AppColors.blue,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
@@ -835,7 +873,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: () => setState(() => restRemaining = 0),
+                                onPressed: () =>
+                                    setState(() => restRemaining = 0),
                                 child: const Text('Pular'),
                               ),
                             ],
@@ -844,17 +883,24 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ],
                       const SizedBox(height: 16),
                       ...exercises.map((exercise) {
-                        final sets = widget.store
-                            .records(EntityTypes.exerciseSet)
-                            .where(
-                              (item) => item.payload['exerciseId'] == exercise.id,
-                            )
-                            .toList()
-                          ..sort((a, b) => (a.payload['position'] as num? ?? 0)
-                              .compareTo(b.payload['position'] as num? ?? 0));
+                        final sets =
+                            widget.store
+                                .records(EntityTypes.exerciseSet)
+                                .where(
+                                  (item) =>
+                                      item.payload['exerciseId'] == exercise.id,
+                                )
+                                .toList()
+                              ..sort(
+                                (a, b) => (a.payload['position'] as num? ?? 0)
+                                    .compareTo(
+                                      b.payload['position'] as num? ?? 0,
+                                    ),
+                              );
                         final running = runningExerciseId == exercise.id;
                         final restSeconds =
-                            (exercise.payload['restSeconds'] as num? ?? 90).toInt();
+                            (exercise.payload['restSeconds'] as num? ?? 90)
+                                .toInt();
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 14),
                           child: PremiumCard(
@@ -867,10 +913,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                   children: <Widget>[
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: <Widget>[
                                           Text(
-                                            exercise.payload['name'] as String? ?? '',
+                                            exercise.payload['name']
+                                                    as String? ??
+                                                '',
                                             style: const TextStyle(
                                               fontSize: 20,
                                               fontWeight: FontWeight.w900,
@@ -886,7 +935,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                       ),
                                     ),
                                     Text(
-                                      _formatDuration(exerciseSeconds[exercise.id] ?? 0),
+                                      _formatDuration(
+                                        exerciseSeconds[exercise.id] ?? 0,
+                                      ),
                                       style: const TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.w900,
@@ -897,8 +948,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                     ),
                                     const SizedBox(width: 12),
                                     IconButton.filled(
-                                      onPressed: () => toggleExercise(exercise.id),
-                                      icon: Icon(running ? Icons.pause : Icons.play_arrow),
+                                      onPressed: () =>
+                                          toggleExercise(exercise.id),
+                                      icon: Icon(
+                                        running
+                                            ? Icons.pause
+                                            : Icons.play_arrow,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -907,7 +963,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                   (set) => CheckboxListTile(
                                     contentPadding: EdgeInsets.zero,
                                     value: completedSets.contains(set.id),
-                                    onChanged: (_) => toggleSet(set, restSeconds),
+                                    onChanged: (_) =>
+                                        toggleSet(set, restSeconds),
                                     activeColor: AppColors.orange,
                                     title: Text(
                                       'Série ${set.payload['position']} • ${set.payload['type']}',
@@ -954,8 +1011,7 @@ class _WorkoutHistoryTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Consistência',
                   title: 'Histórico de treinos',
-                  subtitle:
-                      'O total diário soma o tempo cronometrado em cada exercício e todos os descansos.',
+                  subtitle: 'O total diário soma o tempo cronometrado em cada exercício e todos os descansos.',
                   color: AppColors.orange,
                 ),
                 const SizedBox(height: 20),

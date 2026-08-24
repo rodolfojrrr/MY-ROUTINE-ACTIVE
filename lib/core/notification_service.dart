@@ -12,7 +12,8 @@ class NotificationService {
   NotificationService._();
 
   static final NotificationService instance = NotificationService._();
-  final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
   bool _ready = false;
 
   Future<void> initialize() async {
@@ -25,15 +26,12 @@ class NotificationService {
 
     const android = AndroidInitializationSettings('ic_notification');
     final windows = WindowsInitializationSettings(
-      appName: 'My Routine Active',
+      appName: 'Smart Routine SI',
       appUserModelId: 'Rodolfo.MyRoutineActive',
       guid: 'a623f2ce-5c4f-4a73-a6a8-a916db44d6ec',
     );
     await _plugin.initialize(
-      settings: InitializationSettings(
-        android: android,
-        windows: windows,
-      ),
+      settings: InitializationSettings(android: android, windows: windows),
     );
     _ready = true;
   }
@@ -41,8 +39,10 @@ class NotificationService {
   Future<bool> requestPermission() async {
     if (!_ready) await initialize();
     if (!Platform.isAndroid) return true;
-    final implementation = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final implementation = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     return await implementation?.requestNotificationsPermission() ?? true;
   }
 
@@ -52,18 +52,22 @@ class NotificationService {
     final id = _notificationId(reminder.id);
     await _plugin.cancel(id: id);
     final enabled = reminder.payload['enabled'] != false;
-    final date = DateTime.tryParse(reminder.payload['dateTime'] as String? ?? '');
+    final date = DateTime.tryParse(
+      reminder.payload['dateTime'] as String? ?? '',
+    );
     if (!enabled || date == null || !date.isAfter(DateTime.now())) return;
     await _plugin.zonedSchedule(
       id: id,
-      title: reminder.payload['title'] as String? ?? 'My Routine Active',
-      body: reminder.payload['notes'] as String? ?? 'Você tem um lembrete agendado.',
+      title: reminder.payload['title'] as String? ?? 'Smart Routine SI',
+      body:
+          reminder.payload['notes'] as String? ??
+          'Você tem um lembrete agendado.',
       scheduledDate: tz.TZDateTime.from(date, tz.local),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'routine_reminders',
-          'Lembretes da rotina',
-          channelDescription: 'Lembretes locais de estudos, treinos e finanças',
+          'Lembretes acadêmicos',
+          channelDescription: 'Lembretes locais da faculdade',
           importance: Importance.high,
           priority: Priority.high,
         ),
@@ -89,6 +93,6 @@ class NotificationService {
   }
 
   int _notificationId(String id) => id.codeUnits.fold<int>(17, (value, unit) {
-        return ((value * 31) + unit) & 0x7fffffff;
-      });
+    return ((value * 31) + unit) & 0x7fffffff;
+  });
 }

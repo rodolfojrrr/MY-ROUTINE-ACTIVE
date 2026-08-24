@@ -59,9 +59,10 @@ class BackupService {
         throw const FormatException('Backup corrompido: checksum inválido.');
       }
       final entities = rawEntities
-          .map((item) => SyncEntity.fromJson(
-                (item as Map).cast<String, dynamic>(),
-              ))
+          .map(
+            (item) =>
+                SyncEntity.fromJson((item as Map).cast<String, dynamic>()),
+          )
           .toList(growable: false);
       return BackupBundle(
         entities: entities,

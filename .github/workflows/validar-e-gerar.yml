@@ -99,7 +99,7 @@ jobs:
       - name: Publicar APK
         uses: actions/upload-artifact@v4
         with:
-          name: My-Routine-Active-Android
+          name: Smart-Routine-SI-Android
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
@@ -130,7 +130,7 @@ jobs:
 
       - name: Compactar pacote Windows
         shell: pwsh
-        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath My-Routine-Active-Windows.zip
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath Smart-Routine-SI-Windows.zip
 
       - name: Instalar Inno Setup
         shell: pwsh
@@ -143,8 +143,8 @@ jobs:
       - name: Publicar aplicativo Windows
         uses: actions/upload-artifact@v4
         with:
-          name: My-Routine-Active-Windows
+          name: Smart-Routine-SI-Windows
           path: |
-            My-Routine-Active-Windows.zip
-            ENTREGAS/My-Routine-Active-Setup.exe
+            Smart-Routine-SI-Windows.zip
+            ENTREGAS/Smart-Routine-SI-Setup.exe
           if-no-files-found: error

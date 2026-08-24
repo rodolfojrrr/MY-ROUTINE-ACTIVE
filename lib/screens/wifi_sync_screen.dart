@@ -80,8 +80,7 @@ class _WifiSyncScreenState extends State<WifiSyncScreen> {
                       const PageIntro(
                         eyebrow: 'Sem internet e sem nuvem',
                         title: 'PC e celular na mesma rede',
-                        subtitle:
-                            'No PC, abra uma sessão temporária. No celular, informe IP e código. Os dois aparelhos terminam com a versão mesclada.',
+                        subtitle: 'No PC, abra uma sessão temporária. No celular, informe IP e código. Os dois aparelhos terminam com a versão mesclada.',
                       ),
                       const SizedBox(height: 18),
                       Container(
@@ -89,7 +88,9 @@ class _WifiSyncScreenState extends State<WifiSyncScreen> {
                         decoration: BoxDecoration(
                           color: AppColors.green.withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.green.withValues(alpha: .35)),
+                          border: Border.all(
+                            color: AppColors.green.withValues(alpha: .35),
+                          ),
                         ),
                         child: const Row(
                           children: <Widget>[
@@ -140,18 +141,37 @@ class _WifiSyncScreenState extends State<WifiSyncScreen> {
                           children: <Widget>[
                             const Text(
                               'Checklist rápido',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                             const SizedBox(height: 10),
-                            const Text('1. Conecte PC e celular ao mesmo roteador Wi‑Fi.'),
-                            const Text('2. No PC, clique em “Abrir sessão no PC”.'),
-                            const Text('3. Se o Windows perguntar, permita o app em redes privadas.'),
-                            const Text('4. Digite no celular o IP e o código mostrados no PC.'),
-                            const Text('5. Clique em “Sincronizar agora” e aguarde a confirmação.'),
+                            const Text(
+                              '1. Conecte PC e celular ao mesmo roteador Wi‑Fi.',
+                            ),
+                            const Text(
+                              '2. No PC, clique em “Abrir sessão no PC”.',
+                            ),
+                            const Text(
+                              '3. Se o Windows perguntar, permita o app em redes privadas.',
+                            ),
+                            const Text(
+                              '4. Digite no celular o IP e o código mostrados no PC.',
+                            ),
+                            const Text(
+                              '5. Clique em “Sincronizar agora” e aguarde a confirmação.',
+                            ),
                             const SizedBox(height: 10),
                             Text(
-                              'Este aparelho: ${Platform.isWindows ? 'Windows' : Platform.isAndroid ? 'Android' : Platform.operatingSystem} • Status: ${widget.wifi.status}',
-                              style: const TextStyle(color: AppColors.textMuted),
+                              'Este aparelho: ${Platform.isWindows
+                                  ? 'Windows'
+                                  : Platform.isAndroid
+                                  ? 'Android'
+                                  : Platform.operatingSystem} • Status: ${widget.wifi.status}',
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                              ),
                             ),
                           ],
                         ),
@@ -210,7 +230,11 @@ class _ServerCard extends StatelessWidget {
             SelectableText(
               'IP: ${wifi.localIp}\nPorta: ${wifi.port}\nCódigo: ${wifi.pairingCode}',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 20, height: 1.5, fontWeight: FontWeight.w900),
+              style: const TextStyle(
+                fontSize: 20,
+                height: 1.5,
+                fontWeight: FontWeight.w900,
+              ),
             ),
             const SizedBox(height: 14),
             OutlinedButton.icon(
@@ -226,7 +250,9 @@ class _ServerCard extends StatelessWidget {
                 } catch (error) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Falha ao abrir a sessão: $error')),
+                      SnackBar(
+                        content: Text('Falha ao abrir a sessão: $error'),
+                      ),
                     );
                   }
                 }

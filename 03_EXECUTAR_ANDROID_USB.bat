@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title My Routine Active - Executar no Android
+title Smart Routine SI - Executar no Android
 cd /d "%~dp0"
 
 where flutter >nul 2>nul
@@ -24,4 +24,3 @@ echo.
 echo Falha ao executar no Android. Confira o dispositivo e a saida acima.
 pause
 exit /b 1
-

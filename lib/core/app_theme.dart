@@ -16,7 +16,7 @@ class AppColors {
 class AppTheme {
   static ThemeData dark() {
     final scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.green,
+      seedColor: AppColors.purple,
       brightness: Brightness.dark,
       surface: AppColors.surface,
     );
@@ -24,8 +24,8 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: scheme.copyWith(
-        primary: AppColors.green,
-        secondary: AppColors.purple,
+        primary: AppColors.purple,
+        secondary: AppColors.green,
         surface: AppColors.surface,
         error: AppColors.red,
       ),
@@ -54,13 +54,13 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: AppColors.green, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.purple, width: 1.5),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.green,
-          foregroundColor: const Color(0xFF022116),
+          backgroundColor: AppColors.purple,
+          foregroundColor: Colors.white,
           minimumSize: const Size(0, 52),
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
           shape: RoundedRectangleBorder(
@@ -92,4 +92,3 @@ class AppTheme {
     );
   }
 }
-

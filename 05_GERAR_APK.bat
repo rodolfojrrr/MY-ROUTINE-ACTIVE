@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title My Routine Active - Gerar APK
+title Smart Routine SI - Gerar APK
 cd /d "%~dp0"
 
 where flutter >nul 2>nul
@@ -11,10 +11,10 @@ flutter build apk --release
 if errorlevel 1 goto :erro
 
 if not exist "ENTREGAS" mkdir "ENTREGAS"
-copy /y "build\app\outputs\flutter-apk\app-release.apk" "ENTREGAS\My-Routine-Active.apk" >nul
+copy /y "build\app\outputs\flutter-apk\app-release.apk" "ENTREGAS\Smart-Routine-SI.apk" >nul
 echo.
 echo APK criado em:
-echo %CD%\ENTREGAS\My-Routine-Active.apk
+echo %CD%\ENTREGAS\Smart-Routine-SI.apk
 explorer "%CD%\ENTREGAS"
 pause
 exit /b 0
@@ -29,4 +29,3 @@ echo.
 echo Nao foi possivel gerar o APK. Confira a mensagem acima.
 pause
 exit /b 1
-

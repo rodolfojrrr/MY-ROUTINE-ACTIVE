@@ -18,6 +18,7 @@ class WifiSyncService extends ChangeNotifier {
   String _localIp = '';
   String _status = 'Parado';
   int _successfulSyncs = 0;
+  bool _disposed = false;
 
   bool get isServing => _server != null;
   String get pairingCode => _pairingCode;
@@ -38,11 +39,11 @@ class WifiSyncService extends ChangeNotifier {
       _handleRequest,
       onError: (Object error) {
         _status = 'Erro no servidor: $error';
-        notifyListeners();
+        _notifySafely();
       },
     );
     _status = 'Aguardando o outro aparelho';
-    notifyListeners();
+    _notifySafely();
   }
 
   Future<void> stopServer() async {
@@ -52,7 +53,7 @@ class WifiSyncService extends ChangeNotifier {
     _server = null;
     _pairingCode = '';
     _status = 'Parado';
-    notifyListeners();
+    _notifySafely();
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
@@ -63,7 +64,7 @@ class WifiSyncService extends ChangeNotifier {
     if (request.uri.path == '/health' && request.method == 'GET') {
       request.response
         ..statusCode = HttpStatus.ok
-        ..write('My Routine Active local');
+        ..write('Smart Routine SI local');
       await request.response.close();
       return;
     }
@@ -82,12 +83,12 @@ class WifiSyncService extends ChangeNotifier {
 
     try {
       _status = 'Sincronizando…';
-      notifyListeners();
+      _notifySafely();
       final bytes = <int>[];
       await for (final chunk in request) {
         bytes.addAll(chunk);
-        if (bytes.length > 50 * 1024 * 1024) {
-          throw const HttpException('Pacote maior que 50 MB.');
+        if (bytes.length > 250 * 1024 * 1024) {
+          throw const HttpException('Pacote maior que 250 MB.');
         }
       }
       final before = await store.exportBundle();
@@ -107,13 +108,13 @@ class WifiSyncService extends ChangeNotifier {
       await request.response.close();
       _successfulSyncs++;
       _status = 'Sincronização concluída';
-      notifyListeners();
+      _notifySafely();
     } catch (error) {
       request.response.statusCode = HttpStatus.badRequest;
       request.response.write('Falha na sincronização: $error');
       await request.response.close();
       _status = 'Falha: $error';
-      notifyListeners();
+      _notifySafely();
     }
   }
 
@@ -123,7 +124,7 @@ class WifiSyncService extends ChangeNotifier {
     required String code,
   }) async {
     _status = 'Conectando a $host…';
-    notifyListeners();
+    _notifySafely();
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 8);
     try {
       final localBytes = await store.exportBundle();
@@ -135,7 +136,9 @@ class WifiSyncService extends ChangeNotifier {
         ..contentType = ContentType.binary
         ..contentLength = localBytes.length;
       request.add(localBytes);
-      final response = await request.close().timeout(const Duration(minutes: 2));
+      final response = await request.close().timeout(
+            const Duration(minutes: 5),
+          );
       final responseBytes = <int>[];
       await for (final chunk in response) {
         responseBytes.addAll(chunk);
@@ -151,11 +154,11 @@ class WifiSyncService extends ChangeNotifier {
       final result = await store.mergeRemote(remote.entities);
       _successfulSyncs++;
       _status = 'Sincronização concluída';
-      notifyListeners();
+      _notifySafely();
       return result;
     } catch (error) {
       _status = 'Falha: $error';
-      notifyListeners();
+      _notifySafely();
       rethrow;
     } finally {
       client.close(force: true);
@@ -191,7 +194,12 @@ class WifiSyncService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     unawaited(stopServer());
     super.dispose();
+  }
+
+  void _notifySafely() {
+    if (!_disposed) notifyListeners();
   }
 }

@@ -1,5 +1,5 @@
-#define MyAppName "My Routine Active"
-#define MyAppVersion "3.0.1"
+#define MyAppName "Smart Routine SI"
+#define MyAppVersion "4.0.0"
 #define MyAppPublisher "Rodolfo Junior"
 #define MyAppExeName "my_routine_active.exe"
 
@@ -8,11 +8,11 @@ AppId={{2DDA2A48-8C38-4F7B-A006-C98D12CF79E8}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\My Routine Active
-DefaultGroupName=My Routine Active
+DefaultDirName={autopf}\Smart Routine SI
+DefaultGroupName=Smart Routine SI
 DisableProgramGroupPage=yes
 OutputDir=..\ENTREGAS
-OutputBaseFilename=My-Routine-Active-Setup
+OutputBaseFilename=Smart-Routine-SI-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -29,12 +29,11 @@ Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortugue
 Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\My Routine Active"; Filename: "{app}\{#MyAppExeName}"
-Name: "{autodesktop}\My Routine Active"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autoprograms}\Smart Routine SI"; Filename: "{app}\{#MyAppExeName}"
+Name: "{autodesktop}\Smart Routine SI"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Criar atalho na área de trabalho"; GroupDescription: "Atalhos:"; Flags: unchecked
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Abrir My Routine Active"; Flags: nowait postinstall skipifsilent
-
+Filename: "{app}\{#MyAppExeName}"; Description: "Abrir Smart Routine SI"; Flags: nowait postinstall skipifsilent

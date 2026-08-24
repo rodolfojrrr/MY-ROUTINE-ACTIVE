@@ -23,8 +23,11 @@ class StudyTodayTab extends StatelessWidget {
         .records(EntityTypes.classSession)
         .where((item) => item.payload['weekday'] == weekday)
         .toList()
-      ..sort((a, b) => (a.payload['start'] as String? ?? '')
-          .compareTo(b.payload['start'] as String? ?? ''));
+      ..sort(
+        (a, b) => (a.payload['start'] as String? ?? '').compareTo(
+          b.payload['start'] as String? ?? '',
+        ),
+      );
     final dueCards = store
         .records(EntityTypes.flashcard)
         .where((item) => StudyUtils.isDue(item.payload, now: now))
@@ -35,22 +38,34 @@ class StudyTodayTab extends StatelessWidget {
       final start = DateTime(now.year, now.month, now.day);
       return !date.isBefore(start) && date.difference(start).inDays <= 14;
     }).toList()
-      ..sort((a, b) => (a.payload['date'] as String? ?? '')
-          .compareTo(b.payload['date'] as String? ?? ''));
+      ..sort(
+        (a, b) => (a.payload['date'] as String? ?? '').compareTo(
+          b.payload['date'] as String? ?? '',
+        ),
+      );
     final todayKey = DateFormat('yyyy-MM-dd').format(now);
-    final minutesToday = store.records(EntityTypes.studySession).fold<int>(0, (sum, item) {
+    final minutesToday = store.records(EntityTypes.studySession).fold<int>(0, (
+      sum,
+      item,
+    ) {
       final date = item.payload['date'] as String? ?? '';
-      return sum + (date.startsWith(todayKey) ? (item.payload['minutes'] as num? ?? 0).toInt() : 0);
+      return sum +
+          (date.startsWith(todayKey)
+              ? (item.payload['minutes'] as num? ?? 0).toInt()
+              : 0);
     });
     final goals = store.records(EntityTypes.studyGoal);
-    final dailyGoal = goals.isEmpty ? 60 : (goals.first.payload['dailyMinutes'] as num? ?? 60).toInt();
+    final dailyGoal = goals.isEmpty
+        ? 60
+        : (goals.first.payload['dailyMinutes'] as num? ?? 60).toInt();
 
     return _StudyBody(
       children: <Widget>[
         const PageIntro(
           eyebrow: 'Hoje',
           title: 'Seu plano de estudos do dia',
-          subtitle: 'Aulas, revisões, avaliações próximas e tempo de foco em uma única tela.',
+          subtitle:
+              'Aulas, revisões, avaliações próximas e tempo de foco em uma única tela.',
           color: AppColors.purple,
         ),
         const SizedBox(height: 20),
@@ -84,7 +99,11 @@ class StudyTodayTab extends StatelessWidget {
             borderColor: AppColors.purple,
             child: Row(
               children: <Widget>[
-                const Icon(Icons.psychology_alt_outlined, color: AppColors.purple, size: 34),
+                const Icon(
+                  Icons.psychology_alt_outlined,
+                  color: AppColors.purple,
+                  size: 34,
+                ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -92,7 +111,10 @@ class StudyTodayTab extends StatelessWidget {
                     children: <Widget>[
                       Text(
                         '${dueCards.length} flashcards para revisar',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       const Text(
                         'As revisões usam intervalos automáticos conforme suas respostas.',
@@ -117,17 +139,30 @@ class StudyTodayTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Text('Aulas de hoje', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              const Text(
+                'Aulas de hoje',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 8),
               if (classes.isEmpty)
-                const Text('Nenhuma aula cadastrada para hoje.', style: TextStyle(color: AppColors.textMuted))
+                const Text(
+                  'Nenhuma aula cadastrada para hoje.',
+                  style: TextStyle(color: AppColors.textMuted),
+                )
               else
                 ...classes.map(
                   (item) => ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.schedule, color: AppColors.purple),
-                    title: Text(_subjectName(store, item.payload['subjectId'] as String?)),
-                    subtitle: Text('${item.payload['start']} – ${item.payload['end']}'),
+                    leading: const Icon(
+                      Icons.schedule,
+                      color: AppColors.purple,
+                    ),
+                    title: Text(
+                      _subjectName(store, item.payload['subjectId'] as String?),
+                    ),
+                    subtitle: Text(
+                      '${item.payload['start']} – ${item.payload['end']}',
+                    ),
                   ),
                 ),
             ],
@@ -138,21 +173,30 @@ class StudyTodayTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Text('Próximas avaliações', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              const Text(
+                'Próximas avaliações',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 8),
               if (upcomingExams.isEmpty)
-                const Text('Nenhuma prova ou trabalho nos próximos 14 dias.', style: TextStyle(color: AppColors.textMuted))
+                const Text(
+                  'Nenhuma prova ou trabalho nos próximos 14 dias.',
+                  style: TextStyle(color: AppColors.textMuted),
+                )
               else
                 ...upcomingExams.take(6).map(
-                  (item) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.assignment_outlined, color: AppColors.orange),
-                    title: Text(item.payload['title'] as String? ?? ''),
-                    subtitle: Text(
-                      '${_subjectName(store, item.payload['subjectId'] as String?)} • ${_formatDate(item.payload['date'] as String?)}',
+                      (item) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(
+                          Icons.assignment_outlined,
+                          color: AppColors.orange,
+                        ),
+                        title: Text(item.payload['title'] as String? ?? ''),
+                        subtitle: Text(
+                          '${_subjectName(store, item.payload['subjectId'] as String?)} • ${_formatDate(item.payload['date'] as String?)}',
+                        ),
+                      ),
                     ),
-                  ),
-                ),
             ],
           ),
         ),
@@ -193,18 +237,19 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
     );
     final correct = rating != 'again';
     await widget.store.save(
-      EntityTypes.flashcard,
-      <String, dynamic>{
-        ...card.payload,
-        'lastReviewAt': DateTime.now().toIso8601String(),
-        'nextReviewAt': result.nextReview.toIso8601String(),
-        'intervalDays': result.intervalDays,
-        'streak': result.streak,
-        'correctCount': (card.payload['correctCount'] as num? ?? 0).toInt() + (correct ? 1 : 0),
-        'wrongCount': (card.payload['wrongCount'] as num? ?? 0).toInt() + (correct ? 0 : 1),
-      },
-      id: card.id,
-    );
+        EntityTypes.flashcard,
+        <String, dynamic>{
+          ...card.payload,
+          'lastReviewAt': DateTime.now().toIso8601String(),
+          'nextReviewAt': result.nextReview.toIso8601String(),
+          'intervalDays': result.intervalDays,
+          'streak': result.streak,
+          'correctCount': (card.payload['correctCount'] as num? ?? 0).toInt() +
+              (correct ? 1 : 0),
+          'wrongCount': (card.payload['wrongCount'] as num? ?? 0).toInt() +
+              (correct ? 0 : 1),
+        },
+        id: card.id);
     if (!mounted) return;
     setState(() {
       reviewed++;
@@ -251,18 +296,26 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                                 Text(
                                   cards.first.payload['front'] as String? ?? '',
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
+                                  style: const TextStyle(
+                                    fontSize: 25,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
                                 const SizedBox(height: 22),
                                 if (revealed)
                                   Text(
-                                    cards.first.payload['back'] as String? ?? '',
+                                    cards.first.payload['back'] as String? ??
+                                        '',
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 18, height: 1.5),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      height: 1.5,
+                                    ),
                                   )
                                 else
                                   FilledButton.tonal(
-                                    onPressed: () => setState(() => revealed = true),
+                                    onPressed: () =>
+                                        setState(() => revealed = true),
                                     child: const Text('Mostrar resposta'),
                                   ),
                               ],
@@ -276,10 +329,22 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                             spacing: 10,
                             runSpacing: 10,
                             children: <Widget>[
-                              OutlinedButton(onPressed: () => _rate('again'), child: const Text('Errei')),
-                              OutlinedButton(onPressed: () => _rate('hard'), child: const Text('Difícil')),
-                              FilledButton.tonal(onPressed: () => _rate('good'), child: const Text('Acertei')),
-                              ElevatedButton(onPressed: () => _rate('easy'), child: const Text('Muito fácil')),
+                              OutlinedButton(
+                                onPressed: () => _rate('again'),
+                                child: const Text('Errei'),
+                              ),
+                              OutlinedButton(
+                                onPressed: () => _rate('hard'),
+                                child: const Text('Difícil'),
+                              ),
+                              FilledButton.tonal(
+                                onPressed: () => _rate('good'),
+                                child: const Text('Acertei'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => _rate('easy'),
+                                child: const Text('Muito fácil'),
+                              ),
                             ],
                           ),
                         ],
@@ -301,15 +366,23 @@ class QuestionBankTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final questions = store.records(EntityTypes.studyQuestion);
-    final attempts = questions.fold<int>(0, (sum, item) => sum + (item.payload['attempts'] as num? ?? 0).toInt());
-    final correct = questions.fold<int>(0, (sum, item) => sum + (item.payload['correct'] as num? ?? 0).toInt());
+    final attempts = questions.fold<int>(
+      0,
+      (sum, item) => sum + (item.payload['attempts'] as num? ?? 0).toInt(),
+    );
+    final correct = questions.fold<int>(
+      0,
+      (sum, item) => sum + (item.payload['correct'] as num? ?? 0).toInt(),
+    );
     final subjectStats = <String?, ({int attempts, int correct})>{};
     for (final item in questions) {
       final subjectId = item.payload['subjectId'] as String?;
       final previous = subjectStats[subjectId] ?? (attempts: 0, correct: 0);
       subjectStats[subjectId] = (
-        attempts: previous.attempts + (item.payload['attempts'] as num? ?? 0).toInt(),
-        correct: previous.correct + (item.payload['correct'] as num? ?? 0).toInt(),
+        attempts:
+            previous.attempts + (item.payload['attempts'] as num? ?? 0).toInt(),
+        correct:
+            previous.correct + (item.payload['correct'] as num? ?? 0).toInt(),
       );
     }
     final subjectEntries = subjectStats.entries.toList()
@@ -320,7 +393,8 @@ class QuestionBankTab extends StatelessWidget {
         const PageIntro(
           eyebrow: 'Questões',
           title: 'Banco de questões e simulados',
-          subtitle: 'Cadastre questões, pratique e acompanhe seu percentual de acertos por matéria.',
+          subtitle:
+              'Cadastre questões, pratique e acompanhe seu percentual de acertos por matéria.',
           color: AppColors.purple,
         ),
         const SizedBox(height: 20),
@@ -341,7 +415,9 @@ class QuestionBankTab extends StatelessWidget {
             ),
             MetricCard(
               label: 'Aproveitamento',
-              value: attempts == 0 ? '—' : '${(correct * 100 / attempts).round()}%',
+              value: attempts == 0
+                  ? '—'
+                  : '${(correct * 100 / attempts).round()}%',
               icon: Icons.insights,
               color: AppColors.green,
             ),
@@ -391,9 +467,14 @@ class QuestionBankTab extends StatelessWidget {
                       : (value.correct * 100 / value.attempts).round();
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.insights, color: AppColors.purple),
+                    leading: const Icon(
+                      Icons.insights,
+                      color: AppColors.purple,
+                    ),
                     title: Text(_subjectName(store, entry.key)),
-                    subtitle: Text('${value.correct}/${value.attempts} acertos'),
+                    subtitle: Text(
+                      '${value.correct}/${value.attempts} acertos',
+                    ),
                     trailing: Text(
                       percent == null ? '—' : '$percent%',
                       style: const TextStyle(fontWeight: FontWeight.w900),
@@ -418,14 +499,19 @@ class QuestionBankTab extends StatelessWidget {
                 ...mocks.map(
                   (item) => ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.fact_check_outlined, color: AppColors.green),
+                    leading: const Icon(
+                      Icons.fact_check_outlined,
+                      color: AppColors.green,
+                    ),
                     title: Text(
                       '${(item.payload['scorePercent'] as num? ?? 0).round()}% de aproveitamento',
                     ),
                     subtitle: Text(
                       '${item.payload['correct'] ?? 0}/${item.payload['questionCount'] ?? 0} acertos • ${_formatDateTime(item.payload['date'] as String?)}',
                     ),
-                    trailing: ConfirmDeleteButton(onDelete: () => store.remove(item.id)),
+                    trailing: ConfirmDeleteButton(
+                      onDelete: () => store.remove(item.id),
+                    ),
                   ),
                 ),
               ],
@@ -446,7 +532,10 @@ class QuestionBankTab extends StatelessWidget {
               child: PremiumCard(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.quiz_outlined, color: AppColors.purple),
+                  leading: const Icon(
+                    Icons.quiz_outlined,
+                    color: AppColors.purple,
+                  ),
                   title: Text(item.payload['question'] as String? ?? ''),
                   subtitle: Text(
                     '${_subjectName(store, item.payload['subjectId'] as String?)} • '
@@ -458,11 +547,14 @@ class QuestionBankTab extends StatelessWidget {
                       IconButton(
                         onPressed: () => showDialog<void>(
                           context: context,
-                          builder: (_) => _QuestionDialog(store: store, entity: item),
+                          builder: (_) =>
+                              _QuestionDialog(store: store, entity: item),
                         ),
                         icon: const Icon(Icons.edit_outlined),
                       ),
-                      ConfirmDeleteButton(onDelete: () => store.remove(item.id)),
+                      ConfirmDeleteButton(
+                        onDelete: () => store.remove(item.id),
+                      ),
                     ],
                   ),
                 ),
@@ -545,20 +637,20 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
     });
   }
 
-  Future<void> _saveSession(int minutes) => widget.store.save(
-        EntityTypes.studySession,
-        <String, dynamic>{
-          'subjectId': subjectId,
-          'minutes': minutes,
-          'date': DateTime.now().toIso8601String(),
-          'mode': 'Foco',
-        },
-      );
+  Future<void> _saveSession(int minutes) =>
+      widget.store.save(EntityTypes.studySession, <String, dynamic>{
+        'subjectId': subjectId,
+        'minutes': minutes,
+        'date': DateTime.now().toIso8601String(),
+        'mode': 'Foco',
+      });
 
   Future<void> _configureGoal(BuildContext context) async {
     final existing = widget.store.records(EntityTypes.studyGoal);
     final controller = TextEditingController(
-      text: (existing.isEmpty ? 60 : existing.first.payload['dailyMinutes'] ?? 60).toString(),
+      text:
+          (existing.isEmpty ? 60 : existing.first.payload['dailyMinutes'] ?? 60)
+              .toString(),
     );
     final value = await showDialog<int>(
       context: context,
@@ -570,9 +662,15 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
           decoration: const InputDecoration(labelText: 'Minutos por dia'),
         ),
         actions: <Widget>[
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, int.tryParse(controller.text) ?? 60),
+            onPressed: () => Navigator.pop(
+              dialogContext,
+              int.tryParse(controller.text) ?? 60,
+            ),
             child: const Text('Salvar'),
           ),
         ],
@@ -581,10 +679,11 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
     controller.dispose();
     if (value != null) {
       await widget.store.save(
-        EntityTypes.studyGoal,
-        <String, dynamic>{'dailyMinutes': value.clamp(1, 1440)},
-        id: existing.isEmpty ? null : existing.first.id,
-      );
+          EntityTypes.studyGoal,
+          <String, dynamic>{
+            'dailyMinutes': value.clamp(1, 1440),
+          },
+          id: existing.isEmpty ? null : existing.first.id);
     }
   }
 
@@ -596,10 +695,15 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
     final sessions = widget.store.records(EntityTypes.studySession);
     final todayMinutes = sessions.fold<int>(0, (sum, item) {
       final date = item.payload['date'] as String? ?? '';
-      return sum + (date.startsWith(todayKey) ? (item.payload['minutes'] as num? ?? 0).toInt() : 0);
+      return sum +
+          (date.startsWith(todayKey)
+              ? (item.payload['minutes'] as num? ?? 0).toInt()
+              : 0);
     });
     final goals = widget.store.records(EntityTypes.studyGoal);
-    final goal = goals.isEmpty ? 60 : (goals.first.payload['dailyMinutes'] as num? ?? 60).toInt();
+    final goal = goals.isEmpty
+        ? 60
+        : (goals.first.payload['dailyMinutes'] as num? ?? 60).toInt();
     final minutesBySubject = <String?, int>{};
     for (final session in sessions) {
       final id = session.payload['subjectId'] as String?;
@@ -616,7 +720,8 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
         const PageIntro(
           eyebrow: 'Foco',
           title: 'Pomodoro e tempo estudado',
-          subtitle: 'Use o cronômetro para registrar seu tempo real por matéria e bater sua meta diária.',
+          subtitle:
+              'Use o cronômetro para registrar seu tempo real por matéria e bater sua meta diária.',
           color: AppColors.purple,
         ),
         const SizedBox(height: 20),
@@ -645,9 +750,14 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
             children: <Widget>[
               DropdownButtonFormField<String?>(
                 initialValue: subjectId,
-                decoration: const InputDecoration(labelText: 'Matéria desta sessão'),
+                decoration: const InputDecoration(
+                  labelText: 'Matéria desta sessão',
+                ),
                 items: <DropdownMenuItem<String?>>[
-                  const DropdownMenuItem<String?>(value: null, child: Text('Estudo geral')),
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('Estudo geral'),
+                  ),
                   ...subjects.map(
                     (item) => DropdownMenuItem<String?>(
                       value: item.id,
@@ -655,7 +765,9 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
                     ),
                   ),
                 ],
-                onChanged: running ? null : (value) => setState(() => subjectId = value),
+                onChanged: running
+                    ? null
+                    : (value) => setState(() => subjectId = value),
               ),
               const SizedBox(height: 20),
               Text(
@@ -674,7 +786,8 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
                   ButtonSegment(value: 50, label: Text('50 min')),
                 ],
                 selected: <int>{selectedMinutes},
-                onSelectionChanged: running ? null : (value) => _setMinutes(value.first),
+                onSelectionChanged:
+                    running ? null : (value) => _setMinutes(value.first),
               ),
               const SizedBox(height: 16),
               Wrap(
@@ -688,7 +801,8 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
                     label: Text(running ? 'Pausar' : 'Iniciar'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: remainingSeconds == initialSeconds ? null : _finishNow,
+                    onPressed:
+                        remainingSeconds == initialSeconds ? null : _finishNow,
                     icon: const Icon(Icons.check),
                     label: const Text('Concluir agora'),
                   ),
@@ -714,16 +828,19 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
                 ),
                 const SizedBox(height: 8),
                 ...subjectMinutes.take(10).map(
-                  (entry) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.menu_book_outlined, color: AppColors.purple),
-                    title: Text(_subjectName(widget.store, entry.key)),
-                    trailing: Text(
-                      '${entry.value} min',
-                      style: const TextStyle(fontWeight: FontWeight.w900),
+                      (entry) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(
+                          Icons.menu_book_outlined,
+                          color: AppColors.purple,
+                        ),
+                        title: Text(_subjectName(widget.store, entry.key)),
+                        trailing: Text(
+                          '${entry.value} min',
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -733,20 +850,35 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Text('Últimas sessões', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              const Text(
+                'Últimas sessões',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 8),
               if (sessions.isEmpty)
-                const Text('Nenhuma sessão de foco concluída.', style: TextStyle(color: AppColors.textMuted))
+                const Text(
+                  'Nenhuma sessão de foco concluída.',
+                  style: TextStyle(color: AppColors.textMuted),
+                )
               else
                 ...sessions.take(10).map(
-                  (item) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.timer_outlined, color: AppColors.purple),
-                    title: Text('${item.payload['minutes'] ?? 0} min • ${_subjectName(widget.store, item.payload['subjectId'] as String?)}'),
-                    subtitle: Text(_formatDateTime(item.payload['date'] as String?)),
-                    trailing: ConfirmDeleteButton(onDelete: () => widget.store.remove(item.id)),
-                  ),
-                ),
+                      (item) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(
+                          Icons.timer_outlined,
+                          color: AppColors.purple,
+                        ),
+                        title: Text(
+                          '${item.payload['minutes'] ?? 0} min • ${_subjectName(widget.store, item.payload['subjectId'] as String?)}',
+                        ),
+                        subtitle: Text(
+                          _formatDateTime(item.payload['date'] as String?),
+                        ),
+                        trailing: ConfirmDeleteButton(
+                          onDelete: () => widget.store.remove(item.id),
+                        ),
+                      ),
+                    ),
             ],
           ),
         ),
@@ -786,20 +918,21 @@ class _QuickMockScreenState extends State<QuickMockScreen> {
       final isCorrect = selected == expected;
       if (isCorrect) correctCount++;
       await widget.store.save(
-        EntityTypes.studyQuestion,
-        <String, dynamic>{
-          ...question.payload,
-          'attempts': (question.payload['attempts'] as num? ?? 0).toInt() + 1,
-          'correct': (question.payload['correct'] as num? ?? 0).toInt() + (isCorrect ? 1 : 0),
-        },
-        id: question.id,
-      );
+          EntityTypes.studyQuestion,
+          <String, dynamic>{
+            ...question.payload,
+            'attempts': (question.payload['attempts'] as num? ?? 0).toInt() + 1,
+            'correct': (question.payload['correct'] as num? ?? 0).toInt() +
+                (isCorrect ? 1 : 0),
+          },
+          id: question.id);
     }
     await widget.store.save(EntityTypes.mockExam, <String, dynamic>{
       'date': DateTime.now().toIso8601String(),
       'questionCount': questions.length,
       'correct': correctCount,
-      'scorePercent': questions.isEmpty ? 0 : correctCount * 100 / questions.length,
+      'scorePercent':
+          questions.isEmpty ? 0 : correctCount * 100 / questions.length,
     });
     if (!mounted) return;
     setState(() {
@@ -833,13 +966,18 @@ class _QuickMockScreenState extends State<QuickMockScreen> {
                           const PageIntro(
                             eyebrow: 'Simulado',
                             title: 'Resolva sem consultar',
-                            subtitle: 'As respostas são corrigidas ao finalizar.',
+                            subtitle:
+                                'As respostas são corrigidas ao finalizar.',
                             color: AppColors.purple,
                           ),
                           const SizedBox(height: 18),
                           ...questions.asMap().entries.map((entry) {
                             final question = entry.value;
-                            final options = (question.payload['options'] as List?)?.map((e) => e.toString()).toList() ?? <String>[];
+                            final options =
+                                (question.payload['options'] as List?)
+                                        ?.map((e) => e.toString())
+                                        .toList() ??
+                                    <String>[];
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 14),
                               child: PremiumCard(
@@ -848,17 +986,29 @@ class _QuickMockScreenState extends State<QuickMockScreen> {
                                   children: <Widget>[
                                     Text(
                                       '${entry.key + 1}. ${question.payload['question'] ?? ''}',
-                                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 17,
+                                      ),
                                     ),
                                     const SizedBox(height: 8),
-                                    ...List<Widget>.generate(options.length, (index) {
-                                      final selected = answers[question.id] == index;
+                                    ...List<Widget>.generate(options.length, (
+                                      index,
+                                    ) {
+                                      final selected =
+                                          answers[question.id] == index;
                                       return ListTile(
                                         contentPadding: EdgeInsets.zero,
-                                        onTap: () => setState(() => answers[question.id] = index),
+                                        onTap: () => setState(
+                                          () => answers[question.id] = index,
+                                        ),
                                         leading: Icon(
-                                          selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                                          color: selected ? AppColors.purple : AppColors.textMuted,
+                                          selected
+                                              ? Icons.radio_button_checked
+                                              : Icons.radio_button_off,
+                                          color: selected
+                                              ? AppColors.purple
+                                              : AppColors.textMuted,
                                         ),
                                         title: Text(options[index]),
                                       );
@@ -903,13 +1053,23 @@ class _QuestionDialogState extends State<_QuestionDialog> {
   @override
   void initState() {
     super.initState();
-    question = TextEditingController(text: widget.entity?.payload['question'] as String? ?? '');
-    final existing = (widget.entity?.payload['options'] as List?)?.map((e) => e.toString()).toList() ?? <String>[];
+    question = TextEditingController(
+      text: widget.entity?.payload['question'] as String? ?? '',
+    );
+    final existing = (widget.entity?.payload['options'] as List?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        <String>[];
     options = List<TextEditingController>.generate(
       4,
-      (index) => TextEditingController(text: index < existing.length ? existing[index] : ''),
+      (index) => TextEditingController(
+        text: index < existing.length ? existing[index] : '',
+      ),
     );
-    correctIndex = (widget.entity?.payload['correctIndex'] as num? ?? 0).toInt().clamp(0, 3).toInt();
+    correctIndex = (widget.entity?.payload['correctIndex'] as num? ?? 0)
+        .toInt()
+        .clamp(0, 3)
+        .toInt();
     final subjects = widget.store.records(EntityTypes.subject);
     final existingSubject = widget.entity?.payload['subjectId'] as String?;
     subjectId = subjects.any((item) => item.id == existingSubject)
@@ -941,7 +1101,12 @@ class _QuestionDialogState extends State<_QuestionDialog> {
                 initialValue: subjectId,
                 decoration: const InputDecoration(labelText: 'Matéria'),
                 items: subjects
-                    .map((item) => DropdownMenuItem<String?>(value: item.id, child: Text(item.payload['name'] as String? ?? '')))
+                    .map(
+                      (item) => DropdownMenuItem<String?>(
+                        value: item.id,
+                        child: Text(item.payload['name'] as String? ?? ''),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) => setState(() => subjectId = value),
               ),
@@ -953,50 +1118,66 @@ class _QuestionDialogState extends State<_QuestionDialog> {
                 decoration: const InputDecoration(labelText: 'Enunciado'),
               ),
               const SizedBox(height: 10),
-              ...List<Widget>.generate(4, (index) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: <Widget>[
-                        IconButton(
-                          tooltip: 'Marcar como resposta correta',
-                          onPressed: () => setState(() => correctIndex = index),
-                          icon: Icon(
-                            correctIndex == index
-                                ? Icons.check_circle
-                                : Icons.radio_button_off,
-                            color: correctIndex == index
-                                ? AppColors.green
-                                : AppColors.textMuted,
+              ...List<Widget>.generate(
+                4,
+                (index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: <Widget>[
+                      IconButton(
+                        tooltip: 'Marcar como resposta correta',
+                        onPressed: () => setState(() => correctIndex = index),
+                        icon: Icon(
+                          correctIndex == index
+                              ? Icons.check_circle
+                              : Icons.radio_button_off,
+                          color: correctIndex == index
+                              ? AppColors.green
+                              : AppColors.textMuted,
+                        ),
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: options[index],
+                          decoration: InputDecoration(
+                            labelText:
+                                'Alternativa ${String.fromCharCode(65 + index)}',
                           ),
                         ),
-                        Expanded(
-                          child: TextField(
-                            controller: options[index],
-                            decoration: InputDecoration(labelText: 'Alternativa ${String.fromCharCode(65 + index)}'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
-            if (question.text.trim().isEmpty || options.any((item) => item.text.trim().isEmpty)) return;
+            if (question.text.trim().isEmpty ||
+                options.any((item) => item.text.trim().isEmpty)) {
+              return;
+            }
             final previous = widget.entity?.payload ?? <String, dynamic>{};
-            await widget.store.save(EntityTypes.studyQuestion, <String, dynamic>{
-              ...previous,
-              'subjectId': subjectId,
-              'question': question.text.trim(),
-              'options': options.map((item) => item.text.trim()).toList(),
-              'correctIndex': correctIndex,
-              'attempts': previous['attempts'] ?? 0,
-              'correct': previous['correct'] ?? 0,
-            }, id: widget.entity?.id);
+            await widget.store.save(
+              EntityTypes.studyQuestion,
+              <String, dynamic>{
+                ...previous,
+                'subjectId': subjectId,
+                'question': question.text.trim(),
+                'options': options.map((item) => item.text.trim()).toList(),
+                'correctIndex': correctIndex,
+                'attempts': previous['attempts'] ?? 0,
+                'correct': previous['correct'] ?? 0,
+              },
+              id: widget.entity?.id,
+            );
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -1019,7 +1200,10 @@ class _StudyBody extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1080),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
+          ),
         ),
       ),
     );
@@ -1038,5 +1222,7 @@ String _formatDate(String? value) {
 
 String _formatDateTime(String? value) {
   final date = DateTime.tryParse(value ?? '');
-  return date == null ? 'Sem data' : DateFormat('dd/MM/yyyy HH:mm').format(date);
+  return date == null
+      ? 'Sem data'
+      : DateFormat('dd/MM/yyyy HH:mm').format(date);
 }

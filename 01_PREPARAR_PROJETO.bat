@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title My Routine Active - Preparar projeto
+title Smart Routine SI - Preparar projeto
 cd /d "%~dp0"
 
 where flutter >nul 2>nul
@@ -30,4 +30,3 @@ echo.
 echo O processo foi interrompido por causa do erro exibido acima.
 pause
 exit /b 1
-

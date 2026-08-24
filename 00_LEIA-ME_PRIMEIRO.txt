@@ -1,33 +1,39 @@
-MY ROUTINE ACTIVE — V3.0.0 FINAL LOCAL
-========================================
+SMART ROUTINE SI — V4.0.0 ACADÊMICO E LOCAL
+=============================================
 
-Esta é a versão de escopo local final do aplicativo Flutter para Android e Windows.
-Não é site, não usa navegador, não usa nuvem e não exige conta externa.
+Esta versão é totalmente focada na graduação em Sistemas de Informação.
+Ela gera aplicativo nativo para Android e Windows. Não é site, não abre dentro
+do navegador, não usa nuvem e não exige conta externa.
 
-PARA ATUALIZAR UMA PASTA QUE JÁ ESTÁ FUNCIONANDO
-1. Faça um backup .mra dentro do aplicativo se já houver dados importantes.
-2. Extraia o ZIP de atualização dentro da pasta atual do projeto.
-3. Confirme a substituição dos arquivos existentes.
-4. Execute 07_SUBIR_GITHUB.bat.
-5. Aguarde a execução verde em Actions.
-6. Baixe os novos artefatos Android e Windows.
+O QUE A VERSÃO 4 ORGANIZA
+- Semestres, matérias e conteúdos em uma hierarquia bem definida.
+- Horário de segunda a domingo, inclusive os blocos 18:30–20:10 e 20:30–22:00.
+- Resumos com várias imagens e PDF individual.
+- Questões e simulados filtrados por matéria e conteúdo.
+- Provas, trabalhos, projetos, atividades e apresentações.
+- Flashcards com revisão espaçada e sessões de foco.
+- Painel principal somente para consulta; cadastros no menu lateral.
 
-NOVIDADES PRINCIPAIS DA V3
-- Home integrada e agenda geral.
-- Busca global e lembretes locais.
-- Estudos com revisão espaçada, questões, simulados, Pomodoro e metas.
-- Treinos com biblioteca, PRs, volume, comparação, medidas, fotos, água e cardio.
-- Finanças com contas, transferências, categorias/subcategorias, orçamentos, metas,
-  faturas, pagamentos e relatórios.
-- Revisão de conflitos da sincronização.
-- Estrutura para assinatura fixa do APK e atualizações futuras sem trocar a chave.
+ANTES DE ATUALIZAR
+1. Se já houver dados importantes, exporte um backup .mra no aplicativo atual.
+2. Preserve a mesma chave de assinatura Android usada na versão instalada.
+3. Extraia este ZIP sobre a pasta do projeto ou substitua o conteúdo do repositório.
 
-IMPORTANTE SOBRE A ASSINATURA DO ANDROID
-Leia docs\ASSINATURA_ANDROID.md e execute 09_GERAR_ASSINATURA_ANDROID.bat uma vez.
-Se você já tem dados no APK atual, exporte um .mra antes da primeira migração de chave.
+PARA ENVIAR AO GITHUB PELO PC
+1. Abra 07_SUBIR_GITHUB.bat.
+2. Digite apenas a mensagem do commit — não cole a URL nesse campo.
+3. Aguarde o processo terminar.
+4. Abra Actions e baixe Smart-Routine-SI-Android e Smart-Routine-SI-Windows.
+
+PARA ENVIAR PELO CELULAR
+Também é possível usar o aplicativo/site do GitHub e carregar os arquivos,
+mas enviar a pasta completa pelo BAT no PC é mais rápido e reduz o risco de
+esquecer arquivos ocultos de configuração.
 
 REPOSITÓRIO
 https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
-O repositório continua com banco zerado. Seus dados existem somente nos aparelhos
-e nos backups .mra que você criar.
+BANCO E SINCRONIZAÇÃO
+O formato .mra e a sincronização Wi-Fi PC ↔ celular foram mantidos. O repositório
+vem com banco zerado. Seus dados pessoais ficam apenas nos aparelhos e nos
+backups .mra criados por você.

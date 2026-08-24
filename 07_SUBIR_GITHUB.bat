@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-title My Routine Active - Enviar ao GitHub
+title Smart Routine SI - Enviar ao GitHub
 cd /d "%~dp0"
 set "REPO_URL=https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git"
 set "COMMIT_MSG="
@@ -49,8 +49,12 @@ if errorlevel 1 goto :erro
 git diff --cached --quiet
 if not errorlevel 1 goto :sem_alteracoes
 
-set /p "COMMIT_MSG=Mensagem do commit [Atualizar My Routine Active]: "
-if not defined COMMIT_MSG set "COMMIT_MSG=Atualizar My Routine Active"
+set /p "COMMIT_MSG=Mensagem do commit [Atualizar Smart Routine SI]: "
+if not defined COMMIT_MSG set "COMMIT_MSG=Atualizar Smart Routine SI"
+if /I "%COMMIT_MSG:~0,4%"=="http" (
+  echo A URL do repositorio ja esta configurada. Usando a mensagem padrao.
+  set "COMMIT_MSG=Atualizar Smart Routine SI"
+)
 git commit -m "%COMMIT_MSG%"
 if errorlevel 1 goto :erro
 
@@ -61,7 +65,7 @@ git push -u origin main
 if errorlevel 1 goto :erro
 echo.
 echo Projeto enviado com sucesso.
-echo Abra a aba Actions do GitHub para baixar o APK e o pacote Windows.
+echo Abra Actions para baixar Smart-Routine-SI-Android e Smart-Routine-SI-Windows.
 pause
 exit /b 0
 

@@ -2,38 +2,41 @@
 
 ## Princípio
 
-Não existe servidor na internet. O aplicativo Windows abre temporariamente um `HttpServer` na porta `8765`, acessível apenas pela rede local. Um código aleatório de seis dígitos autoriza a sessão.
+Não existe servidor na internet. O Smart Routine SI para Windows abre temporariamente um `HttpServer` na porta `8765`, acessível pela rede local. Um código aleatório de seis dígitos autoriza cada sessão.
 
 ## Fluxo
 
-1. PC e Android criam seus registros com UUID, revisão, horário de edição e ID do aparelho.
-2. Antes da transferência, cada lado cria um snapshot `.mra` automático.
-3. O Android envia seu pacote compactado ao PC.
-4. O PC mescla os registros e responde com o conjunto resultante.
-5. O Android mescla a resposta; os dois lados terminam equivalentes.
+1. Conecte PC e celular à mesma rede Wi‑Fi.
+2. No PC, abra **Sincronização Wi‑Fi** e inicie a sessão.
+3. No celular, abra a mesma tela, leia o QR Code ou informe IP, porta e código.
+4. O Android envia seu pacote compactado ao PC.
+5. O PC mescla os registros e devolve o conjunto resultante.
+6. O Android mescla a resposta; os dois aparelhos terminam equivalentes.
+
+Antes da transferência, cada lado gera um snapshot `.mra` automático.
 
 ## Regra de mesclagem
 
-- registro que existe somente de um lado é inserido;
-- para o mesmo UUID, ganha a versão com `updatedAtMs` mais recente;
-- em empate, ganha a maior revisão;
-- persistindo o empate, o ID do aparelho serve como critério determinístico;
-- quando conteúdos diferentes vieram de aparelhos diferentes, as duas versões são registradas em `sync_conflicts` antes de aplicar a vencedora;
-- exclusões são tombstones sincronizáveis, não desaparecimentos sem histórico.
+- registro existente em apenas um aparelho é inserido no outro;
+- para o mesmo UUID, vence a versão com `updatedAtMs` mais recente;
+- em empate, vence a maior revisão;
+- persistindo o empate, o ID do aparelho aplica um critério determinístico;
+- versões divergentes são guardadas em `sync_conflicts` antes da escolha;
+- exclusões viajam como tombstones sincronizáveis.
 
-## Imagens
+## Imagens e tamanho
 
-Anexos de anotações são serializados em Base64 dentro do registro. Assim, banco e imagens viajam juntos no mesmo `.mra`.
+As imagens de resumos são serializadas em Base64 e viajam dentro do mesmo pacote. O limite de recebimento é de **250 MB**, adequado a resumos com vários anexos. Prefira imagens legíveis e compactas para que a sincronização termine mais rápido.
 
 ## Firewall do Windows
 
-Na primeira sessão, o Windows pode pedir autorização. Marque apenas **Redes privadas**. Se o aviso não aparecer e a conexão falhar, permita `My Routine Active` no Firewall do Windows para redes privadas.
+Na primeira sessão, o Windows pode pedir autorização. Marque somente **Redes privadas**. Se o aviso não aparecer e a conexão falhar, permita `Smart Routine SI` no Firewall do Windows para redes privadas e confirme que os dois aparelhos estão na mesma rede sem isolamento de clientes.
 
 ## Segurança
 
 - código novo a cada abertura de sessão;
-- servidor desligável manualmente e encerrado ao sair do aplicativo;
-- limite de 50 MB por pacote;
+- servidor encerrado manualmente ou ao fechar o aplicativo;
 - cabeçalhos sem cache;
-- nenhum endpoint externo no código.
-
+- nenhum endpoint externo;
+- transferência limitada à rede local e protegida pelo código temporário;
+- PIN local opcional para abrir o aplicativo.

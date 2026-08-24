@@ -9,7 +9,9 @@ import 'local_database.dart';
 import 'sync_entity.dart';
 
 class EntityTypes {
+  static const semester = 'semester';
   static const subject = 'subject';
+  static const studyContent = 'study_content';
   static const classSession = 'class_session';
   static const exam = 'exam';
   static const studyNote = 'study_note';
@@ -42,7 +44,7 @@ class EntityTypes {
 
 class AppStore extends ChangeNotifier {
   AppStore({LocalDatabase? database})
-      : _database = database ?? LocalDatabase.instance;
+    : _database = database ?? LocalDatabase.instance;
 
   final LocalDatabase _database;
   final Uuid _uuid = const Uuid();
@@ -207,10 +209,7 @@ class AppStore extends ChangeNotifier {
 
   Future<List<int>> exportBundle() async {
     final all = await _database.getAllEntities();
-    return BackupService.createBundle(
-      entities: all,
-      deviceId: _deviceId,
-    );
+    return BackupService.createBundle(entities: all, deviceId: _deviceId);
   }
 
   Future<MergeResult> importBundle(List<int> bytes) async {

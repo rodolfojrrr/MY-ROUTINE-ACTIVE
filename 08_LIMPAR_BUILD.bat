@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title My Routine Active - Limpar arquivos de compilacao
+title Smart Routine SI - Limpar arquivos de compilacao
 cd /d "%~dp0"
 
 echo Este comando remove somente arquivos de compilacao.
@@ -13,4 +13,3 @@ if errorlevel 1 (
 )
 echo Limpeza concluida.
 pause
-

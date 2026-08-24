@@ -1,0 +1,37 @@
+SMART ROUTINE SI 4.0.0+40
+=========================
+
+ESCOPO
+Aplicativo acadêmico local para Sistemas de Informação, com a mesma base Flutter
+para Android e Windows.
+
+MÓDULOS VISÍVEIS
+- Menu principal acadêmico
+- Resumos com imagens e PDF
+- Questões e simulados
+- Avaliações
+- Flashcards
+- Foco/Pomodoro
+- Organização de semestres, matérias, conteúdos e horários
+- Backup, PIN, conflitos e sincronização Wi-Fi
+
+COMPATIBILIDADE PRESERVADA
+- Banco SQLite local
+- Backup/importação .mra
+- Protocolo de sincronização PC ↔ celular
+- ID do aplicativo Android
+- Executável e identidade do instalador Windows
+- Secrets e chave de assinatura MRA_*
+
+VALIDAÇÃO DO PACOTE
+- flutter analyze: sem problemas
+- flutter test: 17 testes aprovados
+- smoke test responsivo: celular e desktop aprovados
+- nenhum .db, .sqlite, .mra, .jks ou arquivo de senha incluído
+
+SAÍDAS DO GITHUB ACTIONS
+- Smart-Routine-SI-Android
+- Smart-Routine-SI-Windows
+
+REPOSITÓRIO
+https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git

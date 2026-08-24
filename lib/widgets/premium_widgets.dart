@@ -14,7 +14,7 @@ class PremiumBackground extends StatelessWidget {
         gradient: RadialGradient(
           center: Alignment.topLeft,
           radius: 1.45,
-          colors: <Color>[Color(0xFF07383F), AppColors.background],
+          colors: <Color>[Color(0xFF241653), AppColors.background],
           stops: <double>[0, .58],
         ),
       ),
@@ -98,10 +98,10 @@ class PageIntro extends StatelessWidget {
         const SizedBox(height: 9),
         Text(
           title,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-              ),
+          style: Theme.of(context)
+              .textTheme
+              .headlineMedium
+              ?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 7),
         Text(
@@ -194,9 +194,15 @@ class MetricCard extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(label, style: const TextStyle(color: AppColors.textMuted)),
+                Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.textMuted),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   value,
@@ -210,6 +216,8 @@ class MetricCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     caption!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 12,
@@ -286,7 +294,7 @@ class ResponsiveGrid extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: spacing,
           crossAxisSpacing: spacing,
-          childAspectRatio: count == 1 ? 2.25 : 1.55,
+          childAspectRatio: count == 1 ? 2.25 : 1.25,
           children: children,
         );
       },

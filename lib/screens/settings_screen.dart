@@ -5,10 +5,7 @@ import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/wifi_sync_service.dart';
 import '../widgets/premium_widgets.dart';
-import 'calendar_screen.dart';
 import 'conflicts_screen.dart';
-import 'reminders_screen.dart';
-import 'search_screen.dart';
 import 'wifi_sync_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -122,20 +119,19 @@ class SettingsScreen extends StatelessWidget {
                       const PageIntro(
                         eyebrow: 'Controle local',
                         title: 'Dados, segurança e transferência',
-                        subtitle:
-                            'O banco fica no aparelho. Backups e sincronização só acontecem quando você manda.',
+                        subtitle: 'O banco fica no aparelho. Backups e sincronização só acontecem quando você manda.',
                       ),
                       const SizedBox(height: 20),
                       _SettingsCard(
                         icon: Icons.sync,
                         color: AppColors.green,
                         title: 'Sincronizar pela mesma rede Wi‑Fi',
-                        subtitle:
-                            'Transfira banco e imagens entre PC e celular nos dois sentidos.',
+                        subtitle: 'Transfira banco e imagens entre PC e celular nos dois sentidos.',
                         action: 'Abrir',
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => WifiSyncScreen(store: store, wifi: wifi),
+                            builder: (_) =>
+                                WifiSyncScreen(store: store, wifi: wifi),
                           ),
                         ),
                       ),
@@ -144,8 +140,7 @@ class SettingsScreen extends StatelessWidget {
                         icon: Icons.file_upload_outlined,
                         color: AppColors.blue,
                         title: 'Exportar backup .mra',
-                        subtitle:
-                            'Cria um arquivo portátil com todos os registros e imagens.',
+                        subtitle: 'Cria um arquivo portátil com todos os registros e imagens.',
                         action: 'Exportar',
                         onTap: () => exportBackup(context),
                       ),
@@ -154,52 +149,9 @@ class SettingsScreen extends StatelessWidget {
                         icon: Icons.file_download_outlined,
                         color: AppColors.purple,
                         title: 'Importar e mesclar backup',
-                        subtitle:
-                            'Faz uma cópia automática antes e mescla por ID e data de edição.',
+                        subtitle: 'Faz uma cópia automática antes e mescla por ID e data de edição.',
                         action: 'Importar',
                         onTap: () => importBackup(context),
-                      ),
-                      const SizedBox(height: 12),
-                      _SettingsCard(
-                        icon: Icons.notifications_active_outlined,
-                        color: AppColors.green,
-                        title: 'Lembretes locais',
-                        subtitle:
-                            'Crie lembretes e ative notificações no Android.',
-                        action: 'Abrir',
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => RemindersScreen(store: store),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _SettingsCard(
-                        icon: Icons.calendar_month_outlined,
-                        color: AppColors.blue,
-                        title: 'Agenda geral',
-                        subtitle:
-                            'Veja provas, faturas, empréstimos e lembretes por data.',
-                        action: 'Abrir',
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => CalendarScreen(store: store),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _SettingsCard(
-                        icon: Icons.search,
-                        color: AppColors.purple,
-                        title: 'Busca geral',
-                        subtitle:
-                            'Pesquise registros de todos os módulos no banco local.',
-                        action: 'Buscar',
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => SearchScreen(store: store),
-                          ),
-                        ),
                       ),
                       const SizedBox(height: 12),
                       FutureBuilder<bool>(
@@ -209,7 +161,9 @@ class SettingsScreen extends StatelessWidget {
                           return _SettingsCard(
                             icon: Icons.lock_outline,
                             color: AppColors.orange,
-                            title: enabled ? 'PIN local ativado' : 'Proteger com PIN local',
+                            title: enabled
+                                ? 'PIN local ativado'
+                                : 'Proteger com PIN local',
                             subtitle: enabled
                                 ? 'Você pode trocar ou remover a proteção deste aparelho.'
                                 : 'Sem e-mail, sem conta e sem nuvem.',
@@ -219,7 +173,10 @@ class SettingsScreen extends StatelessWidget {
                                 ? () async {
                                     await store.clearPin();
                                     if (context.mounted) {
-                                      message(context, 'PIN removido deste aparelho.');
+                                      message(
+                                        context,
+                                        'PIN removido deste aparelho.',
+                                      );
                                     }
                                   }
                                 : null,
@@ -231,9 +188,9 @@ class SettingsScreen extends StatelessWidget {
                         _SettingsCard(
                           icon: Icons.merge_type,
                           color: AppColors.orange,
-                          title: '${store.conflictCount} conflito(s) preservado(s)',
-                          subtitle:
-                              'Revise as duas versões mantidas pela sincronização.',
+                          title:
+                              '${store.conflictCount} conflito(s) preservado(s)',
+                          subtitle: 'Revise as duas versões mantidas pela sincronização.',
                           action: 'Revisar',
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute<void>(
@@ -248,17 +205,24 @@ class SettingsScreen extends StatelessWidget {
                           children: <Widget>[
                             const Text(
                               'Diagnóstico local',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                             const SizedBox(height: 12),
                             SelectableText(
                               'ID deste aparelho: ${store.deviceId}',
-                              style: const TextStyle(color: AppColors.textMuted),
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               'Conflitos preservados: ${store.conflictCount}',
-                              style: const TextStyle(color: AppColors.textMuted),
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             const Text(
@@ -318,14 +282,23 @@ class _SettingsCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
                 const SizedBox(height: 3),
-                Text(subtitle, style: const TextStyle(color: AppColors.textMuted)),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: AppColors.textMuted),
+                ),
               ],
             ),
           ),
           if (secondaryAction != null)
-            TextButton(onPressed: secondaryAction, child: const Text('Remover')),
+            TextButton(
+              onPressed: secondaryAction,
+              child: const Text('Remover'),
+            ),
           const SizedBox(width: 5),
           FilledButton.tonal(onPressed: onTap, child: Text(action)),
         ],
@@ -333,4 +306,3 @@ class _SettingsCard extends StatelessWidget {
     );
   }
 }
-

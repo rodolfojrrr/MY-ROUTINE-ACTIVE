@@ -1,119 +1,137 @@
-# My Routine Active
+# Smart Routine SI
 
-**Versão 3.0.0 — escopo local final**
+**Versão 4.0.0 — edição acadêmica local**
 
-Aplicativo pessoal em Flutter para **Estudos, Treinos, Finanças e organização da rotina**, com a mesma base no Android e Windows. O aplicativo é local: não usa WebView, conta externa, Firebase, Supabase, analytics ou armazenamento em nuvem.
+Aplicativo pessoal em Flutter para organizar a graduação em **Sistemas de Informação** no Android e no Windows. É um aplicativo nativo, não uma página dentro do navegador. Todos os dados ficam nos seus aparelhos: não há Firebase, Supabase, analytics, conta externa nem armazenamento em nuvem.
 
-## Painel inicial integrado
+## Organização acadêmica
 
-A Home passou a funcionar como central da rotina. Ela reúne aulas do dia, próxima prova, flashcards vencidos, tempo de estudo, treino sugerido, hidratação, próximo lembrete e resumo financeiro do mês. Também oferece acesso rápido à busca global, agenda, lembretes, sincronização Wi‑Fi e configurações.
+O conteúdo segue uma hierarquia única para evitar resumos e questões soltos:
 
-## Estudos
+```text
+Semestre
+└── Matéria
+    └── Conteúdo
+        ├── Resumos e imagens
+        ├── Flashcards
+        └── Questões de simulados
+```
 
-- painel **Hoje** com aulas, revisões, provas próximas e meta diária;
-- matérias, professores, salas e grade semanal;
-- provas e trabalhos;
-- anotações com imagens incorporadas ao banco/backup;
-- flashcards com repetição espaçada, acertos, erros, sequência e próxima revisão;
-- sessão de revisão dedicada;
-- banco de questões por matéria;
-- simulados rápidos com resultado salvo;
-- cronômetro de foco/Pomodoro em 15, 25 ou 50 minutos;
-- meta diária e histórico de minutos estudados por matéria.
+- semestres atuais, concluídos ou planejados;
+- matérias com código, professor, sala, carga horária e ordem de exibição;
+- conteúdos ordenados dentro de cada matéria;
+- exclusão em cascata com confirmação para impedir registros órfãos;
+- filtros por semestre, matéria e conteúdo nas telas de estudo.
 
-## Treinos
+## Menu principal somente para consulta
 
-- fichas, exercícios e séries editáveis;
-- tipos de série: aquecimento, normal, falha e drop-set;
-- grupo muscular por exercício;
-- biblioteca de exercícios pronta para adicionar às fichas;
-- cronômetro de exercício e descanso;
-- histórico de sessões com fotografia das séries executadas;
-- volume por treino e por grupo muscular;
-- recordes de carga;
-- comparação de volume com o treino anterior;
-- meta semanal e consistência;
-- peso, cintura, peito, braço, coxa, gordura corporal e foto de evolução;
-- hidratação diária;
-- registro de cardio.
+A tela inicial funciona como painel de exibição e não mistura formulários com sua rotina diária:
 
-## Finanças
+- horário de aulas de segunda a domingo;
+- blocos rápidos sugeridos de `18:30–20:10` e `20:30–22:00`;
+- semestre atual e todas as cadeiras cursadas em cada período;
+- detalhes de cada matéria, seus conteúdos, resumos e avaliações;
+- próximas provas, trabalhos, projetos, atividades e apresentações;
+- totais de matérias, resumos, avaliações e questões.
 
-- salário fixo mensal e lançamentos recorrentes/avulsos;
-- contas financeiras com saldo e transferências;
-- categorias e **subcategorias** de receita/despesa;
-- cartões com limite total, limite disponível, fatura do mês, valor pago e restante;
-- compra parcelada vinculada diretamente ao cartão;
-- registro de pagamento da fatura, opcionalmente debitado de uma conta;
-- histórico de faturas;
-- dívidas e empréstimos;
-- orçamentos mensais por categoria;
-- metas financeiras;
-- relatórios de seis meses e estimativa de patrimônio.
+Os cadastros e edições ficam no menu lateral, aberto pelos três traços no celular e permanentemente visível em telas maiores.
 
-## Organização geral
+## Resumos com imagens e PDF
 
-- agenda integrada com aulas, treinos planejados, provas, lembretes e vencimentos;
-- busca local global;
-- lembretes locais com notificação no Android;
-- tela para revisar conflitos encontrados na sincronização;
-- PIN opcional local.
+- título, texto completo e tags;
+- vínculo obrigatório com matéria e conteúdo;
+- várias imagens JPG/PNG em cada resumo;
+- reordenação e remoção das imagens antes de salvar;
+- busca e filtros acadêmicos;
+- visualização em tela cheia;
+- geração de um PDF individual com identificação do semestre, matéria e conteúdo, texto e imagens anexadas;
+- compatibilidade com anotações antigas que usavam apenas uma imagem.
+
+## Questões e simulados
+
+- banco de questões com quatro alternativas, resposta correta e explicação;
+- dificuldade e vínculo com matéria/conteúdo;
+- simulado geral ou filtrado por cadeira e assunto;
+- quantidade configurável e cronômetro opcional;
+- navegação questão por questão e confirmação antes de entregar respostas em branco;
+- resultado com percentual, correção detalhada e explicações;
+- histórico local de tentativas e estatísticas de desempenho.
+
+## Avaliações, flashcards e foco
+
+- provas, trabalhos, projetos, atividades e apresentações;
+- data, horário, peso, nota, observações, situação e conteúdo relacionado;
+- agenda de próximas avaliações e histórico concluído;
+- flashcards por matéria e conteúdo, com repetição espaçada;
+- revisão de cartões vencidos, acertos, erros e próxima revisão;
+- cronômetro de foco/Pomodoro e histórico de tempo estudado.
 
 ## Privacidade, backup e sincronização
 
-- SQLite local e separado em cada aparelho;
-- exportação/importação `.mra`;
-- imagens incluídas no backup;
-- backup de segurança antes de importação/sincronização;
+- SQLite local e independente em cada aparelho;
+- exportação e importação manual do banco no formato `.mra`;
+- textos e imagens incluídos no backup;
+- cópia de segurança automática antes de importações e sincronizações;
 - sincronização bidirecional PC ↔ celular pela mesma rede Wi‑Fi;
 - mesclagem por UUID, revisão e horário de atualização;
-- conflitos preservados em vez de descartados silenciosamente;
-- banco, backups e chave de assinatura bloqueados pelo `.gitignore`.
+- exclusões sincronizadas e conflitos preservados para revisão;
+- PIN local opcional;
+- limite ampliado para transferir resumos com várias imagens.
 
-## Atualização Android sem perder dados
+O formato `.mra`, o identificador Android, a pasta de dados do Windows e o protocolo Wi‑Fi foram mantidos. Assim, esta versão pode ser instalada como atualização da anterior e continua aceitando seus backups existentes.
 
-A versão 3 inclui suporte a **assinatura Android fixa**. Execute `09_GERAR_ASSINATURA_ANDROID.bat` uma única vez e cadastre os quatro valores gerados como Secrets do GitHub. Leia `docs/ASSINATURA_ANDROID.md` antes da primeira migração para a assinatura fixa.
+## Primeiro uso recomendado
 
-> Se o APK que já está instalado tiver sido assinado por outra chave, faça um backup `.mra` antes da migração. Depois que a assinatura fixa estiver configurada, mantenha a mesma chave para todas as versões futuras.
+1. Abra **Organização acadêmica**.
+2. Cadastre o semestre atual.
+3. Cadastre as matérias desse semestre.
+4. Cadastre os conteúdos de cada matéria.
+5. Monte o horário semanal.
+6. Use **Resumos**, **Flashcards**, **Simulados** e **Avaliações** durante o período.
+7. Faça backup `.mra` regularmente e sincronize quando PC e celular estiverem na mesma rede.
 
-## Gerar pelo GitHub Actions
+## Gerar APK e Windows pelo GitHub
 
-O fluxo recomendado continua simples:
+1. Execute `07_SUBIR_GITHUB.bat` no computador ou envie os arquivos pelo aplicativo/site do GitHub.
+2. Abra a aba **Actions** do repositório.
+3. Aguarde o fluxo **Validar e gerar aplicativos** ficar verde.
+4. Abra a execução e baixe os artefatos:
+   - `Smart-Routine-SI-Android` — contém o APK;
+   - `Smart-Routine-SI-Windows` — contém a versão portátil e o instalador.
 
-1. aplique a atualização sobre a pasta atual;
-2. execute `07_SUBIR_GITHUB.bat`;
-3. aguarde o workflow **Validar e gerar aplicativos**;
-4. em **Artifacts**, baixe `My-Routine-Active-Android` e `My-Routine-Active-Windows`.
+O workflow executa `flutter analyze`, `flutter test`, confirma que o repositório não contém banco pessoal e gera as duas plataformas.
 
-O workflow executa `flutter analyze`, `flutter test`, gera o APK, o pacote Windows portátil e o instalador Windows.
-
-## Ferramentas locais opcionais
-
-Você só precisa instalar todo o ambiente de compilação se quiser gerar os executáveis no próprio PC. Para usar o GitHub Actions, basta enviar o projeto com Git. Os BATs locais continuam disponíveis:
+## BATs incluídos
 
 | Objetivo | Arquivo |
 |---|---|
 | Preparar dependências | `01_PREPARAR_PROJETO.bat` |
-| Executar Windows local | `02_EXECUTAR_WINDOWS.bat` |
-| Executar Android por USB | `03_EXECUTAR_ANDROID_USB.bat` |
-| Analisar e testar localmente | `04_VALIDAR_PROJETO.bat` |
+| Executar no Windows | `02_EXECUTAR_WINDOWS.bat` |
+| Executar no Android por USB | `03_EXECUTAR_ANDROID_USB.bat` |
+| Analisar e testar | `04_VALIDAR_PROJETO.bat` |
 | Gerar APK local | `05_GERAR_APK.bat` |
-| Gerar Windows local | `06_GERAR_WINDOWS.bat` |
-| Enviar ao GitHub | `07_SUBIR_GITHUB.bat` |
-| Limpar builds | `08_LIMPAR_BUILD.bat` |
+| Gerar Windows portátil e Setup | `06_GERAR_WINDOWS.bat` |
+| Criar commit e enviar ao GitHub | `07_SUBIR_GITHUB.bat` |
+| Limpar arquivos de compilação | `08_LIMPAR_BUILD.bat` |
 | Criar assinatura Android fixa | `09_GERAR_ASSINATURA_ANDROID.bat` |
+
+## Atualização Android sem perder dados
+
+Para que o Android aceite um APK novo por cima do instalado, as versões precisam usar a mesma chave. Execute `09_GERAR_ASSINATURA_ANDROID.bat` uma única vez e cadastre os quatro Secrets `MRA_*` no GitHub. Esses nomes foram mantidos por compatibilidade. Leia `docs/ASSINATURA_ANDROID.md` antes da primeira migração.
+
+> Se o APK antigo usar outra assinatura, exporte primeiro um backup `.mra`. Depois de instalar a edição assinada pela chave fixa, importe esse backup e preserve a mesma chave em todas as atualizações futuras.
 
 ## Estrutura principal
 
 ```text
-lib/core/       banco, backup, sync, notificações e cálculos
-lib/screens/    Home, Estudos, Treinos, Finanças e utilitários
+lib/core/       banco, modelo acadêmico, PDF, backup e sincronização
+lib/screens/    painel, resumos, simulados, avaliações e organização
 lib/widgets/    componentes visuais responsivos
-test/           testes de backup, finanças, estudos e treinos
-android/        projeto Android
-windows/        projeto Windows
+test/           testes de backup, dados acadêmicos e compatibilidade
+android/        aplicativo Android
+windows/        aplicativo Windows
 installer/      instalador Inno Setup
-docs/           documentação operacional
+docs/           documentação técnica e operacional
 ```
 
-O repositório deve continuar sem arquivos `.db`, `.sqlite`, `.sqlite3`, `.mra`, `.jks` ou senhas.
+O repositório deve permanecer sem arquivos `.db`, `.sqlite`, `.sqlite3`, `.mra`, `.jks` ou senhas.

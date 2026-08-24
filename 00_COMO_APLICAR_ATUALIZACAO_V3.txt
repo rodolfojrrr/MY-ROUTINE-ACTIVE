@@ -1,22 +1,12 @@
-COMO APLICAR A ATUALIZAÇÃO V3.0.0
-==================================
+ARQUIVO SUBSTITUÍDO PELA MIGRAÇÃO V4
+=====================================
 
-1. NÃO apague sua pasta atual do projeto.
-2. Se já usa o aplicativo com dados reais, exporte um backup .mra antes de atualizar.
-3. Extraia todo o conteúdo deste ZIP dentro da pasta atual My-Routine-Active.
-4. Quando o Windows perguntar, escolha substituir os arquivos existentes.
-5. Execute 07_SUBIR_GITHUB.bat.
-6. No GitHub, aguarde os três jobs ficarem verdes:
-   - Analisar e testar
-   - Gerar APK Android
-   - Gerar aplicativo Windows
-7. Baixe os artefatos novos em Actions.
+O projeto agora é o Smart Routine SI 4.0.0, totalmente acadêmico.
+Leia, nesta ordem:
 
-ASSINATURA DO APK
-Antes de começar a depender de atualizações sobre o APK já instalado, leia
-docs\ASSINATURA_ANDROID.md e configure a chave fixa com
-09_GERAR_ASSINATURA_ANDROID.bat. É uma configuração única.
+1. 00_LEIA-ME_PRIMEIRO.txt
+2. 00_MIGRACAO_PARA_V4.txt
+3. README.md
 
-DADOS
-Esta atualização não contém e não apaga banco de dados. Arquivos .db, .sqlite,
-.mra e .jks não são enviados ao GitHub.
+Este arquivo foi mantido apenas para que, ao extrair o ZIP sobre uma pasta
+antiga, as instruções da versão 3 não continuem aparecendo por engano.

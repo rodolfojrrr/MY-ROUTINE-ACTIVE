@@ -12,8 +12,8 @@ class FileTransferService {
     final bytes = await store.exportBundle();
     final stamp = DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
     return FilePicker.platform.saveFile(
-      dialogTitle: 'Salvar backup do My Routine Active',
-      fileName: 'my-routine-active_$stamp.mra',
+      dialogTitle: 'Salvar backup do Smart Routine SI',
+      fileName: 'smart-routine-si_$stamp.mra',
       type: FileType.custom,
       allowedExtensions: const <String>['mra'],
       bytes: Uint8List.fromList(bytes),
@@ -22,14 +22,15 @@ class FileTransferService {
 
   static Future<MergeResult?> importBackup(AppStore store) async {
     final picked = await FilePicker.platform.pickFiles(
-      dialogTitle: 'Importar backup do My Routine Active',
+      dialogTitle: 'Importar backup do Smart Routine SI',
       type: FileType.custom,
       allowedExtensions: const <String>['mra'],
       withData: true,
     );
     if (picked == null || picked.files.isEmpty) return null;
     final file = picked.files.single;
-    final bytes = file.bytes ??
+    final bytes =
+        file.bytes ??
         (file.path == null ? null : await File(file.path!).readAsBytes());
     if (bytes == null) throw const FileSystemException('Arquivo sem dados.');
     return store.importBundle(bytes);
@@ -42,16 +43,66 @@ class FileTransferService {
     );
     if (picked == null || picked.files.isEmpty) return null;
     final file = picked.files.single;
-    final bytes = file.bytes ??
+    final bytes =
+        file.bytes ??
         (file.path == null ? null : await File(file.path!).readAsBytes());
     if (bytes == null) return null;
     if (bytes.length > 8 * 1024 * 1024) {
       throw const FileSystemException('A imagem deve ter no máximo 8 MB.');
     }
-    return <String, dynamic>{
-      'imageName': file.name,
-      'imageBytes': bytes,
-    };
+    return <String, dynamic>{'imageName': file.name, 'imageBytes': bytes};
+  }
+
+  static Future<List<Map<String, dynamic>>> pickImagePayloads() async {
+    final picked = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Selecionar imagens do resumo',
+      type: FileType.custom,
+      allowedExtensions: const <String>['jpg', 'jpeg', 'png'],
+      allowMultiple: true,
+      withData: true,
+    );
+    if (picked == null || picked.files.isEmpty) return <Map<String, dynamic>>[];
+    if (picked.files.length > 8) {
+      throw const FileSystemException('Selecione no máximo 8 imagens por vez.');
+    }
+    final result = <Map<String, dynamic>>[];
+    var totalBytes = 0;
+    for (final file in picked.files) {
+      final bytes =
+          file.bytes ??
+          (file.path == null ? null : await File(file.path!).readAsBytes());
+      if (bytes == null) continue;
+      if (bytes.length > 8 * 1024 * 1024) {
+        throw FileSystemException(
+          'A imagem ${file.name} ultrapassa o limite de 8 MB.',
+        );
+      }
+      totalBytes += bytes.length;
+      if (totalBytes > 24 * 1024 * 1024) {
+        throw const FileSystemException(
+          'As imagens selecionadas ultrapassam o limite total de 24 MB.',
+        );
+      }
+      result.add(<String, dynamic>{
+        'imageName': file.name,
+        'imageBytes': bytes,
+      });
+    }
+    return result;
+  }
+
+  static Future<String?> saveBytes({
+    required Uint8List bytes,
+    required String fileName,
+    required String dialogTitle,
+    required String extension,
+  }) {
+    return FilePicker.platform.saveFile(
+      dialogTitle: dialogTitle,
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: <String>[extension],
+      bytes: bytes,
+    );
   }
 }
-

@@ -14,10 +14,7 @@ class FinanceUtils {
     required int installments,
     required DateTime month,
   }) {
-    final current = installmentNumber(
-      purchaseDate: purchaseDate,
-      month: month,
-    );
+    final current = installmentNumber(purchaseDate: purchaseDate, month: month);
     if (current <= 0) return installments;
     if (current > installments) return 0;
     return installments - current + 1;

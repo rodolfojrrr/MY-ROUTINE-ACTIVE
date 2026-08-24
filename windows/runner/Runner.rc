@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "Rodolfo Junior" "\0"
-            VALUE "FileDescription", "My Routine Active" "\0"
+            VALUE "FileDescription", "Smart Routine SI" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "my_routine_active" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 Rodolfo Junior. All rights reserved." "\0"
             VALUE "OriginalFilename", "my_routine_active.exe" "\0"
-            VALUE "ProductName", "My Routine Active" "\0"
+            VALUE "ProductName", "Smart Routine SI" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -80,9 +80,9 @@ class AccountsTab extends StatelessWidget {
                       onPressed: accounts.length < 2
                           ? null
                           : () => showDialog<void>(
-                                context: context,
-                                builder: (_) => _TransferDialog(store: store),
-                              ),
+                              context: context,
+                              builder: (_) => _TransferDialog(store: store),
+                            ),
                       icon: const Icon(Icons.compare_arrows),
                       label: const Text('Transferir'),
                     ),
@@ -109,7 +109,10 @@ class AccountsTab extends StatelessWidget {
                                 color: AppColors.green.withValues(alpha: .14),
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              child: const Icon(Icons.account_balance_outlined, color: AppColors.green),
+                              child: const Icon(
+                                Icons.account_balance_outlined,
+                                color: AppColors.green,
+                              ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -118,27 +121,40 @@ class AccountsTab extends StatelessWidget {
                                 children: <Widget>[
                                   Text(
                                     item.payload['name'] as String? ?? '',
-                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                   Text(
                                     '${item.payload['institution'] ?? ''} • ${item.payload['type'] ?? 'Conta'}',
-                                    style: const TextStyle(color: AppColors.textMuted),
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                             Text(
-                              _financeMoney.format(FinanceAnalytics.accountBalance(store, item)),
-                              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
+                              _financeMoney.format(
+                                FinanceAnalytics.accountBalance(store, item),
+                              ),
+                              style: const TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                             IconButton(
                               onPressed: () => showDialog<void>(
                                 context: context,
-                                builder: (_) => _AccountDialog(store: store, entity: item),
+                                builder: (_) =>
+                                    _AccountDialog(store: store, entity: item),
                               ),
                               icon: const Icon(Icons.edit_outlined),
                             ),
-                            ConfirmDeleteButton(onDelete: () => store.remove(item.id)),
+                            ConfirmDeleteButton(
+                              onDelete: () => store.remove(item.id),
+                            ),
                           ],
                         ),
                       ),
@@ -150,28 +166,48 @@ class AccountsTab extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        const Text('Últimas transferências', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 6),
-                        ...transfers.take(8).map(
-                          (item) => ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.compare_arrows, color: AppColors.purple),
-                            title: Text(
-                              '${_accountName(store, item.payload['fromAccountId'] as String?)} → ${_accountName(store, item.payload['toAccountId'] as String?)}',
-                            ),
-                            subtitle: Text(_formatDate(item.payload['date'] as String?)),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Text(
-                                  _financeMoney.format((item.payload['amount'] as num? ?? 0).toDouble()),
-                                  style: const TextStyle(fontWeight: FontWeight.w900),
-                                ),
-                                ConfirmDeleteButton(onDelete: () => store.remove(item.id)),
-                              ],
-                            ),
+                        const Text(
+                          'Últimas transferências',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
+                        const SizedBox(height: 6),
+                        ...transfers
+                            .take(8)
+                            .map(
+                              (item) => ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(
+                                  Icons.compare_arrows,
+                                  color: AppColors.purple,
+                                ),
+                                title: Text(
+                                  '${_accountName(store, item.payload['fromAccountId'] as String?)} → ${_accountName(store, item.payload['toAccountId'] as String?)}',
+                                ),
+                                subtitle: Text(
+                                  _formatDate(item.payload['date'] as String?),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Text(
+                                      _financeMoney.format(
+                                        (item.payload['amount'] as num? ?? 0)
+                                            .toDouble(),
+                                      ),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    ConfirmDeleteButton(
+                                      onDelete: () => store.remove(item.id),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                       ],
                     ),
                   ),
@@ -186,7 +222,11 @@ class AccountsTab extends StatelessWidget {
 }
 
 class FinancePlanningTab extends StatelessWidget {
-  const FinancePlanningTab({required this.store, required this.month, super.key});
+  const FinancePlanningTab({
+    required this.store,
+    required this.month,
+    super.key,
+  });
 
   final AppStore store;
   final DateTime month;
@@ -198,11 +238,10 @@ class FinancePlanningTab extends StatelessWidget {
           .where((item) => item.payload['categoryId'] == category.id)
           .toList();
       for (final item in linked) {
-        await store.save(
-          type,
-          <String, dynamic>{...item.payload, 'categoryId': null},
-          id: item.id,
-        );
+        await store.save(type, <String, dynamic>{
+          ...item.payload,
+          'categoryId': null,
+        }, id: item.id);
       }
     }
     final linkedBudgets = store
@@ -217,11 +256,10 @@ class FinancePlanningTab extends StatelessWidget {
         .where((item) => item.payload['parentId'] == category.id)
         .toList();
     for (final child in children) {
-      await store.save(
-        EntityTypes.financeCategory,
-        <String, dynamic>{...child.payload, 'parentId': null},
-        id: child.id,
-      );
+      await store.save(EntityTypes.financeCategory, <String, dynamic>{
+        ...child.payload,
+        'parentId': null,
+      }, id: child.id);
     }
     await store.remove(category.id);
   }
@@ -232,7 +270,9 @@ class FinancePlanningTab extends StatelessWidget {
     final budgets = store.records(EntityTypes.budget);
     final goals = store.records(EntityTypes.financeGoal);
     final monthKey = '${month.year}-${month.month.toString().padLeft(2, '0')}';
-    final monthBudgets = budgets.where((item) => item.payload['monthKey'] == monthKey).toList();
+    final monthBudgets = budgets
+        .where((item) => item.payload['monthKey'] == monthKey)
+        .toList();
 
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -265,9 +305,10 @@ class FinancePlanningTab extends StatelessWidget {
                       onPressed: categories.isEmpty
                           ? null
                           : () => showDialog<void>(
-                                context: context,
-                                builder: (_) => _BudgetDialog(store: store, month: month),
-                              ),
+                              context: context,
+                              builder: (_) =>
+                                  _BudgetDialog(store: store, month: month),
+                            ),
                       icon: const Icon(Icons.pie_chart_outline),
                       label: const Text('Novo orçamento'),
                     ),
@@ -288,17 +329,31 @@ class FinancePlanningTab extends StatelessWidget {
                     children: <Widget>[
                       Text(
                         'Orçamentos de ${DateFormat('MMMM', 'pt_BR').format(month)}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       if (monthBudgets.isEmpty)
-                        const Text('Nenhum limite definido para este mês.', style: TextStyle(color: AppColors.textMuted))
+                        const Text(
+                          'Nenhum limite definido para este mês.',
+                          style: TextStyle(color: AppColors.textMuted),
+                        )
                       else
                         ...monthBudgets.map((item) {
-                          final categoryId = item.payload['categoryId'] as String?;
-                          final limit = (item.payload['limit'] as num? ?? 0).toDouble();
-                          final spent = _categorySpent(store, categoryId, month);
-                          final progress = limit <= 0 ? 0.0 : (spent / limit).clamp(0.0, 1.0).toDouble();
+                          final categoryId =
+                              item.payload['categoryId'] as String?;
+                          final limit = (item.payload['limit'] as num? ?? 0)
+                              .toDouble();
+                          final spent = _categorySpent(
+                            store,
+                            categoryId,
+                            month,
+                          );
+                          final progress = limit <= 0
+                              ? 0.0
+                              : (spent / limit).clamp(0.0, 1.0).toDouble();
                           final over = spent > limit && limit > 0;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 14),
@@ -310,11 +365,17 @@ class FinancePlanningTab extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         _categoryName(store, categoryId),
-                                        style: const TextStyle(fontWeight: FontWeight.w800),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                        ),
                                       ),
                                     ),
-                                    Text('${_financeMoney.format(spent)} / ${_financeMoney.format(limit)}'),
-                                    ConfirmDeleteButton(onDelete: () => store.remove(item.id)),
+                                    Text(
+                                      '${_financeMoney.format(spent)} / ${_financeMoney.format(limit)}',
+                                    ),
+                                    ConfirmDeleteButton(
+                                      onDelete: () => store.remove(item.id),
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 6),
@@ -337,28 +398,52 @@ class FinancePlanningTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text('Metas financeiras', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                      const Text(
+                        'Metas financeiras',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       if (goals.isEmpty)
-                        const Text('Nenhuma meta criada.', style: TextStyle(color: AppColors.textMuted))
+                        const Text(
+                          'Nenhuma meta criada.',
+                          style: TextStyle(color: AppColors.textMuted),
+                        )
                       else
                         ...goals.map((item) {
-                          final target = (item.payload['target'] as num? ?? 0).toDouble();
-                          final current = (item.payload['current'] as num? ?? 0).toDouble();
-                          final progress = target <= 0 ? 0.0 : (current / target).clamp(0.0, 1.0).toDouble();
+                          final target = (item.payload['target'] as num? ?? 0)
+                              .toDouble();
+                          final current = (item.payload['current'] as num? ?? 0)
+                              .toDouble();
+                          final progress = target <= 0
+                              ? 0.0
+                              : (current / target).clamp(0.0, 1.0).toDouble();
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
-                              leading: const Icon(Icons.savings_outlined, color: AppColors.green),
-                              title: Text(item.payload['name'] as String? ?? ''),
+                              leading: const Icon(
+                                Icons.savings_outlined,
+                                color: AppColors.green,
+                              ),
+                              title: Text(
+                                item.payload['name'] as String? ?? '',
+                              ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   const SizedBox(height: 4),
-                                  Text('${_financeMoney.format(current)} de ${_financeMoney.format(target)}'),
+                                  Text(
+                                    '${_financeMoney.format(current)} de ${_financeMoney.format(target)}',
+                                  ),
                                   const SizedBox(height: 5),
-                                  LinearProgressIndicator(value: progress, minHeight: 7, borderRadius: BorderRadius.circular(7)),
+                                  LinearProgressIndicator(
+                                    value: progress,
+                                    minHeight: 7,
+                                    borderRadius: BorderRadius.circular(7),
+                                  ),
                                 ],
                               ),
                               trailing: Row(
@@ -368,11 +453,16 @@ class FinancePlanningTab extends StatelessWidget {
                                     tooltip: 'Atualizar valor',
                                     onPressed: () => showDialog<void>(
                                       context: context,
-                                      builder: (_) => _FinanceGoalDialog(store: store, entity: item),
+                                      builder: (_) => _FinanceGoalDialog(
+                                        store: store,
+                                        entity: item,
+                                      ),
                                     ),
                                     icon: const Icon(Icons.edit_outlined),
                                   ),
-                                  ConfirmDeleteButton(onDelete: () => store.remove(item.id)),
+                                  ConfirmDeleteButton(
+                                    onDelete: () => store.remove(item.id),
+                                  ),
                                 ],
                               ),
                             ),
@@ -386,10 +476,19 @@ class FinancePlanningTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text('Categorias', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                      const Text(
+                        'Categorias',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       if (categories.isEmpty)
-                        const Text('Crie categorias como Alimentação, Transporte e Lazer.', style: TextStyle(color: AppColors.textMuted))
+                        const Text(
+                          'Crie categorias como Alimentação, Transporte e Lazer.',
+                          style: TextStyle(color: AppColors.textMuted),
+                        )
                       else
                         Wrap(
                           spacing: 8,
@@ -397,10 +496,15 @@ class FinancePlanningTab extends StatelessWidget {
                           children: categories
                               .map(
                                 (item) => InputChip(
-                                  label: Text('${_categoryName(store, item.id)} • ${item.payload['type']}'),
+                                  label: Text(
+                                    '${_categoryName(store, item.id)} • ${item.payload['type']}',
+                                  ),
                                   onPressed: () => showDialog<void>(
                                     context: context,
-                                    builder: (_) => _CategoryDialog(store: store, entity: item),
+                                    builder: (_) => _CategoryDialog(
+                                      store: store,
+                                      entity: item,
+                                    ),
                                   ),
                                   onDeleted: () => _deleteCategory(item),
                                 ),
@@ -431,16 +535,27 @@ class FinanceReportsTab extends StatelessWidget {
       6,
       (index) => DateTime(now.year, now.month - 5 + index),
     );
-    final expenses = months.map((month) => _expenseMonth(store, month)).toList();
+    final expenses = months
+        .map((month) => _expenseMonth(store, month))
+        .toList();
     final incomes = months.map((month) => _incomeMonth(store, month)).toList();
     final accounts = store.records(EntityTypes.financeAccount);
-    final cash = accounts.fold<double>(0, (sum, item) => sum + FinanceAnalytics.accountBalance(store, item));
-    final outstandingDebts = store.records(EntityTypes.debt).fold<double>(0, (sum, item) {
+    final cash = accounts.fold<double>(
+      0,
+      (sum, item) => sum + FinanceAnalytics.accountBalance(store, item),
+    );
+    final outstandingDebts = store.records(EntityTypes.debt).fold<double>(0, (
+      sum,
+      item,
+    ) {
       if (item.payload['status'] == 'Quitada') return sum;
       final total = (item.payload['total'] as num? ?? 0).toDouble();
       return sum + total;
     });
-    final outstandingLoans = store.records(EntityTypes.loan).fold<double>(0, (sum, item) {
+    final outstandingLoans = store.records(EntityTypes.loan).fold<double>(0, (
+      sum,
+      item,
+    ) {
       if (item.payload['status'] == 'Quitado') return sum;
       final payment = (item.payload['monthlyPayment'] as num? ?? 0).toDouble();
       final installments = (item.payload['installments'] as num? ?? 0).toInt();
@@ -491,11 +606,21 @@ class FinanceReportsTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text('Receitas x despesas — 6 meses', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                      const Text(
+                        'Receitas x despesas — 6 meses',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                       const SizedBox(height: 18),
                       SizedBox(
                         height: 220,
-                        child: _MonthlyFinanceChart(months: months, incomes: incomes, expenses: expenses),
+                        child: _MonthlyFinanceChart(
+                          months: months,
+                          incomes: incomes,
+                          expenses: expenses,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       const Row(
@@ -540,9 +665,15 @@ class _AccountDialogState extends State<_AccountDialog> {
   @override
   void initState() {
     super.initState();
-    name = TextEditingController(text: widget.entity?.payload['name'] as String? ?? '');
-    institution = TextEditingController(text: widget.entity?.payload['institution'] as String? ?? '');
-    initial = TextEditingController(text: widget.entity?.payload['initialBalance']?.toString() ?? '0');
+    name = TextEditingController(
+      text: widget.entity?.payload['name'] as String? ?? '',
+    );
+    institution = TextEditingController(
+      text: widget.entity?.payload['institution'] as String? ?? '',
+    );
+    initial = TextEditingController(
+      text: widget.entity?.payload['initialBalance']?.toString() ?? '0',
+    );
     type = widget.entity?.payload['type'] as String? ?? 'Conta corrente';
   }
 
@@ -563,38 +694,65 @@ class _AccountDialogState extends State<_AccountDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            TextField(controller: name, decoration: const InputDecoration(labelText: 'Nome da conta')),
+            TextField(
+              controller: name,
+              decoration: const InputDecoration(labelText: 'Nome da conta'),
+            ),
             const SizedBox(height: 10),
-            TextField(controller: institution, decoration: const InputDecoration(labelText: 'Banco / instituição')),
+            TextField(
+              controller: institution,
+              decoration: const InputDecoration(
+                labelText: 'Banco / instituição',
+              ),
+            ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: type,
               decoration: const InputDecoration(labelText: 'Tipo'),
-              items: const <String>['Conta corrente', 'Poupança', 'Carteira', 'Investimentos', 'Outro']
-                  .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-                  .toList(),
+              items:
+                  const <String>[
+                        'Conta corrente',
+                        'Poupança',
+                        'Carteira',
+                        'Investimentos',
+                        'Outro',
+                      ]
+                      .map(
+                        (item) =>
+                            DropdownMenuItem(value: item, child: Text(item)),
+                      )
+                      .toList(),
               onChanged: (value) => setState(() => type = value ?? type),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: initial,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Saldo inicial'),
             ),
           ],
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
             if (name.text.trim().isEmpty) return;
-            await widget.store.save(EntityTypes.financeAccount, <String, dynamic>{
-              'name': name.text.trim(),
-              'institution': institution.text.trim(),
-              'type': type,
-              'initialBalance': parseMoney(initial.text),
-            }, id: widget.entity?.id);
+            await widget.store.save(
+              EntityTypes.financeAccount,
+              <String, dynamic>{
+                'name': name.text.trim(),
+                'institution': institution.text.trim(),
+                'type': type,
+                'initialBalance': parseMoney(initial.text),
+              },
+              id: widget.entity?.id,
+            );
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -649,24 +807,43 @@ class _TransferDialogState extends State<_TransferDialog> {
             DropdownButtonFormField<String>(
               initialValue: fromId,
               decoration: const InputDecoration(labelText: 'Conta de origem'),
-              items: accounts.map((item) => DropdownMenuItem(value: item.id, child: Text(item.payload['name'] as String? ?? ''))).toList(),
+              items: accounts
+                  .map(
+                    (item) => DropdownMenuItem(
+                      value: item.id,
+                      child: Text(item.payload['name'] as String? ?? ''),
+                    ),
+                  )
+                  .toList(),
               onChanged: (value) => setState(() => fromId = value ?? fromId),
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: toId,
               decoration: const InputDecoration(labelText: 'Conta de destino'),
-              items: accounts.map((item) => DropdownMenuItem(value: item.id, child: Text(item.payload['name'] as String? ?? ''))).toList(),
+              items: accounts
+                  .map(
+                    (item) => DropdownMenuItem(
+                      value: item.id,
+                      child: Text(item.payload['name'] as String? ?? ''),
+                    ),
+                  )
+                  .toList(),
               onChanged: (value) => setState(() => toId = value ?? toId),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: amount,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Valor'),
             ),
             const SizedBox(height: 10),
-            TextField(controller: description, decoration: const InputDecoration(labelText: 'Descrição')),
+            TextField(
+              controller: description,
+              decoration: const InputDecoration(labelText: 'Descrição'),
+            ),
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('Data'),
@@ -680,17 +857,23 @@ class _TransferDialogState extends State<_TransferDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
             if (fromId == toId || parseMoney(amount.text) <= 0) return;
-            await widget.store.save(EntityTypes.financeTransfer, <String, dynamic>{
-              'fromAccountId': fromId,
-              'toAccountId': toId,
-              'amount': parseMoney(amount.text),
-              'description': description.text.trim(),
-              'date': DateFormat('yyyy-MM-dd').format(date),
-            });
+            await widget.store.save(
+              EntityTypes.financeTransfer,
+              <String, dynamic>{
+                'fromAccountId': fromId,
+                'toAccountId': toId,
+                'amount': parseMoney(amount.text),
+                'description': description.text.trim(),
+                'date': DateFormat('yyyy-MM-dd').format(date),
+              },
+            );
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -719,7 +902,9 @@ class _CategoryDialogState extends State<_CategoryDialog> {
   @override
   void initState() {
     super.initState();
-    name = TextEditingController(text: widget.entity?.payload['name'] as String? ?? '');
+    name = TextEditingController(
+      text: widget.entity?.payload['name'] as String? ?? '',
+    );
     type = widget.entity?.payload['type'] as String? ?? 'Despesa';
     parentId = widget.entity?.payload['parentId'] as String?;
   }
@@ -734,23 +919,35 @@ class _CategoryDialogState extends State<_CategoryDialog> {
   Widget build(BuildContext context) {
     final parents = widget.store
         .records(EntityTypes.financeCategory)
-        .where((item) => item.id != widget.entity?.id && item.payload['type'] == type)
+        .where(
+          (item) =>
+              item.id != widget.entity?.id && item.payload['type'] == type,
+        )
         .toList();
-    final selectedParent = parents.any((item) => item.id == parentId) ? parentId : null;
+    final selectedParent = parents.any((item) => item.id == parentId)
+        ? parentId
+        : null;
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Nova categoria' : 'Editar categoria'),
+      title: Text(
+        widget.entity == null ? 'Nova categoria' : 'Editar categoria',
+      ),
       content: SizedBox(
         width: 430,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            TextField(controller: name, decoration: const InputDecoration(labelText: 'Nome')),
+            TextField(
+              controller: name,
+              decoration: const InputDecoration(labelText: 'Nome'),
+            ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: type,
               decoration: const InputDecoration(labelText: 'Tipo'),
               items: const <String>['Despesa', 'Receita']
-                  .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+                  .map(
+                    (item) => DropdownMenuItem(value: item, child: Text(item)),
+                  )
                   .toList(),
               onChanged: (value) => setState(() {
                 type = value ?? type;
@@ -760,7 +957,9 @@ class _CategoryDialogState extends State<_CategoryDialog> {
             const SizedBox(height: 10),
             DropdownButtonFormField<String?>(
               initialValue: selectedParent,
-              decoration: const InputDecoration(labelText: 'Categoria pai (opcional)'),
+              decoration: const InputDecoration(
+                labelText: 'Categoria pai (opcional)',
+              ),
               items: <DropdownMenuItem<String?>>[
                 const DropdownMenuItem<String?>(
                   value: null,
@@ -779,15 +978,22 @@ class _CategoryDialogState extends State<_CategoryDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
             if (name.text.trim().isEmpty) return;
-            await widget.store.save(EntityTypes.financeCategory, <String, dynamic>{
-              'name': name.text.trim(),
-              'type': type,
-              'parentId': parentId,
-            }, id: widget.entity?.id);
+            await widget.store.save(
+              EntityTypes.financeCategory,
+              <String, dynamic>{
+                'name': name.text.trim(),
+                'type': type,
+                'parentId': parentId,
+              },
+              id: widget.entity?.id,
+            );
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -826,10 +1032,12 @@ class _BudgetDialogState extends State<_BudgetDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = widget.store.records(EntityTypes.financeCategory)
+    final categories = widget.store
+        .records(EntityTypes.financeCategory)
         .where((item) => item.payload['type'] == 'Despesa')
         .toList();
-    if (!categories.any((item) => item.id == categoryId) && categories.isNotEmpty) {
+    if (!categories.any((item) => item.id == categoryId) &&
+        categories.isNotEmpty) {
       categoryId = categories.first.id;
     }
     return AlertDialog(
@@ -840,29 +1048,45 @@ class _BudgetDialogState extends State<_BudgetDialog> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             DropdownButtonFormField<String>(
-              initialValue: categories.any((item) => item.id == categoryId) ? categoryId : null,
+              initialValue: categories.any((item) => item.id == categoryId)
+                  ? categoryId
+                  : null,
               decoration: const InputDecoration(labelText: 'Categoria'),
-              items: categories.map((item) => DropdownMenuItem(value: item.id, child: Text(_categoryName(widget.store, item.id)))).toList(),
-              onChanged: (value) => setState(() => categoryId = value ?? categoryId),
+              items: categories
+                  .map(
+                    (item) => DropdownMenuItem(
+                      value: item.id,
+                      child: Text(_categoryName(widget.store, item.id)),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) =>
+                  setState(() => categoryId = value ?? categoryId),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: limit,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Limite do mês'),
             ),
           ],
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: categories.isEmpty
               ? null
               : () async {
                   await widget.store.save(EntityTypes.budget, <String, dynamic>{
                     'categoryId': categoryId,
-                    'monthKey': '${widget.month.year}-${widget.month.month.toString().padLeft(2, '0')}',
+                    'monthKey':
+                        '${widget.month.year}-${widget.month.month.toString().padLeft(2, '0')}',
                     'limit': parseMoney(limit.text),
                   });
                   if (!context.mounted) return;
@@ -894,10 +1118,18 @@ class _FinanceGoalDialogState extends State<_FinanceGoalDialog> {
   @override
   void initState() {
     super.initState();
-    name = TextEditingController(text: widget.entity?.payload['name'] as String? ?? '');
-    target = TextEditingController(text: widget.entity?.payload['target']?.toString() ?? '');
-    current = TextEditingController(text: widget.entity?.payload['current']?.toString() ?? '0');
-    dueDate = DateTime.tryParse(widget.entity?.payload['dueDate'] as String? ?? '');
+    name = TextEditingController(
+      text: widget.entity?.payload['name'] as String? ?? '',
+    );
+    target = TextEditingController(
+      text: widget.entity?.payload['target']?.toString() ?? '',
+    );
+    current = TextEditingController(
+      text: widget.entity?.payload['current']?.toString() ?? '0',
+    );
+    dueDate = DateTime.tryParse(
+      widget.entity?.payload['dueDate'] as String? ?? '',
+    );
   }
 
   @override
@@ -911,31 +1143,47 @@ class _FinanceGoalDialogState extends State<_FinanceGoalDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Nova meta financeira' : 'Atualizar meta'),
+      title: Text(
+        widget.entity == null ? 'Nova meta financeira' : 'Atualizar meta',
+      ),
       content: SizedBox(
         width: 450,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            TextField(controller: name, decoration: const InputDecoration(labelText: 'Objetivo')),
+            TextField(
+              controller: name,
+              decoration: const InputDecoration(labelText: 'Objetivo'),
+            ),
             const SizedBox(height: 10),
             TextField(
               controller: target,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Valor alvo'),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: current,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Valor acumulado'),
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('Prazo opcional'),
-              subtitle: Text(dueDate == null ? 'Sem prazo' : DateFormat('dd/MM/yyyy').format(dueDate!)),
+              subtitle: Text(
+                dueDate == null
+                    ? 'Sem prazo'
+                    : DateFormat('dd/MM/yyyy').format(dueDate!),
+              ),
               onTap: () async {
-                final value = await pickAppDate(context, dueDate ?? DateTime.now());
+                final value = await pickAppDate(
+                  context,
+                  dueDate ?? DateTime.now(),
+                );
                 if (value != null && mounted) setState(() => dueDate = value);
               },
             ),
@@ -943,7 +1191,10 @@ class _FinanceGoalDialogState extends State<_FinanceGoalDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
         FilledButton(
           onPressed: () async {
             if (name.text.trim().isEmpty) return;
@@ -964,7 +1215,11 @@ class _FinanceGoalDialogState extends State<_FinanceGoalDialog> {
 }
 
 class _MonthlyFinanceChart extends StatelessWidget {
-  const _MonthlyFinanceChart({required this.months, required this.incomes, required this.expenses});
+  const _MonthlyFinanceChart({
+    required this.months,
+    required this.incomes,
+    required this.expenses,
+  });
 
   final List<DateTime> months;
   final List<double> incomes;
@@ -973,14 +1228,22 @@ class _MonthlyFinanceChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _FinanceChartPainter(months: months, incomes: incomes, expenses: expenses),
+      painter: _FinanceChartPainter(
+        months: months,
+        incomes: incomes,
+        expenses: expenses,
+      ),
       child: const SizedBox.expand(),
     );
   }
 }
 
 class _FinanceChartPainter extends CustomPainter {
-  _FinanceChartPainter({required this.months, required this.incomes, required this.expenses});
+  _FinanceChartPainter({
+    required this.months,
+    required this.incomes,
+    required this.expenses,
+  });
 
   final List<DateTime> months;
   final List<double> incomes;
@@ -1001,14 +1264,24 @@ class _FinanceChartPainter extends CustomPainter {
       final expenseHeight = (expenses[index] / maxValue) * (size.height - 30);
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTWH(center - barWidth - 2, size.height - 24 - incomeHeight, barWidth, incomeHeight),
+          Rect.fromLTWH(
+            center - barWidth - 2,
+            size.height - 24 - incomeHeight,
+            barWidth,
+            incomeHeight,
+          ),
           const Radius.circular(4),
         ),
         Paint()..color = AppColors.green,
       );
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTWH(center + 2, size.height - 24 - expenseHeight, barWidth, expenseHeight),
+          Rect.fromLTWH(
+            center + 2,
+            size.height - 24 - expenseHeight,
+            barWidth,
+            expenseHeight,
+          ),
           const Radius.circular(4),
         ),
         Paint()..color = AppColors.red,
@@ -1018,7 +1291,10 @@ class _FinanceChartPainter extends CustomPainter {
         style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
       );
       textPainter.layout();
-      textPainter.paint(canvas, Offset(center - textPainter.width / 2, size.height - 18));
+      textPainter.paint(
+        canvas,
+        Offset(center - textPainter.width / 2, size.height - 18),
+      );
     }
   }
 
@@ -1035,7 +1311,9 @@ double _categorySpent(AppStore store, String? categoryId, DateTime month) {
     changed = false;
     for (final category in store.records(EntityTypes.financeCategory)) {
       final parentId = category.payload['parentId'] as String?;
-      if (parentId != null && family.contains(parentId) && family.add(category.id)) {
+      if (parentId != null &&
+          family.contains(parentId) &&
+          family.add(category.id)) {
         changed = true;
       }
     }
@@ -1044,54 +1322,74 @@ double _categorySpent(AppStore store, String? categoryId, DateTime month) {
     if (!family.contains(item.payload['categoryId'])) return sum;
     final recurring = item.payload['recurring'] == true;
     final date = item.payload['date'] as String?;
-    return sum + (recurring || FinanceAnalytics.inMonth(date, month)
-        ? (item.payload['amount'] as num? ?? 0).toDouble()
-        : 0);
+    return sum +
+        (recurring || FinanceAnalytics.inMonth(date, month)
+            ? (item.payload['amount'] as num? ?? 0).toDouble()
+            : 0);
   });
 }
 
 double _incomeMonth(AppStore store, DateTime month) {
   return store.records(EntityTypes.income).fold<double>(0, (sum, item) {
     final recurring = item.payload['recurring'] == true;
-    return sum + (recurring || FinanceAnalytics.inMonth(item.payload['date'] as String?, month)
-        ? (item.payload['amount'] as num? ?? 0).toDouble()
-        : 0);
+    return sum +
+        (recurring ||
+                FinanceAnalytics.inMonth(item.payload['date'] as String?, month)
+            ? (item.payload['amount'] as num? ?? 0).toDouble()
+            : 0);
   });
 }
 
 double _expenseMonth(AppStore store, DateTime month) {
-  final direct = store.records(EntityTypes.expense).fold<double>(0, (sum, item) {
+  final direct = store.records(EntityTypes.expense).fold<double>(0, (
+    sum,
+    item,
+  ) {
     final recurring = item.payload['recurring'] == true;
-    return sum + (recurring || FinanceAnalytics.inMonth(item.payload['date'] as String?, month)
-        ? (item.payload['amount'] as num? ?? 0).toDouble()
-        : 0);
+    return sum +
+        (recurring ||
+                FinanceAnalytics.inMonth(item.payload['date'] as String?, month)
+            ? (item.payload['amount'] as num? ?? 0).toDouble()
+            : 0);
   });
   final debts = store.records(EntityTypes.debt).fold<double>(0, (sum, item) {
     if (item.payload['status'] == 'Quitada') return sum;
-    final purchase = DateTime.tryParse(item.payload['purchaseDate'] as String? ?? '');
+    final purchase = DateTime.tryParse(
+      item.payload['purchaseDate'] as String? ?? '',
+    );
     if (purchase == null) return sum;
     final installments = (item.payload['installments'] as num? ?? 1).toInt();
-    final number = FinanceUtils.installmentNumber(purchaseDate: purchase, month: month);
-    if (number < 1 || number > installments) return sum;
-    return sum + FinanceUtils.installmentValue(
-      (item.payload['total'] as num? ?? 0).toDouble(),
-      installments,
+    final number = FinanceUtils.installmentNumber(
+      purchaseDate: purchase,
+      month: month,
     );
+    if (number < 1 || number > installments) return sum;
+    return sum +
+        FinanceUtils.installmentValue(
+          (item.payload['total'] as num? ?? 0).toDouble(),
+          installments,
+        );
   });
   final loans = store.records(EntityTypes.loan).fold<double>(0, (sum, item) {
     if (item.payload['status'] == 'Quitado') return sum;
-    final startDate = DateTime.tryParse(item.payload['startDate'] as String? ?? '');
+    final startDate = DateTime.tryParse(
+      item.payload['startDate'] as String? ?? '',
+    );
     if (startDate == null) return sum;
     final installments = (item.payload['installments'] as num? ?? 1).toInt();
-    final number = FinanceUtils.installmentNumber(purchaseDate: startDate, month: month);
+    final number = FinanceUtils.installmentNumber(
+      purchaseDate: startDate,
+      month: month,
+    );
     if (number < 1 || number > installments) return sum;
     return sum + (item.payload['monthlyPayment'] as num? ?? 0).toDouble();
   });
   return direct + debts + loans;
 }
 
-String _accountName(AppStore store, String? id) =>
-    id == null ? 'Conta' : store.byId(id)?.payload['name'] as String? ?? 'Conta removida';
+String _accountName(AppStore store, String? id) => id == null
+    ? 'Conta'
+    : store.byId(id)?.payload['name'] as String? ?? 'Conta removida';
 
 String _categoryName(AppStore store, String? id) {
   if (id == null) return 'Sem categoria';
@@ -1102,7 +1400,9 @@ String _categoryName(AppStore store, String? id) {
   if (parentId == null) return name;
   final parent = store.byId(parentId);
   final parentName = parent?.payload['name'] as String?;
-  return parentName == null || parentName.isEmpty ? name : '$parentName › $name';
+  return parentName == null || parentName.isEmpty
+      ? name
+      : '$parentName › $name';
 }
 
 String _formatDate(String? value) {
