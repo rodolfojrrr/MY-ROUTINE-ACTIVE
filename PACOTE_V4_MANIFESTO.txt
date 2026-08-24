@@ -1,4 +1,4 @@
-SMART ROUTINE SI 4.0.0+40
+SMART ROUTINE SI 4.1.0+41
 =========================
 
 ESCOPO
@@ -13,6 +13,9 @@ MÓDULOS VISÍVEIS
 - Flashcards
 - Foco/Pomodoro
 - Organização de semestres, matérias, conteúdos e horários
+- IDE acadêmica azul com projetos, vários arquivos e terminal integrado
+- Dart, Python, Java, JavaScript, TypeScript, C, C++, C#, Kotlin, PHP, SQL,
+  HTML/CSS e JSON
 - Backup, PIN, conflitos e sincronização Wi-Fi
 
 COMPATIBILIDADE PRESERVADA
@@ -24,9 +27,9 @@ COMPATIBILIDADE PRESERVADA
 - Secrets e chave de assinatura MRA_*
 
 VALIDAÇÃO DO PACOTE
-- flutter analyze: sem problemas
-- flutter test: 17 testes aprovados
-- smoke test responsivo: celular e desktop aprovados
+- dart analyze: sem problemas
+- compilação integral do código Flutter: concluída
+- testes e builds Android/Windows configurados no GitHub Actions
 - nenhum .db, .sqlite, .mra, .jks ou arquivo de senha incluído
 
 SAÍDAS DO GITHUB ACTIONS

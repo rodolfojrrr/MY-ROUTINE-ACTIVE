@@ -98,7 +98,7 @@ class _StartupLoading extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(Icons.school_rounded, color: AppColors.purple, size: 44),
+            Icon(Icons.school_rounded, color: AppColors.primary, size: 44),
             SizedBox(height: 18),
             CircularProgressIndicator(),
             SizedBox(height: 14),

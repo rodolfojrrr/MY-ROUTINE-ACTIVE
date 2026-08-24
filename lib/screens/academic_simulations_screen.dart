@@ -121,7 +121,7 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
           title: 'Questões e simulados',
           subtitle:
               'Monte o banco por matéria e conteúdo, escolha o escopo da prova, defina o tempo e acompanhe os acertos sem misturar os assuntos.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 18),
         ResponsiveGrid(
@@ -132,7 +132,7 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
               value:
                   '${widget.store.records(EntityTypes.studyQuestion).length}',
               icon: Icons.quiz_outlined,
-              color: AppColors.purple,
+              color: AppColors.primary,
             ),
             MetricCard(
               label: 'Simulados realizados',
@@ -313,10 +313,10 @@ class _QuestionCard extends StatelessWidget {
             width: 45,
             height: 45,
             decoration: BoxDecoration(
-              color: AppColors.purple.withValues(alpha: .14),
+              color: AppColors.primary.withValues(alpha: .14),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.quiz_outlined, color: AppColors.purple),
+            child: const Icon(Icons.quiz_outlined, color: AppColors.primary),
           ),
           const SizedBox(width: 13),
           Expanded(
@@ -987,7 +987,7 @@ class _AcademicMockRunnerScreenState extends State<AcademicMockRunnerScreen> {
                 color: remainingSeconds <= 300 &&
                         widget.configuration.durationMinutes > 0
                     ? AppColors.red
-                    : AppColors.purple,
+                    : AppColors.primary,
                 icon: Icons.timer_outlined,
               ),
             ),
@@ -1037,7 +1037,7 @@ class _AcademicMockRunnerScreenState extends State<AcademicMockRunnerScreen> {
                           ),
                           const SizedBox(height: 14),
                           PremiumCard(
-                            borderColor: AppColors.purple,
+                            borderColor: AppColors.primary,
                             padding: const EdgeInsets.all(24),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1310,14 +1310,14 @@ class _QuestionNavigator extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: selected
-                  ? AppColors.purple
+                  ? AppColors.primary
                   : complete
                       ? AppColors.green.withValues(alpha: .18)
                       : AppColors.surfaceRaised,
               borderRadius: BorderRadius.circular(11),
               border: Border.all(
                 color: selected
-                    ? AppColors.purple
+                    ? AppColors.primary
                     : complete
                         ? AppColors.green
                         : AppColors.border,

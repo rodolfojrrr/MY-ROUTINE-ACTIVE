@@ -30,6 +30,9 @@ class EntityTypes {
   static const studySession = 'study_session';
   static const studyQuestion = 'study_question';
   static const mockExam = 'mock_exam';
+  static const codeProject = 'code_project';
+  static const codeFile = 'code_file';
+  static const codeRun = 'code_run';
   static const bodyMetric = 'body_metric';
   static const cardioSession = 'cardio_session';
   static const waterLog = 'water_log';
@@ -44,7 +47,7 @@ class EntityTypes {
 
 class AppStore extends ChangeNotifier {
   AppStore({LocalDatabase? database})
-    : _database = database ?? LocalDatabase.instance;
+      : _database = database ?? LocalDatabase.instance;
 
   final LocalDatabase _database;
   final Uuid _uuid = const Uuid();

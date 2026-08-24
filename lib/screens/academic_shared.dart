@@ -83,7 +83,7 @@ class AcademicSectionTitle extends StatelessWidget {
 class AcademicBadge extends StatelessWidget {
   const AcademicBadge({
     required this.label,
-    this.color = AppColors.purple,
+    this.color = AppColors.primary,
     this.icon,
     super.key,
   });

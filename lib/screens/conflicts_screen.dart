@@ -51,7 +51,8 @@ class _ConflictsScreenState extends State<ConflictsScreen> {
                         const PageIntro(
                           eyebrow: 'Sincronização',
                           title: 'Conflitos preservados',
-                          subtitle: 'Quando PC e celular alteram o mesmo registro, o aplicativo guarda as duas versões para auditoria em vez de apagar silenciosamente.',
+                          subtitle:
+                              'Quando PC e celular alteram o mesmo registro, o aplicativo guarda as duas versões para auditoria em vez de apagar silenciosamente.',
                         ),
                         const SizedBox(height: 18),
                         if (conflicts.isEmpty)
@@ -111,14 +112,14 @@ class _ConflictsScreenState extends State<ConflictsScreen> {
                                           label: 'Local',
                                           value:
                                               item['local_json']?.toString() ??
-                                              '',
+                                                  '',
                                         ),
                                         const SizedBox(height: 8),
                                         _JsonBox(
                                           label: 'Remota',
                                           value:
                                               item['remote_json']?.toString() ??
-                                              '',
+                                                  '',
                                         ),
                                       ],
                                     ),

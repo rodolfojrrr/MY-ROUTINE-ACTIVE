@@ -80,7 +80,8 @@ class _WifiSyncScreenState extends State<WifiSyncScreen> {
                       const PageIntro(
                         eyebrow: 'Sem internet e sem nuvem',
                         title: 'PC e celular na mesma rede',
-                        subtitle: 'No PC, abra uma sessão temporária. No celular, informe IP e código. Os dois aparelhos terminam com a versão mesclada.',
+                        subtitle:
+                            'No PC, abra uma sessão temporária. No celular, informe IP e código. Os dois aparelhos terminam com a versão mesclada.',
                       ),
                       const SizedBox(height: 18),
                       Container(
@@ -164,11 +165,7 @@ class _WifiSyncScreenState extends State<WifiSyncScreen> {
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              'Este aparelho: ${Platform.isWindows
-                                  ? 'Windows'
-                                  : Platform.isAndroid
-                                  ? 'Android'
-                                  : Platform.operatingSystem} • Status: ${widget.wifi.status}',
+                              'Este aparelho: ${Platform.isWindows ? 'Windows' : Platform.isAndroid ? 'Android' : Platform.operatingSystem} • Status: ${widget.wifi.status}',
                               style: const TextStyle(
                                 color: AppColors.textMuted,
                               ),

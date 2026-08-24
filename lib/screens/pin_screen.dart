@@ -53,7 +53,7 @@ class _PinScreenState extends State<PinScreen> {
               constraints: const BoxConstraints(maxWidth: 430),
               child: PremiumCard(
                 padding: const EdgeInsets.all(28),
-                borderColor: AppColors.purple.withValues(alpha: .6),
+                borderColor: AppColors.primary.withValues(alpha: .6),
                 child: Column(
                   children: <Widget>[
                     Container(
@@ -61,7 +61,10 @@ class _PinScreenState extends State<PinScreen> {
                       height: 70,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: <Color>[AppColors.purple, Color(0xFF5334E3)],
+                          colors: <Color>[
+                            AppColors.primaryLight,
+                            AppColors.primaryDark,
+                          ],
                         ),
                         borderRadius: BorderRadius.circular(22),
                       ),

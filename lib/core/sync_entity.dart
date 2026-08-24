@@ -22,24 +22,24 @@ class SyncEntity {
   bool get isDeleted => deletedAtMs != null;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'id': id,
-    'entity_type': type,
-    'payload': jsonEncode(payload),
-    'updated_at': updatedAtMs,
-    'deleted_at': deletedAtMs,
-    'device_id': deviceId,
-    'revision': revision,
-  };
+        'id': id,
+        'entity_type': type,
+        'payload': jsonEncode(payload),
+        'updated_at': updatedAtMs,
+        'deleted_at': deletedAtMs,
+        'device_id': deviceId,
+        'revision': revision,
+      };
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'id': id,
-    'type': type,
-    'payload': payload,
-    'updatedAtMs': updatedAtMs,
-    'deletedAtMs': deletedAtMs,
-    'deviceId': deviceId,
-    'revision': revision,
-  };
+        'id': id,
+        'type': type,
+        'payload': payload,
+        'updatedAtMs': updatedAtMs,
+        'deletedAtMs': deletedAtMs,
+        'deviceId': deviceId,
+        'revision': revision,
+      };
 
   factory SyncEntity.fromMap(Map<String, Object?> map) {
     final rawPayload = map['payload'];
@@ -57,14 +57,14 @@ class SyncEntity {
   }
 
   factory SyncEntity.fromJson(Map<String, dynamic> json) => SyncEntity(
-    id: json['id'] as String,
-    type: json['type'] as String,
-    payload: (json['payload'] as Map).cast<String, dynamic>(),
-    updatedAtMs: (json['updatedAtMs'] as num).toInt(),
-    deletedAtMs: (json['deletedAtMs'] as num?)?.toInt(),
-    deviceId: json['deviceId'] as String,
-    revision: (json['revision'] as num).toInt(),
-  );
+        id: json['id'] as String,
+        type: json['type'] as String,
+        payload: (json['payload'] as Map).cast<String, dynamic>(),
+        updatedAtMs: (json['updatedAtMs'] as num).toInt(),
+        deletedAtMs: (json['deletedAtMs'] as num?)?.toInt(),
+        deviceId: json['deviceId'] as String,
+        revision: (json['revision'] as num).toInt(),
+      );
 
   bool contentEquals(SyncEntity other) =>
       type == other.type &&
@@ -88,9 +88,9 @@ class MergeResult {
   int get changed => inserted + updated;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'inserted': inserted,
-    'updated': updated,
-    'ignored': ignored,
-    'conflicts': conflicts,
-  };
+        'inserted': inserted,
+        'updated': updated,
+        'ignored': ignored,
+        'conflicts': conflicts,
+      };
 }

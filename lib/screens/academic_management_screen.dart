@@ -30,7 +30,7 @@ class AcademicManagementScreen extends StatelessWidget {
                     title: 'Organização acadêmica',
                     subtitle:
                         'Cadastre na ordem: semestre, matéria, conteúdo e horário. O painel principal permanece limpo e somente para consulta.',
-                    color: AppColors.purple,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -126,13 +126,13 @@ class _SemestersTab extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: PremiumCard(
                 borderColor:
-                    status == 'current' ? AppColors.purple : AppColors.border,
+                    status == 'current' ? AppColors.primary : AppColors.border,
                 child: Row(
                   children: <Widget>[
                     _EntityIcon(
                       icon: Icons.layers_outlined,
                       color: status == 'current'
-                          ? AppColors.purple
+                          ? AppColors.primary
                           : AppColors.blue,
                     ),
                     const SizedBox(width: 14),
@@ -247,7 +247,7 @@ class _SubjectsTab extends StatelessWidget {
                   children: <Widget>[
                     const _EntityIcon(
                       icon: Icons.code_rounded,
-                      color: AppColors.purple,
+                      color: AppColors.primary,
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -358,7 +358,7 @@ class _ContentsTab extends StatelessWidget {
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        const Icon(Icons.menu_book, color: AppColors.purple),
+                        const Icon(Icons.menu_book, color: AppColors.primary),
                         const SizedBox(width: 9),
                         Expanded(
                           child: Text(
@@ -382,10 +382,10 @@ class _ContentsTab extends StatelessWidget {
                       (content) => ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: CircleAvatar(
-                          backgroundColor: AppColors.purple.withValues(
+                          backgroundColor: AppColors.primary.withValues(
                             alpha: .14,
                           ),
-                          foregroundColor: AppColors.purple,
+                          foregroundColor: AppColors.primary,
                           child: Text('${content.payload['order'] ?? '•'}'),
                         ),
                         title: Text(
@@ -503,7 +503,7 @@ class _SchedulesTab extends StatelessWidget {
                     Text(
                       day.value,
                       style: const TextStyle(
-                        color: AppColors.purple,
+                        color: AppColors.primary,
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
                       ),
@@ -514,7 +514,7 @@ class _SchedulesTab extends StatelessWidget {
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(
                           Icons.schedule,
-                          color: AppColors.purple,
+                          color: AppColors.primary,
                         ),
                         title: Text(
                           AcademicData.subjectName(
@@ -1235,6 +1235,6 @@ Color _semesterStatusColor(String status) {
   return switch (status) {
     'completed' => AppColors.green,
     'planned' => AppColors.blue,
-    _ => AppColors.purple,
+    _ => AppColors.primary,
   };
 }

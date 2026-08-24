@@ -144,7 +144,8 @@ class ExerciseLibraryTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Biblioteca',
                   title: 'Exercícios prontos para suas fichas',
-                  subtitle: 'Escolha um exercício, envie para uma ficha e depois ajuste séries, carga e descanso do seu jeito.',
+                  subtitle:
+                      'Escolha um exercício, envie para uma ficha e depois ajuste séries, carga e descanso do seu jeito.',
                   color: AppColors.orange,
                 ),
                 const SizedBox(height: 18),
@@ -246,9 +247,12 @@ class TrainingProgressTab extends StatelessWidget {
     );
     controller.dispose();
     if (value == null) return;
-    await store.save(EntityTypes.trainingGoal, <String, dynamic>{
-      'weeklySessions': value,
-    }, id: goals.isEmpty ? null : goals.first.id);
+    await store.save(
+        EntityTypes.trainingGoal,
+        <String, dynamic>{
+          'weeklySessions': value,
+        },
+        id: goals.isEmpty ? null : goals.first.id);
   }
 
   @override
@@ -266,13 +270,12 @@ class TrainingProgressTab extends StatelessWidget {
       final raw = item.payload['setSnapshots'];
       return sum + (raw is List ? TrainingUtils.snapshotVolume(raw) : 0);
     });
-    final exerciseNames =
-        snapshots
-            .map((item) => item['exerciseName'] as String? ?? '')
-            .where((item) => item.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
+    final exerciseNames = snapshots
+        .map((item) => item['exerciseName'] as String? ?? '')
+        .where((item) => item.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
     final exerciseHistories = <String, List<Map<String, dynamic>>>{};
     for (final item in snapshots) {
       final name = item['exerciseName'] as String? ?? '';
@@ -288,15 +291,14 @@ class TrainingProgressTab extends StatelessWidget {
         ),
       );
     }
-    final prs =
-        exerciseNames
-            .map((name) {
-              final best = TrainingUtils.maxLoadForExercise(snapshots, name);
-              return (name: name, load: best);
-            })
-            .where((item) => item.load > 0)
-            .toList()
-          ..sort((a, b) => b.load.compareTo(a.load));
+    final prs = exerciseNames
+        .map((name) {
+          final best = TrainingUtils.maxLoadForExercise(snapshots, name);
+          return (name: name, load: best);
+        })
+        .where((item) => item.load > 0)
+        .toList()
+      ..sort((a, b) => b.load.compareTo(a.load));
     final weekStart = DateTime(
       now.year,
       now.month,
@@ -318,8 +320,7 @@ class TrainingProgressTab extends StatelessWidget {
       final group = item['group'] as String? ?? 'Geral';
       final load = item['load'] as num? ?? 0;
       final reps = item['reps'] as num? ?? 0;
-      groupVolume[group] =
-          (groupVolume[group] ?? 0) +
+      groupVolume[group] = (groupVolume[group] ?? 0) +
           TrainingUtils.setVolume(load: load, reps: reps);
     }
     final groupEntries = groupVolume.entries.toList()
@@ -337,12 +338,10 @@ class TrainingProgressTab extends StatelessWidget {
       return raw is List ? TrainingUtils.snapshotVolume(raw) : 0.0;
     }
 
-    final latestVolume = orderedSessions.isEmpty
-        ? 0.0
-        : sessionVolume(orderedSessions.first);
-    final previousVolume = orderedSessions.length < 2
-        ? 0.0
-        : sessionVolume(orderedSessions[1]);
+    final latestVolume =
+        orderedSessions.isEmpty ? 0.0 : sessionVolume(orderedSessions.first);
+    final previousVolume =
+        orderedSessions.length < 2 ? 0.0 : sessionVolume(orderedSessions[1]);
     final volumeDelta = previousVolume <= 0
         ? null
         : ((latestVolume - previousVolume) / previousVolume) * 100;
@@ -359,7 +358,8 @@ class TrainingProgressTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Evolução real',
                   title: 'Progresso e recordes',
-                  subtitle: 'Acompanhe frequência, volume de treino e maiores cargas registradas.',
+                  subtitle:
+                      'Acompanhe frequência, volume de treino e maiores cargas registradas.',
                   color: AppColors.orange,
                 ),
                 const SizedBox(height: 20),
@@ -382,7 +382,7 @@ class TrainingProgressTab extends StatelessWidget {
                       label: 'Exercícios com PR',
                       value: '${prs.length}',
                       icon: Icons.emoji_events_outlined,
-                      color: AppColors.purple,
+                      color: AppColors.primary,
                     ),
                     MetricCard(
                       label: 'Meta desta semana',
@@ -445,7 +445,8 @@ class TrainingProgressTab extends StatelessWidget {
                   const EmptyState(
                     icon: Icons.insights_outlined,
                     title: 'Ainda não há evolução para analisar',
-                    message: 'Finalize treinos para formar seu histórico de progressão.',
+                    message:
+                        'Finalize treinos para formar seu histórico de progressão.',
                   )
                 else ...<Widget>[
                   PremiumCard(
@@ -463,11 +464,8 @@ class TrainingProgressTab extends StatelessWidget {
                         SizedBox(
                           height: 180,
                           child: _TrainingVolumeChart(
-                            sessions: sessions
-                                .take(10)
-                                .toList()
-                                .reversed
-                                .toList(),
+                            sessions:
+                                sessions.take(10).toList().reversed.toList(),
                           ),
                         ),
                       ],
@@ -492,9 +490,7 @@ class TrainingProgressTab extends StatelessWidget {
                             style: TextStyle(color: AppColors.textMuted),
                           )
                         else
-                          ...prs
-                              .take(12)
-                              .map(
+                          ...prs.take(12).map(
                                 (item) => ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   leading: const Icon(
@@ -527,8 +523,7 @@ class TrainingProgressTab extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         ...exerciseNames.take(10).map((name) {
-                          final history =
-                              exerciseHistories[name] ??
+                          final history = exerciseHistories[name] ??
                               <Map<String, dynamic>>[];
                           final loads = history
                               .map(
@@ -538,15 +533,13 @@ class TrainingProgressTab extends StatelessWidget {
                               .where((value) => value > 0)
                               .toList();
                           final latest = loads.isEmpty ? 0.0 : loads.last;
-                          final previous = loads.length < 2
-                              ? null
-                              : loads[loads.length - 2];
+                          final previous =
+                              loads.length < 2 ? null : loads[loads.length - 2];
                           final best = loads.isEmpty
                               ? 0.0
                               : loads.reduce((a, b) => a > b ? a : b);
-                          final latestRaw = history.isEmpty
-                              ? null
-                              : history.last;
+                          final latestRaw =
+                              history.isEmpty ? null : history.last;
                           final date = DateTime.tryParse(
                             latestRaw?['sessionDate'] as String? ?? '',
                           );
@@ -618,9 +611,7 @@ class TrainingProgressTab extends StatelessWidget {
                             style: TextStyle(color: AppColors.textMuted),
                           )
                         else
-                          ...groupEntries
-                              .take(10)
-                              .map(
+                          ...groupEntries.take(10).map(
                                 (item) => ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   leading: const Icon(
@@ -675,7 +666,8 @@ class BodyTrackingTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Acompanhamento corporal',
                   title: 'Peso, medidas e fotos',
-                  subtitle: 'Registre sua evolução corporal sem enviar nenhuma imagem para a nuvem.',
+                  subtitle:
+                      'Registre sua evolução corporal sem enviar nenhuma imagem para a nuvem.',
                   color: AppColors.orange,
                 ),
                 const SizedBox(height: 20),
@@ -711,7 +703,7 @@ class BodyTrackingTab extends StatelessWidget {
                         value:
                             '${(latest.payload['arm'] as num? ?? 0).toStringAsFixed(1)} cm',
                         icon: Icons.fitness_center,
-                        color: AppColors.purple,
+                        color: AppColors.primary,
                       ),
                     ],
                   ),
@@ -720,7 +712,8 @@ class BodyTrackingTab extends StatelessWidget {
                   const EmptyState(
                     icon: Icons.monitor_weight_outlined,
                     title: 'Nenhum registro corporal',
-                    message: 'Adicione seu primeiro peso e suas medidas para acompanhar a evolução.',
+                    message:
+                        'Adicione seu primeiro peso e suas medidas para acompanhar a evolução.',
                   )
                 else
                   ...metrics.map(
@@ -824,7 +817,8 @@ class WellnessTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Hábitos',
                   title: 'Cardio e hidratação',
-                  subtitle: 'Registre cardio e acompanhe sua água do dia de forma rápida.',
+                  subtitle:
+                      'Registre cardio e acompanhe sua água do dia de forma rápida.',
                   color: AppColors.orange,
                 ),
                 const SizedBox(height: 20),
@@ -876,12 +870,11 @@ class WellnessTab extends StatelessWidget {
                   const EmptyState(
                     icon: Icons.directions_run,
                     title: 'Nenhum cardio registrado',
-                    message: 'Corrida, caminhada, bicicleta e outros cardios podem ser salvos aqui.',
+                    message:
+                        'Corrida, caminhada, bicicleta e outros cardios podem ser salvos aqui.',
                   )
                 else
-                  ...cardio
-                      .take(20)
-                      .map(
+                  ...cardio.take(20).map(
                         (item) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: PremiumCard(
@@ -1078,8 +1071,7 @@ class _BodyMetricDialogState extends State<_BodyMetricDialog> {
   @override
   void initState() {
     super.initState();
-    date =
-        DateTime.tryParse(widget.entity?.payload['date'] as String? ?? '') ??
+    date = DateTime.tryParse(widget.entity?.payload['date'] as String? ?? '') ??
         DateTime.now();
     weight = _controller('weight');
     chest = _controller('chest');
@@ -1095,8 +1087,8 @@ class _BodyMetricDialogState extends State<_BodyMetricDialog> {
   }
 
   TextEditingController _controller(String key) => TextEditingController(
-    text: widget.entity?.payload[key]?.toString() ?? '',
-  );
+        text: widget.entity?.payload[key]?.toString() ?? '',
+      );
 
   @override
   void dispose() {
@@ -1193,18 +1185,21 @@ class _BodyMetricDialogState extends State<_BodyMetricDialog> {
         ),
         FilledButton(
           onPressed: () async {
-            await widget.store.save(EntityTypes.bodyMetric, <String, dynamic>{
-              'date': DateFormat('yyyy-MM-dd').format(date),
-              'weight': _numberValue(weight),
-              'chest': _numberValue(chest),
-              'waist': _numberValue(waist),
-              'arm': _numberValue(arm),
-              'thigh': _numberValue(thigh),
-              'bodyFat': _numberValue(bodyFat),
-              'notes': notes.text.trim(),
-              'photoName': photoName,
-              'photoBase64': photoBase64,
-            }, id: widget.entity?.id);
+            await widget.store.save(
+                EntityTypes.bodyMetric,
+                <String, dynamic>{
+                  'date': DateFormat('yyyy-MM-dd').format(date),
+                  'weight': _numberValue(weight),
+                  'chest': _numberValue(chest),
+                  'waist': _numberValue(waist),
+                  'arm': _numberValue(arm),
+                  'thigh': _numberValue(thigh),
+                  'bodyFat': _numberValue(bodyFat),
+                  'notes': notes.text.trim(),
+                  'photoName': photoName,
+                  'photoBase64': photoBase64,
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },
@@ -1215,10 +1210,10 @@ class _BodyMetricDialogState extends State<_BodyMetricDialog> {
   }
 
   Widget _number(TextEditingController controller, String label) => TextField(
-    controller: controller,
-    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-    decoration: InputDecoration(labelText: label),
-  );
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        decoration: InputDecoration(labelText: label),
+      );
 
   double _numberValue(TextEditingController controller) =>
       double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
@@ -1258,20 +1253,18 @@ class _CardioDialogState extends State<_CardioDialog> {
             DropdownButtonFormField<String>(
               initialValue: type,
               decoration: const InputDecoration(labelText: 'Tipo'),
-              items:
-                  const <String>[
-                        'Caminhada',
-                        'Corrida',
-                        'Bicicleta',
-                        'Elíptico',
-                        'Escada',
-                        'Outro',
-                      ]
-                      .map(
-                        (item) =>
-                            DropdownMenuItem(value: item, child: Text(item)),
-                      )
-                      .toList(),
+              items: const <String>[
+                'Caminhada',
+                'Corrida',
+                'Bicicleta',
+                'Elíptico',
+                'Escada',
+                'Outro',
+              ]
+                  .map(
+                    (item) => DropdownMenuItem(value: item, child: Text(item)),
+                  )
+                  .toList(),
               onChanged: (value) => setState(() => type = value ?? type),
             ),
             const SizedBox(height: 10),

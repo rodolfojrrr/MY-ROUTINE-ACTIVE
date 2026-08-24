@@ -1,5 +1,5 @@
-SMART ROUTINE SI — V4.0.0 ACADÊMICO E LOCAL
-=============================================
+SMART ROUTINE SI — V4.1.0 ACADÊMICO, AZUL E LOCAL
+==================================================
 
 Esta versão é totalmente focada na graduação em Sistemas de Informação.
 Ela gera aplicativo nativo para Android e Windows. Não é site, não abre dentro
@@ -13,6 +13,17 @@ O QUE A VERSÃO 4 ORGANIZA
 - Provas, trabalhos, projetos, atividades e apresentações.
 - Flashcards com revisão espaçada e sessões de foco.
 - Painel principal somente para consulta; cadastros no menu lateral.
+- IDE acadêmica com projetos vinculados a semestre, matéria e conteúdo.
+- Editor de Dart, Python, Java, JavaScript, TypeScript, C, C++, C#, Kotlin,
+  PHP, SQL, HTML/CSS e JSON.
+
+COMO FUNCIONA A IDE
+- O editor, os projetos e os arquivos funcionam no Android e no Windows.
+- O código fica no banco local e acompanha backup .mra e sincronização Wi-Fi.
+- A execução acontece no PC com os compiladores instalados no próprio Windows.
+- No celular, você edita e sincroniza; depois abre o mesmo projeto no PC para rodar.
+- O aplicativo não envia código para a internet nem baixa compiladores sozinho.
+- Consulte docs/IDE_ACADEMICA.md para preparar cada linguagem.
 
 ANTES DE ATUALIZAR
 1. Se já houver dados importantes, exporte um backup .mra no aplicativo atual.

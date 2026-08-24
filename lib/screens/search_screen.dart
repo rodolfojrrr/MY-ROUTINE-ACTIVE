@@ -56,7 +56,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       const EmptyState(
                         icon: Icons.search,
                         title: 'Busca geral',
-                        message: 'Digite pelo menos dois caracteres. A busca acontece somente no banco local deste aparelho.',
+                        message:
+                            'Digite pelo menos dois caracteres. A busca acontece somente no banco local deste aparelho.',
                       )
                     else if (results.isEmpty)
                       const EmptyState(
@@ -65,9 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         message: 'Tente outro termo.',
                       )
                     else
-                      ...results
-                          .take(100)
-                          .map(
+                      ...results.take(100).map(
                             (item) => Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: PremiumCard(
@@ -213,7 +212,7 @@ class _SearchScreenState extends State<SearchScreen> {
       EntityTypes.studyQuestion,
       EntityTypes.mockExam,
     ].contains(type)) {
-      return AppColors.purple;
+      return AppColors.primary;
     }
     if (<String>[
       EntityTypes.workoutPlan,

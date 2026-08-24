@@ -43,8 +43,8 @@ class StudyUtils {
         days = currentIntervalDays <= 0
             ? 1
             : currentIntervalDays == 1
-            ? 3
-            : (currentIntervalDays * 1.8).round().clamp(1, 3650).toInt();
+                ? 3
+                : (currentIntervalDays * 1.8).round().clamp(1, 3650).toInt();
         streak = currentStreak + 1;
         break;
     }

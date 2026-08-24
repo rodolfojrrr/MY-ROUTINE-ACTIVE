@@ -14,7 +14,7 @@ class PremiumBackground extends StatelessWidget {
         gradient: RadialGradient(
           center: Alignment.topLeft,
           radius: 1.45,
-          colors: <Color>[Color(0xFF241653), AppColors.background],
+          colors: <Color>[Color(0xFF0B3262), AppColors.background],
           stops: <double>[0, .58],
         ),
       ),

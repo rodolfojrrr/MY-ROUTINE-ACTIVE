@@ -46,14 +46,19 @@ void main() {
     test('identifica flashcard vencido', () {
       expect(
         StudyUtils.isDue(
-          <String, dynamic>{'nextReviewAt': base.subtract(const Duration(minutes: 1)).toIso8601String()},
+          <String, dynamic>{
+            'nextReviewAt':
+                base.subtract(const Duration(minutes: 1)).toIso8601String()
+          },
           now: base,
         ),
         isTrue,
       );
       expect(
         StudyUtils.isDue(
-          <String, dynamic>{'nextReviewAt': base.add(const Duration(days: 1)).toIso8601String()},
+          <String, dynamic>{
+            'nextReviewAt': base.add(const Duration(days: 1)).toIso8601String()
+          },
           now: base,
         ),
         isFalse,

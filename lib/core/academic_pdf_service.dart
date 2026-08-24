@@ -24,11 +24,9 @@ class AcademicPdfService {
       store,
       summary.payload['contentId'] as String?,
     );
-    final semesterId =
-        store
-                .byId(summary.payload['subjectId'] as String? ?? '')
-                ?.payload['semesterId']
-            as String?;
+    final semesterId = store
+        .byId(summary.payload['subjectId'] as String? ?? '')
+        ?.payload['semesterId'] as String?;
     final semester = AcademicData.semesterName(store, semesterId);
     final body = summary.payload['body'] as String? ?? '';
     final imageWidgets = <pw.Widget>[];

@@ -38,7 +38,8 @@ class RemindersScreen extends StatelessWidget {
                         const PageIntro(
                           eyebrow: 'Rotina',
                           title: 'Lembretes locais',
-                          subtitle: 'No Android, os lembretes podem aparecer como notificação. No Windows, continuam visíveis no painel do aplicativo.',
+                          subtitle:
+                              'No Android, os lembretes podem aparecer como notificação. No Windows, continuam visíveis no painel do aplicativo.',
                         ),
                         const SizedBox(height: 18),
                         Wrap(
@@ -81,7 +82,8 @@ class RemindersScreen extends StatelessWidget {
                           const EmptyState(
                             icon: Icons.notifications_none,
                             title: 'Nenhum lembrete',
-                            message: 'Crie lembretes para provas, contas, treinos ou qualquer compromisso da rotina.',
+                            message:
+                                'Crie lembretes para provas, contas, treinos ou qualquer compromisso da rotina.',
                           )
                         else
                           ...reminders.map((item) {
@@ -180,8 +182,7 @@ class _ReminderDialogState extends State<_ReminderDialog> {
     notes = TextEditingController(
       text: widget.entity?.payload['notes'] as String? ?? '',
     );
-    dateTime =
-        DateTime.tryParse(
+    dateTime = DateTime.tryParse(
           widget.entity?.payload['dateTime'] as String? ?? '',
         ) ??
         DateTime.now().add(const Duration(hours: 1));

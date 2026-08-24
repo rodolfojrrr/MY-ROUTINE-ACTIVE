@@ -119,14 +119,16 @@ class SettingsScreen extends StatelessWidget {
                       const PageIntro(
                         eyebrow: 'Controle local',
                         title: 'Dados, segurança e transferência',
-                        subtitle: 'O banco fica no aparelho. Backups e sincronização só acontecem quando você manda.',
+                        subtitle:
+                            'O banco fica no aparelho. Backups e sincronização só acontecem quando você manda.',
                       ),
                       const SizedBox(height: 20),
                       _SettingsCard(
                         icon: Icons.sync,
                         color: AppColors.green,
                         title: 'Sincronizar pela mesma rede Wi‑Fi',
-                        subtitle: 'Transfira banco e imagens entre PC e celular nos dois sentidos.',
+                        subtitle:
+                            'Transfira banco e imagens entre PC e celular nos dois sentidos.',
                         action: 'Abrir',
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
@@ -140,16 +142,18 @@ class SettingsScreen extends StatelessWidget {
                         icon: Icons.file_upload_outlined,
                         color: AppColors.blue,
                         title: 'Exportar backup .mra',
-                        subtitle: 'Cria um arquivo portátil com todos os registros e imagens.',
+                        subtitle:
+                            'Cria um arquivo portátil com todos os registros e imagens.',
                         action: 'Exportar',
                         onTap: () => exportBackup(context),
                       ),
                       const SizedBox(height: 12),
                       _SettingsCard(
                         icon: Icons.file_download_outlined,
-                        color: AppColors.purple,
+                        color: AppColors.primary,
                         title: 'Importar e mesclar backup',
-                        subtitle: 'Faz uma cópia automática antes e mescla por ID e data de edição.',
+                        subtitle:
+                            'Faz uma cópia automática antes e mescla por ID e data de edição.',
                         action: 'Importar',
                         onTap: () => importBackup(context),
                       ),
@@ -190,7 +194,8 @@ class SettingsScreen extends StatelessWidget {
                           color: AppColors.orange,
                           title:
                               '${store.conflictCount} conflito(s) preservado(s)',
-                          subtitle: 'Revise as duas versões mantidas pela sincronização.',
+                          subtitle:
+                              'Revise as duas versões mantidas pela sincronização.',
                           action: 'Revisar',
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute<void>(

@@ -30,18 +30,18 @@ class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
           b.payload['name'] as String? ?? '',
         ),
       );
-    final exams =
-        widget.store.records(EntityTypes.exam).where((item) {
-          if (subjectId != null && item.payload['subjectId'] != subjectId) {
-            return false;
-          }
-          if (!showCompleted && item.payload['completed'] == true) return false;
-          return true;
-        }).toList()..sort(
-          (a, b) => (a.payload['date'] as String? ?? '').compareTo(
-            b.payload['date'] as String? ?? '',
-          ),
-        );
+    final exams = widget.store.records(EntityTypes.exam).where((item) {
+      if (subjectId != null && item.payload['subjectId'] != subjectId) {
+        return false;
+      }
+      if (!showCompleted && item.payload['completed'] == true) return false;
+      return true;
+    }).toList()
+      ..sort(
+        (a, b) => (a.payload['date'] as String? ?? '').compareTo(
+          b.payload['date'] as String? ?? '',
+        ),
+      );
     final now = DateTime.now();
     final upcoming = exams.where((item) {
       final date = DateTime.tryParse(item.payload['date'] as String? ?? '');
@@ -56,8 +56,9 @@ class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
         const PageIntro(
           eyebrow: 'Calendário acadêmico',
           title: 'Provas, trabalhos e projetos',
-          subtitle: 'Registre cada avaliação por matéria e conteúdo, acompanhe datas, pesos, notas e o que já foi concluído.',
-          color: AppColors.purple,
+          subtitle:
+              'Registre cada avaliação por matéria e conteúdo, acompanhe datas, pesos, notas e o que já foi concluído.',
+          color: AppColors.primary,
         ),
         const SizedBox(height: 18),
         Wrap(
@@ -69,10 +70,10 @@ class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
               onPressed: subjects.isEmpty
                   ? null
                   : () => showDialog<void>(
-                      context: context,
-                      builder: (_) =>
-                          AcademicAssessmentEditorDialog(store: widget.store),
-                    ),
+                        context: context,
+                        builder: (_) =>
+                            AcademicAssessmentEditorDialog(store: widget.store),
+                      ),
               icon: const Icon(Icons.add),
               label: const Text('Nova avaliação'),
             ),
@@ -114,7 +115,8 @@ class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
           const EmptyState(
             icon: Icons.event_available_outlined,
             title: 'Nenhuma avaliação próxima',
-            message: 'Cadastre provas, trabalhos, projetos e atividades para acompanhar aqui.',
+            message:
+                'Cadastre provas, trabalhos, projetos e atividades para acompanhar aqui.',
           )
         else
           ...upcoming.map(
@@ -246,13 +248,15 @@ class _AssessmentCard extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: completed
-                ? 'Marcar como pendente'
-                : 'Marcar como concluída',
-            onPressed: () => store.save(EntityTypes.exam, <String, dynamic>{
-              ...item.payload,
-              'completed': !completed,
-            }, id: item.id),
+            tooltip:
+                completed ? 'Marcar como pendente' : 'Marcar como concluída',
+            onPressed: () => store.save(
+                EntityTypes.exam,
+                <String, dynamic>{
+                  ...item.payload,
+                  'completed': !completed,
+                },
+                id: item.id),
             icon: Icon(
               completed ? Icons.check_circle : Icons.radio_button_unchecked,
               color: completed ? AppColors.green : AppColors.textMuted,
@@ -308,8 +312,7 @@ class _AcademicAssessmentEditorDialogState
   void initState() {
     super.initState();
     final subjects = widget.store.records(EntityTypes.subject);
-    final preferred =
-        widget.entity?.payload['subjectId'] as String? ??
+    final preferred = widget.entity?.payload['subjectId'] as String? ??
         widget.initialSubjectId;
     subjectId = subjects.any((item) => item.id == preferred)
         ? preferred
@@ -335,8 +338,7 @@ class _AcademicAssessmentEditorDialogState
       text: widget.entity?.payload['notes'] as String? ?? '',
     );
     type = widget.entity?.payload['type'] as String? ?? 'exam';
-    date =
-        DateTime.tryParse(widget.entity?.payload['date'] as String? ?? '') ??
+    date = DateTime.tryParse(widget.entity?.payload['date'] as String? ?? '') ??
         DateTime.now();
     completed = widget.entity?.payload['completed'] == true;
   }
@@ -519,20 +521,23 @@ class _AcademicAssessmentEditorDialogState
         FilledButton(
           onPressed: () async {
             if (title.text.trim().isEmpty || subjectId == null) return;
-            await widget.store.save(EntityTypes.exam, <String, dynamic>{
-              'title': title.text.trim(),
-              'subjectId': subjectId,
-              'contentId': contentId,
-              'type': type,
-              'date': DateFormat('yyyy-MM-dd').format(date),
-              'time': time.text.trim(),
-              'weight': _parseNumber(weight.text),
-              'grade': grade.text.trim().isEmpty
-                  ? null
-                  : _parseNumber(grade.text),
-              'notes': notes.text.trim(),
-              'completed': completed,
-            }, id: widget.entity?.id);
+            await widget.store.save(
+                EntityTypes.exam,
+                <String, dynamic>{
+                  'title': title.text.trim(),
+                  'subjectId': subjectId,
+                  'contentId': contentId,
+                  'type': type,
+                  'date': DateFormat('yyyy-MM-dd').format(date),
+                  'time': time.text.trim(),
+                  'weight': _parseNumber(weight.text),
+                  'grade': grade.text.trim().isEmpty
+                      ? null
+                      : _parseNumber(grade.text),
+                  'notes': notes.text.trim(),
+                  'completed': completed,
+                },
+                id: widget.entity?.id);
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Salvar avaliação'),

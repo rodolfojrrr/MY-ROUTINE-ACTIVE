@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const background = Color(0xFF050D1C);
-  static const surface = Color(0xFF0C192D);
-  static const surfaceRaised = Color(0xFF12233C);
-  static const border = Color(0xFF284363);
-  static const textMuted = Color(0xFF93A4BD);
-  static const green = Color(0xFF13D88D);
-  static const purple = Color(0xFF8B4DFF);
+  static const background = Color(0xFF030B18);
+  static const surface = Color(0xFF08182C);
+  static const surfaceRaised = Color(0xFF102744);
+  static const border = Color(0xFF244A73);
+  static const textMuted = Color(0xFF91A9C3);
+  static const green = Color(0xFF16D9A0);
+  static const primary = Color(0xFF2F8CFF);
+  static const primaryLight = Color(0xFF5DBBFF);
+  static const primaryDark = Color(0xFF1554D1);
+  static const cyan = Color(0xFF18C7E8);
   static const orange = Color(0xFFFF8B3D);
   static const red = Color(0xFFFF4D6D);
-  static const blue = Color(0xFF3C8DFF);
+  static const blue = primary;
 }
 
 class AppTheme {
   static ThemeData dark() {
     final scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.purple,
+      seedColor: AppColors.primary,
       brightness: Brightness.dark,
       surface: AppColors.surface,
     );
@@ -24,7 +27,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: scheme.copyWith(
-        primary: AppColors.purple,
+        primary: AppColors.primary,
         secondary: AppColors.green,
         surface: AppColors.surface,
         error: AppColors.red,
@@ -54,12 +57,12 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: AppColors.purple, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.purple,
+          backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           minimumSize: const Size(0, 52),
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),

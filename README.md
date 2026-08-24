@@ -1,6 +1,6 @@
 # Smart Routine SI
 
-**Versão 4.0.0 — edição acadêmica local**
+**Versão 4.1.0 — edição acadêmica local com IDE integrada**
 
 Aplicativo pessoal em Flutter para organizar a graduação em **Sistemas de Informação** no Android e no Windows. É um aplicativo nativo, não uma página dentro do navegador. Todos os dados ficam nos seus aparelhos: não há Firebase, Supabase, analytics, conta externa nem armazenamento em nuvem.
 
@@ -14,7 +14,8 @@ Semestre
     └── Conteúdo
         ├── Resumos e imagens
         ├── Flashcards
-        └── Questões de simulados
+        ├── Questões de simulados
+        └── Projetos de código
 ```
 
 - semestres atuais, concluídos ou planejados;
@@ -35,6 +36,20 @@ A tela inicial funciona como painel de exibição e não mistura formulários co
 - totais de matérias, resumos, avaliações e questões.
 
 Os cadastros e edições ficam no menu lateral, aberto pelos três traços no celular e permanentemente visível em telas maiores.
+
+## IDE acadêmica local
+
+A IDE fica dentro do mesmo aplicativo no Android e no Windows e organiza cada projeto por semestre, matéria e conteúdo:
+
+- editor nativo com numeração de linhas, realce de sintaxe, desfazer/refazer, busca, quebra de linha e salvamento automático;
+- projetos com vários arquivos, arquivo principal configurável, importação e exportação;
+- modelos iniciais para Dart, Python, Java, JavaScript, TypeScript, C, C++, C#, Kotlin, PHP, SQL, HTML/CSS e JSON;
+- saída de compilação e execução em um terminal integrado;
+- verificação dos ambientes instalados no Windows;
+- código armazenado no banco local e incluído no backup `.mra` e na sincronização Wi‑Fi;
+- nenhuma execução remota, envio de código ou download automático de compiladores.
+
+O editor funciona tanto no celular quanto no PC. A compilação e a execução acontecem no Windows usando os ambientes instalados na própria máquina, como JDK, Python, Node.js, GCC ou .NET. No Android você pode criar, editar e sincronizar todos os arquivos; depois, abre o mesmo projeto no PC para executá-lo. HTML é pré-visualizado no navegador padrão local, SQL usa o executável local do SQLite e JSON é um formato apenas de edição.
 
 ## Resumos com imagens e PDF
 
@@ -87,8 +102,9 @@ O formato `.mra`, o identificador Android, a pasta de dados do Windows e o proto
 3. Cadastre as matérias desse semestre.
 4. Cadastre os conteúdos de cada matéria.
 5. Monte o horário semanal.
-6. Use **Resumos**, **Flashcards**, **Simulados** e **Avaliações** durante o período.
-7. Faça backup `.mra` regularmente e sincronize quando PC e celular estiverem na mesma rede.
+6. Use **Resumos**, **Flashcards**, **Simulados**, **Avaliações** e a **IDE de código** durante o período.
+7. Vincule cada projeto da IDE à matéria e ao conteúdo correspondente.
+8. Faça backup `.mra` regularmente e sincronize quando PC e celular estiverem na mesma rede.
 
 ## Gerar APK e Windows pelo GitHub
 
@@ -124,14 +140,17 @@ Para que o Android aceite um APK novo por cima do instalado, as versões precisa
 ## Estrutura principal
 
 ```text
-lib/core/       banco, modelo acadêmico, PDF, backup e sincronização
-lib/screens/    painel, resumos, simulados, avaliações e organização
+lib/core/       banco, modelo acadêmico, IDE, PDF, backup e sincronização
+lib/screens/    painel, IDE, resumos, simulados, avaliações e organização
 lib/widgets/    componentes visuais responsivos
 test/           testes de backup, dados acadêmicos e compatibilidade
+third_party/    editor e realce de sintaxe incluídos localmente
 android/        aplicativo Android
 windows/        aplicativo Windows
 installer/      instalador Inno Setup
 docs/           documentação técnica e operacional
 ```
+
+Leia também `docs/IDE_ACADEMICA.md` para ver os ambientes de execução de cada linguagem.
 
 O repositório deve permanecer sem arquivos `.db`, `.sqlite`, `.sqlite3`, `.mra`, `.jks` ou senhas.

@@ -39,10 +39,8 @@ class NotificationService {
   Future<bool> requestPermission() async {
     if (!_ready) await initialize();
     if (!Platform.isAndroid) return true;
-    final implementation = _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
+    final implementation = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     return await implementation?.requestNotificationsPermission() ?? true;
   }
 
@@ -59,8 +57,7 @@ class NotificationService {
     await _plugin.zonedSchedule(
       id: id,
       title: reminder.payload['title'] as String? ?? 'Smart Routine SI',
-      body:
-          reminder.payload['notes'] as String? ??
+      body: reminder.payload['notes'] as String? ??
           'Você tem um lembrete agendado.',
       scheduledDate: tz.TZDateTime.from(date, tz.local),
       notificationDetails: const NotificationDetails(
@@ -93,6 +90,6 @@ class NotificationService {
   }
 
   int _notificationId(String id) => id.codeUnits.fold<int>(17, (value, unit) {
-    return ((value * 31) + unit) & 0x7fffffff;
-  });
+        return ((value * 31) + unit) & 0x7fffffff;
+      });
 }

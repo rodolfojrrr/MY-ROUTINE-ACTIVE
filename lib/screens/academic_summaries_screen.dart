@@ -104,7 +104,7 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
           title: 'Resumos por matéria e conteúdo',
           subtitle:
               'Centralize texto e imagens, encontre tudo por semestre e gere um PDF individual quando precisar estudar ou imprimir.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 18),
         LayoutBuilder(
@@ -266,12 +266,12 @@ class _SummaryCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.purple.withValues(alpha: .14),
+                  color: AppColors.primary.withValues(alpha: .14),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: const Icon(
                   Icons.description_outlined,
-                  color: AppColors.purple,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 13),

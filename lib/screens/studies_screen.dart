@@ -198,7 +198,7 @@ class _SubjectsTab extends StatelessWidget {
           title: 'Matérias',
           subtitle:
               'Cadastre as disciplinas de Sistemas de Informação e centralize tudo que pertence a cada uma.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 20),
         ElevatedButton.icon(
@@ -218,17 +218,17 @@ class _SubjectsTab extends StatelessWidget {
             (subject) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: PremiumCard(
-                borderColor: AppColors.purple.withValues(alpha: .4),
+                borderColor: AppColors.primary.withValues(alpha: .4),
                 child: Row(
                   children: <Widget>[
                     Container(
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppColors.purple.withValues(alpha: .16),
+                        color: AppColors.primary.withValues(alpha: .16),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Icon(Icons.code, color: AppColors.purple),
+                      child: const Icon(Icons.code, color: AppColors.primary),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -317,7 +317,7 @@ class _ScheduleTab extends StatelessWidget {
           title: 'Horário semanal',
           subtitle:
               'Os períodos 18:30–20:10 e 20:30–22:00 já aparecem como sugestões ao adicionar uma aula.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 20),
         ElevatedButton.icon(
@@ -348,7 +348,7 @@ class _ScheduleTab extends StatelessWidget {
                     Text(
                       day.value,
                       style: const TextStyle(
-                        color: AppColors.purple,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w900,
                         fontSize: 18,
                       ),
@@ -359,7 +359,7 @@ class _ScheduleTab extends StatelessWidget {
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(
                           Icons.schedule,
-                          color: AppColors.purple,
+                          color: AppColors.primary,
                         ),
                         title: Text(
                           _subjectName(
@@ -557,7 +557,7 @@ class _ExamsTab extends StatelessWidget {
           eyebrow: 'Avaliações',
           title: 'Provas e trabalhos',
           subtitle: 'Registre datas, conteúdos e observações de cada matéria.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 20),
         ElevatedButton.icon(
@@ -584,7 +584,7 @@ class _ExamsTab extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(
                     Icons.assignment_outlined,
-                    color: AppColors.purple,
+                    color: AppColors.primary,
                   ),
                   title: Text(exam.payload['title'] as String? ?? ''),
                   subtitle: Text(
@@ -755,7 +755,7 @@ class _NotesTab extends StatelessWidget {
           title: 'Anotações por matéria',
           subtitle:
               'Escreva livremente e anexe uma imagem. Ela entra no backup e na sincronização Wi‑Fi.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 20),
         ElevatedButton.icon(
@@ -799,7 +799,8 @@ class _NotesTab extends StatelessWidget {
                                   store,
                                   note.payload['subjectId'] as String?,
                                 ),
-                                style: const TextStyle(color: AppColors.purple),
+                                style:
+                                    const TextStyle(color: AppColors.primary),
                               ),
                             ],
                           ),
@@ -999,7 +1000,7 @@ class _FlashcardsTab extends StatelessWidget {
           title: 'Flashcards',
           subtitle:
               'Crie perguntas e respostas rápidas ligadas às suas matérias.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 20),
         Wrap(
@@ -1056,7 +1057,7 @@ class _FlashcardsTab extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       _subjectName(store, card.payload['subjectId'] as String?),
-                      style: const TextStyle(color: AppColors.purple),
+                      style: const TextStyle(color: AppColors.primary),
                     ),
                     Text(
                       AcademicData.contentName(

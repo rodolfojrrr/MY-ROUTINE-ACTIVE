@@ -101,7 +101,7 @@ List<_RoutineEvent> _events(AppStore store) {
           subtitle:
               'Aula • ${item.payload['start'] ?? ''}–${item.payload['end'] ?? ''}',
           icon: Icons.school_outlined,
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
       );
     }
@@ -151,7 +151,7 @@ List<_RoutineEvent> _events(AppStore store) {
           title: exam.payload['title'] as String? ?? 'Avaliação',
           subtitle: _subjectName(store, exam.payload['subjectId'] as String?),
           icon: Icons.assignment_outlined,
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
       );
     }

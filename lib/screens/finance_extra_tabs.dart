@@ -37,7 +37,8 @@ class AccountsTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Patrimônio',
                   title: 'Contas e transferências',
-                  subtitle: 'Acompanhe o saldo de cada conta e movimente dinheiro entre elas.',
+                  subtitle:
+                      'Acompanhe o saldo de cada conta e movimente dinheiro entre elas.',
                 ),
                 const SizedBox(height: 20),
                 ResponsiveGrid(
@@ -59,7 +60,7 @@ class AccountsTab extends StatelessWidget {
                       label: 'Transferências',
                       value: '${transfers.length}',
                       icon: Icons.compare_arrows,
-                      color: AppColors.purple,
+                      color: AppColors.primary,
                     ),
                   ],
                 ),
@@ -80,9 +81,9 @@ class AccountsTab extends StatelessWidget {
                       onPressed: accounts.length < 2
                           ? null
                           : () => showDialog<void>(
-                              context: context,
-                              builder: (_) => _TransferDialog(store: store),
-                            ),
+                                context: context,
+                                builder: (_) => _TransferDialog(store: store),
+                              ),
                       icon: const Icon(Icons.compare_arrows),
                       label: const Text('Transferir'),
                     ),
@@ -93,7 +94,8 @@ class AccountsTab extends StatelessWidget {
                   const EmptyState(
                     icon: Icons.account_balance_wallet_outlined,
                     title: 'Nenhuma conta cadastrada',
-                    message: 'Cadastre sua conta corrente, carteira ou poupança para consolidar seu saldo.',
+                    message:
+                        'Cadastre sua conta corrente, carteira ou poupança para consolidar seu saldo.',
                   )
                 else
                   ...accounts.map(
@@ -174,14 +176,12 @@ class AccountsTab extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        ...transfers
-                            .take(8)
-                            .map(
+                        ...transfers.take(8).map(
                               (item) => ListTile(
                                 contentPadding: EdgeInsets.zero,
                                 leading: const Icon(
                                   Icons.compare_arrows,
-                                  color: AppColors.purple,
+                                  color: AppColors.primary,
                                 ),
                                 title: Text(
                                   '${_accountName(store, item.payload['fromAccountId'] as String?)} → ${_accountName(store, item.payload['toAccountId'] as String?)}',
@@ -238,10 +238,13 @@ class FinancePlanningTab extends StatelessWidget {
           .where((item) => item.payload['categoryId'] == category.id)
           .toList();
       for (final item in linked) {
-        await store.save(type, <String, dynamic>{
-          ...item.payload,
-          'categoryId': null,
-        }, id: item.id);
+        await store.save(
+            type,
+            <String, dynamic>{
+              ...item.payload,
+              'categoryId': null,
+            },
+            id: item.id);
       }
     }
     final linkedBudgets = store
@@ -256,10 +259,13 @@ class FinancePlanningTab extends StatelessWidget {
         .where((item) => item.payload['parentId'] == category.id)
         .toList();
     for (final child in children) {
-      await store.save(EntityTypes.financeCategory, <String, dynamic>{
-        ...child.payload,
-        'parentId': null,
-      }, id: child.id);
+      await store.save(
+          EntityTypes.financeCategory,
+          <String, dynamic>{
+            ...child.payload,
+            'parentId': null,
+          },
+          id: child.id);
     }
     await store.remove(category.id);
   }
@@ -270,9 +276,8 @@ class FinancePlanningTab extends StatelessWidget {
     final budgets = store.records(EntityTypes.budget);
     final goals = store.records(EntityTypes.financeGoal);
     final monthKey = '${month.year}-${month.month.toString().padLeft(2, '0')}';
-    final monthBudgets = budgets
-        .where((item) => item.payload['monthKey'] == monthKey)
-        .toList();
+    final monthBudgets =
+        budgets.where((item) => item.payload['monthKey'] == monthKey).toList();
 
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -286,7 +291,8 @@ class FinancePlanningTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Planejamento',
                   title: 'Categorias, orçamentos e metas',
-                  subtitle: 'Defina limites por categoria e acompanhe objetivos financeiros.',
+                  subtitle:
+                      'Defina limites por categoria e acompanhe objetivos financeiros.',
                 ),
                 const SizedBox(height: 18),
                 Wrap(
@@ -305,10 +311,10 @@ class FinancePlanningTab extends StatelessWidget {
                       onPressed: categories.isEmpty
                           ? null
                           : () => showDialog<void>(
-                              context: context,
-                              builder: (_) =>
-                                  _BudgetDialog(store: store, month: month),
-                            ),
+                                context: context,
+                                builder: (_) =>
+                                    _BudgetDialog(store: store, month: month),
+                              ),
                       icon: const Icon(Icons.pie_chart_outline),
                       label: const Text('Novo orçamento'),
                     ),
@@ -344,8 +350,8 @@ class FinancePlanningTab extends StatelessWidget {
                         ...monthBudgets.map((item) {
                           final categoryId =
                               item.payload['categoryId'] as String?;
-                          final limit = (item.payload['limit'] as num? ?? 0)
-                              .toDouble();
+                          final limit =
+                              (item.payload['limit'] as num? ?? 0).toDouble();
                           final spent = _categorySpent(
                             store,
                             categoryId,
@@ -413,10 +419,10 @@ class FinancePlanningTab extends StatelessWidget {
                         )
                       else
                         ...goals.map((item) {
-                          final target = (item.payload['target'] as num? ?? 0)
-                              .toDouble();
-                          final current = (item.payload['current'] as num? ?? 0)
-                              .toDouble();
+                          final target =
+                              (item.payload['target'] as num? ?? 0).toDouble();
+                          final current =
+                              (item.payload['current'] as num? ?? 0).toDouble();
                           final progress = target <= 0
                               ? 0.0
                               : (current / target).clamp(0.0, 1.0).toDouble();
@@ -535,9 +541,8 @@ class FinanceReportsTab extends StatelessWidget {
       6,
       (index) => DateTime(now.year, now.month - 5 + index),
     );
-    final expenses = months
-        .map((month) => _expenseMonth(store, month))
-        .toList();
+    final expenses =
+        months.map((month) => _expenseMonth(store, month)).toList();
     final incomes = months.map((month) => _incomeMonth(store, month)).toList();
     final accounts = store.records(EntityTypes.financeAccount);
     final cash = accounts.fold<double>(
@@ -575,7 +580,8 @@ class FinanceReportsTab extends StatelessWidget {
                 const PageIntro(
                   eyebrow: 'Relatórios',
                   title: 'Visão financeira de longo prazo',
-                  subtitle: 'Compare meses, acompanhe seu patrimônio e identifique a tendência de gastos.',
+                  subtitle:
+                      'Compare meses, acompanhe seu patrimônio e identifique a tendência de gastos.',
                 ),
                 const SizedBox(height: 20),
                 ResponsiveGrid(
@@ -709,19 +715,17 @@ class _AccountDialogState extends State<_AccountDialog> {
             DropdownButtonFormField<String>(
               initialValue: type,
               decoration: const InputDecoration(labelText: 'Tipo'),
-              items:
-                  const <String>[
-                        'Conta corrente',
-                        'Poupança',
-                        'Carteira',
-                        'Investimentos',
-                        'Outro',
-                      ]
-                      .map(
-                        (item) =>
-                            DropdownMenuItem(value: item, child: Text(item)),
-                      )
-                      .toList(),
+              items: const <String>[
+                'Conta corrente',
+                'Poupança',
+                'Carteira',
+                'Investimentos',
+                'Outro',
+              ]
+                  .map(
+                    (item) => DropdownMenuItem(value: item, child: Text(item)),
+                  )
+                  .toList(),
               onChanged: (value) => setState(() => type = value ?? type),
             ),
             const SizedBox(height: 10),
@@ -924,9 +928,8 @@ class _CategoryDialogState extends State<_CategoryDialog> {
               item.id != widget.entity?.id && item.payload['type'] == type,
         )
         .toList();
-    final selectedParent = parents.any((item) => item.id == parentId)
-        ? parentId
-        : null;
+    final selectedParent =
+        parents.any((item) => item.id == parentId) ? parentId : null;
     return AlertDialog(
       title: Text(
         widget.entity == null ? 'Nova categoria' : 'Editar categoria',
@@ -1198,12 +1201,15 @@ class _FinanceGoalDialogState extends State<_FinanceGoalDialog> {
         FilledButton(
           onPressed: () async {
             if (name.text.trim().isEmpty) return;
-            await widget.store.save(EntityTypes.financeGoal, <String, dynamic>{
-              'name': name.text.trim(),
-              'target': parseMoney(target.text),
-              'current': parseMoney(current.text),
-              'dueDate': dueDate?.toIso8601String(),
-            }, id: widget.entity?.id);
+            await widget.store.save(
+                EntityTypes.financeGoal,
+                <String, dynamic>{
+                  'name': name.text.trim(),
+                  'target': parseMoney(target.text),
+                  'current': parseMoney(current.text),
+                  'dueDate': dueDate?.toIso8601String(),
+                },
+                id: widget.entity?.id);
             if (!context.mounted) return;
             Navigator.pop(context);
           },

@@ -139,6 +139,17 @@ class AcademicData {
   }
 
   static Future<void> deleteContent(AppStore store, SyncEntity content) async {
+    final linkedProjects = store
+        .records(EntityTypes.codeProject)
+        .where((item) => item.payload['contentId'] == content.id)
+        .toList();
+    for (final project in linkedProjects) {
+      await store.save(
+        EntityTypes.codeProject,
+        <String, dynamic>{...project.payload, 'contentId': null},
+        id: project.id,
+      );
+    }
     for (final type in <String>[
       EntityTypes.studyNote,
       EntityTypes.studyQuestion,
@@ -162,6 +173,21 @@ class AcademicData {
         .toList();
     for (final content in contents) {
       await deleteContent(store, content);
+    }
+    final linkedProjects = store
+        .records(EntityTypes.codeProject)
+        .where((item) => item.payload['subjectId'] == subject.id)
+        .toList();
+    for (final project in linkedProjects) {
+      await store.save(
+        EntityTypes.codeProject,
+        <String, dynamic>{
+          ...project.payload,
+          'subjectId': null,
+          'contentId': null,
+        },
+        id: project.id,
+      );
     }
     for (final type in <String>[
       EntityTypes.classSession,
@@ -192,6 +218,22 @@ class AcademicData {
         .toList();
     for (final subject in subjects) {
       await deleteSubject(store, subject);
+    }
+    final linkedProjects = store
+        .records(EntityTypes.codeProject)
+        .where((item) => item.payload['semesterId'] == semester.id)
+        .toList();
+    for (final project in linkedProjects) {
+      await store.save(
+        EntityTypes.codeProject,
+        <String, dynamic>{
+          ...project.payload,
+          'semesterId': null,
+          'subjectId': null,
+          'contentId': null,
+        },
+        id: project.id,
+      );
     }
     await store.remove(semester.id);
   }

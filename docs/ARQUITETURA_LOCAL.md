@@ -1,4 +1,4 @@
-# Arquitetura local — Smart Routine SI 4.0.0
+# Arquitetura local — Smart Routine SI 4.1.0
 
 ## Plataformas
 
@@ -12,7 +12,7 @@ O painel inicial é de leitura. As operações de cadastro, edição e exclusão
 
 ## Persistência
 
-A tabela `entities` guarda registros genéricos e versionados com UUID, tipo, JSON, revisão, dispositivo de origem, instante de atualização e tombstone de exclusão. Os novos tipos principais são `semester` e `study_content`; os tipos anteriores de matéria, aula, prova, resumo, flashcard, questão, simulado e sessão de estudo continuam compatíveis.
+A tabela `entities` guarda registros genéricos e versionados com UUID, tipo, JSON, revisão, dispositivo de origem, instante de atualização e tombstone de exclusão. Os tipos acadêmicos principais incluem `semester` e `study_content`; projetos, arquivos e execuções da IDE usam `code_project`, `code_file` e `code_run`. Os tipos anteriores de matéria, aula, prova, resumo, flashcard, questão, simulado e sessão de estudo continuam compatíveis.
 
 A tabela `settings` guarda preferências, ID do aparelho e configuração do PIN. `sync_conflicts` preserva divergências encontradas na mesclagem para que nenhuma edição desapareça silenciosamente.
 
@@ -30,6 +30,12 @@ O `.mra` é um envelope JSON compactado com GZip. O manifesto contém versão, d
 
 PC e celular se comunicam diretamente na rede local. A mesclagem considera UUID, revisão e horário de atualização. Exclusões usam tombstones. Antes de importar ou mesclar dados, o aplicativo cria uma cópia de segurança automática.
 
+## IDE acadêmica
+
+O editor é um componente Flutter nativo e não usa WebView. Projetos e arquivos ficam nas entidades sincronizáveis e podem ser vinculados a semestre, matéria e conteúdo. Ao executar um projeto no Windows, o aplicativo materializa temporariamente os arquivos em `MyRoutineActive/code_workspace/<id-do-projeto>` dentro da pasta de suporte da aplicação e chama somente os ambientes já instalados na máquina.
+
+O Android oferece a mesma edição e organização, mas não inclui compiladores. Essa separação mantém o APK enxuto, offline e previsível: o celular edita e sincroniza; o Windows compila e executa. O aplicativo não usa serviços de compilação remota e não instala ferramentas sem autorização.
+
 ## Ausência de nuvem
 
-Não há backend remoto, analytics ou autenticação externa. GitHub é usado somente para armazenar o código e executar as compilações. Banco, imagens, backups e chave de assinatura são ignorados pelo Git.
+Não há backend remoto, analytics ou autenticação externa. GitHub é usado somente para armazenar o código e executar as compilações do aplicativo. Banco, imagens, backups, projetos pessoais e chave de assinatura são ignorados pelo Git.

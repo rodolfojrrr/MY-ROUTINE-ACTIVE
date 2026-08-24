@@ -8,6 +8,7 @@ import 'academic_dashboard_screen.dart';
 import 'academic_management_screen.dart';
 import 'academic_simulations_screen.dart';
 import 'academic_summaries_screen.dart';
+import 'code_workspace_screen.dart';
 import 'settings_screen.dart';
 import 'studies_extra_tabs.dart';
 import 'studies_screen.dart';
@@ -68,6 +69,12 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       selectedIcon: Icons.timer,
     ),
     _AcademicDestination(
+      label: 'IDE de código',
+      title: 'IDE acadêmica',
+      icon: Icons.terminal_outlined,
+      selectedIcon: Icons.terminal_rounded,
+    ),
+    _AcademicDestination(
       label: 'Organização',
       title: 'Organização acadêmica',
       icon: Icons.tune_outlined,
@@ -97,6 +104,7 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       AcademicAssessmentsScreen(store: widget.store),
       StudyFlashcardsPage(store: widget.store),
       StudyFocusTab(store: widget.store),
+      CodeWorkspaceScreen(store: widget.store),
       AcademicManagementScreen(store: widget.store),
     ];
     return AnimatedBuilder(
@@ -204,12 +212,15 @@ class _AcademicSidebar extends StatelessWidget {
                       height: 52,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: <Color>[Color(0xFFA45AFF), Color(0xFF5334E3)],
+                          colors: <Color>[
+                            AppColors.primaryLight,
+                            AppColors.primaryDark,
+                          ],
                         ),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: <BoxShadow>[
                           BoxShadow(
-                            color: AppColors.purple.withValues(alpha: .28),
+                            color: AppColors.primary.withValues(alpha: .28),
                             blurRadius: 20,
                           ),
                         ],
@@ -276,21 +287,22 @@ class _AcademicSidebar extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 5),
                       child: ListTile(
                         selected: selected,
-                        selectedTileColor: AppColors.purple.withValues(
+                        selectedTileColor: AppColors.primary.withValues(
                           alpha: .17,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                           side: BorderSide(
                             color: selected
-                                ? AppColors.purple.withValues(alpha: .55)
+                                ? AppColors.primary.withValues(alpha: .55)
                                 : Colors.transparent,
                           ),
                         ),
                         leading: Icon(
                           selected ? item.selectedIcon : item.icon,
-                          color:
-                              selected ? AppColors.purple : AppColors.textMuted,
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.textMuted,
                         ),
                         title: Text(
                           item.label,

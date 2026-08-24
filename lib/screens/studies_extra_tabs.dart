@@ -66,7 +66,7 @@ class StudyTodayTab extends StatelessWidget {
           title: 'Seu plano de estudos do dia',
           subtitle:
               'Aulas, revisões, avaliações próximas e tempo de foco em uma única tela.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 20),
         ResponsiveGrid(
@@ -77,7 +77,7 @@ class StudyTodayTab extends StatelessWidget {
               value: '$minutesToday min',
               caption: 'Meta: $dailyGoal min',
               icon: Icons.timer_outlined,
-              color: AppColors.purple,
+              color: AppColors.primary,
             ),
             MetricCard(
               label: 'Flashcards vencidos',
@@ -96,12 +96,12 @@ class StudyTodayTab extends StatelessWidget {
         const SizedBox(height: 16),
         if (dueCards.isNotEmpty)
           PremiumCard(
-            borderColor: AppColors.purple,
+            borderColor: AppColors.primary,
             child: Row(
               children: <Widget>[
                 const Icon(
                   Icons.psychology_alt_outlined,
-                  color: AppColors.purple,
+                  color: AppColors.primary,
                   size: 34,
                 ),
                 const SizedBox(width: 14),
@@ -155,7 +155,7 @@ class StudyTodayTab extends StatelessWidget {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(
                       Icons.schedule,
-                      color: AppColors.purple,
+                      color: AppColors.primary,
                     ),
                     title: Text(
                       _subjectName(store, item.payload['subjectId'] as String?),
@@ -288,7 +288,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                         ),
                         const SizedBox(height: 14),
                         PremiumCard(
-                          borderColor: AppColors.purple,
+                          borderColor: AppColors.primary,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 24),
                             child: Column(
@@ -395,7 +395,7 @@ class QuestionBankTab extends StatelessWidget {
           title: 'Banco de questões e simulados',
           subtitle:
               'Cadastre questões, pratique e acompanhe seu percentual de acertos por matéria.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 20),
         ResponsiveGrid(
@@ -405,7 +405,7 @@ class QuestionBankTab extends StatelessWidget {
               label: 'Questões',
               value: '${questions.length}',
               icon: Icons.quiz_outlined,
-              color: AppColors.purple,
+              color: AppColors.primary,
             ),
             MetricCard(
               label: 'Tentativas',
@@ -469,7 +469,7 @@ class QuestionBankTab extends StatelessWidget {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(
                       Icons.insights,
-                      color: AppColors.purple,
+                      color: AppColors.primary,
                     ),
                     title: Text(_subjectName(store, entry.key)),
                     subtitle: Text(
@@ -534,7 +534,7 @@ class QuestionBankTab extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(
                     Icons.quiz_outlined,
-                    color: AppColors.purple,
+                    color: AppColors.primary,
                   ),
                   title: Text(item.payload['question'] as String? ?? ''),
                   subtitle: Text(
@@ -722,7 +722,7 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
           title: 'Pomodoro e tempo estudado',
           subtitle:
               'Use o cronômetro para registrar seu tempo real por matéria e bater sua meta diária.',
-          color: AppColors.purple,
+          color: AppColors.primary,
         ),
         const SizedBox(height: 20),
         ResponsiveGrid(
@@ -733,7 +733,7 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
               value: '$todayMinutes min',
               caption: 'Meta: $goal min',
               icon: Icons.timer_outlined,
-              color: AppColors.purple,
+              color: AppColors.primary,
             ),
             MetricCard(
               label: 'Sessões registradas',
@@ -745,7 +745,7 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
         ),
         const SizedBox(height: 16),
         PremiumCard(
-          borderColor: AppColors.purple,
+          borderColor: AppColors.primary,
           child: Column(
             children: <Widget>[
               DropdownButtonFormField<String?>(
@@ -832,7 +832,7 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(
                           Icons.menu_book_outlined,
-                          color: AppColors.purple,
+                          color: AppColors.primary,
                         ),
                         title: Text(_subjectName(widget.store, entry.key)),
                         trailing: Text(
@@ -866,7 +866,7 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(
                           Icons.timer_outlined,
-                          color: AppColors.purple,
+                          color: AppColors.primary,
                         ),
                         title: Text(
                           '${item.payload['minutes'] ?? 0} min • ${_subjectName(widget.store, item.payload['subjectId'] as String?)}',
@@ -968,7 +968,7 @@ class _QuickMockScreenState extends State<QuickMockScreen> {
                             title: 'Resolva sem consultar',
                             subtitle:
                                 'As respostas são corrigidas ao finalizar.',
-                            color: AppColors.purple,
+                            color: AppColors.primary,
                           ),
                           const SizedBox(height: 18),
                           ...questions.asMap().entries.map((entry) {
@@ -1007,7 +1007,7 @@ class _QuickMockScreenState extends State<QuickMockScreen> {
                                               ? Icons.radio_button_checked
                                               : Icons.radio_button_off,
                                           color: selected
-                                              ? AppColors.purple
+                                              ? AppColors.primary
                                               : AppColors.textMuted,
                                         ),
                                         title: Text(options[index]),

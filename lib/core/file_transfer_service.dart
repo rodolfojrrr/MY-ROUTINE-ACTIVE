@@ -29,8 +29,7 @@ class FileTransferService {
     );
     if (picked == null || picked.files.isEmpty) return null;
     final file = picked.files.single;
-    final bytes =
-        file.bytes ??
+    final bytes = file.bytes ??
         (file.path == null ? null : await File(file.path!).readAsBytes());
     if (bytes == null) throw const FileSystemException('Arquivo sem dados.');
     return store.importBundle(bytes);
@@ -43,8 +42,7 @@ class FileTransferService {
     );
     if (picked == null || picked.files.isEmpty) return null;
     final file = picked.files.single;
-    final bytes =
-        file.bytes ??
+    final bytes = file.bytes ??
         (file.path == null ? null : await File(file.path!).readAsBytes());
     if (bytes == null) return null;
     if (bytes.length > 8 * 1024 * 1024) {
@@ -68,8 +66,7 @@ class FileTransferService {
     final result = <Map<String, dynamic>>[];
     var totalBytes = 0;
     for (final file in picked.files) {
-      final bytes =
-          file.bytes ??
+      final bytes = file.bytes ??
           (file.path == null ? null : await File(file.path!).readAsBytes());
       if (bytes == null) continue;
       if (bytes.length > 8 * 1024 * 1024) {

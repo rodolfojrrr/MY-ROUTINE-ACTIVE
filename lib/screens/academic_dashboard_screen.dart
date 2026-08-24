@@ -37,36 +37,34 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final semesters = AcademicData.sortedSemesters(widget.store);
-    final currentItems = semesters
-        .where((item) => item.payload['status'] == 'current')
-        .toList();
+    final currentItems =
+        semesters.where((item) => item.payload['status'] == 'current').toList();
     final currentSemester = currentItems.isEmpty ? null : currentItems.first;
     final allSubjects = widget.store.records(EntityTypes.subject);
     final currentSubjects = currentSemester == null
         ? allSubjects
         : AcademicData.subjectsForSemester(widget.store, currentSemester.id);
-    final classes =
-        widget.store
-            .records(EntityTypes.classSession)
-            .where((item) => item.payload['weekday'] == selectedWeekday)
-            .toList()
-          ..sort(
-            (a, b) => (a.payload['start'] as String? ?? '').compareTo(
-              b.payload['start'] as String? ?? '',
-            ),
-          );
-    final upcoming =
-        widget.store.records(EntityTypes.exam).where((item) {
-          if (item.payload['completed'] == true) return false;
-          final date = DateTime.tryParse(item.payload['date'] as String? ?? '');
-          if (date == null) return false;
-          final today = DateTime(now.year, now.month, now.day);
-          return !date.isBefore(today) && date.difference(today).inDays <= 30;
-        }).toList()..sort(
-          (a, b) => (a.payload['date'] as String? ?? '').compareTo(
-            b.payload['date'] as String? ?? '',
-          ),
-        );
+    final classes = widget.store
+        .records(EntityTypes.classSession)
+        .where((item) => item.payload['weekday'] == selectedWeekday)
+        .toList()
+      ..sort(
+        (a, b) => (a.payload['start'] as String? ?? '').compareTo(
+          b.payload['start'] as String? ?? '',
+        ),
+      );
+    final upcoming = widget.store.records(EntityTypes.exam).where((item) {
+      if (item.payload['completed'] == true) return false;
+      final date = DateTime.tryParse(item.payload['date'] as String? ?? '');
+      if (date == null) return false;
+      final today = DateTime(now.year, now.month, now.day);
+      return !date.isBefore(today) && date.difference(today).inDays <= 30;
+    }).toList()
+      ..sort(
+        (a, b) => (a.payload['date'] as String? ?? '').compareTo(
+          b.payload['date'] as String? ?? '',
+        ),
+      );
 
     return AcademicPageBody(
       children: <Widget>[
@@ -82,7 +80,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
               label: 'Matérias no semestre',
               value: '${currentSubjects.length}',
               icon: Icons.menu_book_outlined,
-              color: AppColors.purple,
+              color: AppColors.primary,
             ),
             MetricCard(
               label: 'Resumos salvos',
@@ -142,9 +140,10 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
         const SizedBox(height: 24),
         AcademicSectionTitle(
           title: 'Semestres e matérias',
-          subtitle: 'Abra uma cadeira para visualizar conteúdos, resumos e avaliações.',
+          subtitle:
+              'Abra uma cadeira para visualizar conteúdos, resumos e avaliações.',
           trailing: TextButton(
-            onPressed: () => widget.onOpenSection(6),
+            onPressed: () => widget.onOpenSection(7),
             child: const Text('Organizar'),
           ),
         ),
@@ -153,7 +152,8 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           const EmptyState(
             icon: Icons.school_outlined,
             title: 'Sua graduação começa aqui',
-            message: 'Abra Organização acadêmica no menu lateral e cadastre o semestre atual, as matérias e seus conteúdos.',
+            message:
+                'Abra Organização acadêmica no menu lateral e cadastre o semestre atual, as matérias e seus conteúdos.',
           )
         else ...<Widget>[
           ...semesters.map(
@@ -224,7 +224,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
             final actions = <Widget>[
               AcademicActionCard(
                 icon: Icons.summarize_outlined,
-                color: AppColors.purple,
+                color: AppColors.primary,
                 title: 'Biblioteca de resumos',
                 subtitle: 'Texto, imagens e PDF por conteúdo.',
                 onTap: () => widget.onOpenSection(1),
@@ -236,14 +236,23 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                 subtitle: 'Questões filtradas por matéria e conteúdo.',
                 onTap: () => widget.onOpenSection(2),
               ),
+              AcademicActionCard(
+                icon: Icons.terminal_rounded,
+                color: AppColors.cyan,
+                title: 'Abrir IDE acadêmica',
+                subtitle: 'Projetos de código ligados às matérias.',
+                onTap: () => widget.onOpenSection(6),
+              ),
             ];
-            if (constraints.maxWidth >= 760) {
+            if (constraints.maxWidth >= 960) {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Expanded(child: actions[0]),
                   const SizedBox(width: 13),
                   Expanded(child: actions[1]),
+                  const SizedBox(width: 13),
+                  Expanded(child: actions[2]),
                 ],
               );
             }
@@ -252,6 +261,8 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                 actions[0],
                 const SizedBox(height: 12),
                 actions[1],
+                const SizedBox(height: 12),
+                actions[2],
               ],
             );
           },
@@ -275,12 +286,12 @@ class _AcademicHero extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFF8B36F4), Color(0xFF4A32D7)],
+          colors: <Color>[AppColors.primaryLight, AppColors.primaryDark],
         ),
         borderRadius: BorderRadius.circular(26),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: AppColors.purple.withValues(alpha: .28),
+            color: AppColors.primary.withValues(alpha: .28),
             blurRadius: 30,
             offset: const Offset(0, 14),
           ),
@@ -358,14 +369,14 @@ class _ScheduleViewer extends StatelessWidget {
     return PremiumCard(
       borderColor: sessions.isEmpty
           ? AppColors.border
-          : AppColors.purple.withValues(alpha: .5),
+          : AppColors.primary.withValues(alpha: .5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             AcademicData.weekdayLong[weekday] ?? '',
             style: const TextStyle(
-              color: AppColors.purple,
+              color: AppColors.primary,
               fontSize: 18,
               fontWeight: FontWeight.w900,
             ),
@@ -390,14 +401,14 @@ class _ScheduleViewer extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.purple.withValues(alpha: .14),
+                    color: AppColors.primary.withValues(alpha: .14),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${item.payload['start']}\n${item.payload['end']}',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: AppColors.purple,
+                      color: AppColors.primary,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -433,9 +444,8 @@ class _SemesterViewer extends StatelessWidget {
     final subjects = AcademicData.subjectsForSemester(store, semester.id);
     final current = semester.payload['status'] == 'current';
     return PremiumCard(
-      borderColor: current
-          ? AppColors.purple.withValues(alpha: .65)
-          : AppColors.border,
+      borderColor:
+          current ? AppColors.primary.withValues(alpha: .65) : AppColors.border,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -454,9 +464,9 @@ class _SemesterViewer extends StatelessWidget {
                 label: current
                     ? 'Em andamento'
                     : semester.payload['status'] == 'planned'
-                    ? 'Planejado'
-                    : 'Concluído',
-                color: current ? AppColors.purple : AppColors.green,
+                        ? 'Planejado'
+                        : 'Concluído',
+                color: current ? AppColors.primary : AppColors.green,
               ),
             ],
           ),
@@ -473,8 +483,8 @@ class _SemesterViewer extends StatelessWidget {
                 final count = width >= 900
                     ? 3
                     : width >= 560
-                    ? 2
-                    : 1;
+                        ? 2
+                        : 1;
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -570,7 +580,7 @@ class _SubjectViewerCard extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                const Icon(Icons.code_rounded, color: AppColors.purple),
+                const Icon(Icons.code_rounded, color: AppColors.primary),
                 const Spacer(),
                 const Icon(
                   Icons.arrow_forward_rounded,
@@ -624,16 +634,15 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
             .records(EntityTypes.studyNote)
             .where((item) => item.payload['subjectId'] == subjectId)
             .toList();
-        final exams =
-            store
-                .records(EntityTypes.exam)
-                .where((item) => item.payload['subjectId'] == subjectId)
-                .toList()
-              ..sort(
-                (a, b) => (a.payload['date'] as String? ?? '').compareTo(
-                  b.payload['date'] as String? ?? '',
-                ),
-              );
+        final exams = store
+            .records(EntityTypes.exam)
+            .where((item) => item.payload['subjectId'] == subjectId)
+            .toList()
+          ..sort(
+            (a, b) => (a.payload['date'] as String? ?? '').compareTo(
+              b.payload['date'] as String? ?? '',
+            ),
+          );
         return Scaffold(
           appBar: AppBar(
             title: Text(subject.payload['name'] as String? ?? 'Matéria'),
@@ -653,8 +662,8 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: <Color>[
-                                Color(0xFF6D3BE8),
-                                Color(0xFF28235F),
+                                Color(0xFF1C76DF),
+                                Color(0xFF102F59),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(24),
@@ -698,9 +707,8 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                                           '')
                                       .isNotEmpty)
                                     AcademicBadge(
-                                      label:
-                                          subject.payload['professor']
-                                              as String,
+                                      label: subject.payload['professor']
+                                          as String,
                                       color: Colors.white,
                                       icon: Icons.person_outline,
                                     ),
@@ -719,14 +727,16 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                         const SizedBox(height: 20),
                         const AcademicSectionTitle(
                           title: 'Conteúdos da matéria',
-                          subtitle: 'Estrutura do que foi ou será estudado nesta cadeira.',
+                          subtitle:
+                              'Estrutura do que foi ou será estudado nesta cadeira.',
                         ),
                         const SizedBox(height: 11),
                         if (contents.isEmpty)
                           const EmptyState(
                             icon: Icons.account_tree_outlined,
                             title: 'Nenhum conteúdo cadastrado',
-                            message: 'Use Organização acadêmica no menu principal para criar a estrutura.',
+                            message:
+                                'Use Organização acadêmica no menu principal para criar a estrutura.',
                           )
                         else
                           ...contents.map((content) {
@@ -743,9 +753,9 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                                   tilePadding: EdgeInsets.zero,
                                   childrenPadding: EdgeInsets.zero,
                                   leading: CircleAvatar(
-                                    backgroundColor: AppColors.purple
+                                    backgroundColor: AppColors.primary
                                         .withValues(alpha: .16),
-                                    foregroundColor: AppColors.purple,
+                                    foregroundColor: AppColors.primary,
                                     child: Text(
                                       '${content.payload['order'] ?? '•'}',
                                     ),
@@ -805,13 +815,14 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                                           trailing: const Icon(
                                             Icons.arrow_forward,
                                           ),
-                                          onTap: () => Navigator.of(context).push(
+                                          onTap: () =>
+                                              Navigator.of(context).push(
                                             MaterialPageRoute<void>(
                                               builder: (_) =>
                                                   AcademicSummaryDetailScreen(
-                                                    store: store,
-                                                    summaryId: summary.id,
-                                                  ),
+                                                store: store,
+                                                summaryId: summary.id,
+                                              ),
                                             ),
                                           ),
                                         ),
