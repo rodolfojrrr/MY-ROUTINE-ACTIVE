@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:my_routine_active/core/app_store.dart';
 import 'package:my_routine_active/core/app_theme.dart';
+import 'package:my_routine_active/core/local_account.dart';
+import 'package:my_routine_active/core/sync_entity.dart';
 import 'package:my_routine_active/core/wifi_sync_service.dart';
 import 'package:my_routine_active/screens/academic_shell_screen.dart';
 
@@ -42,7 +44,7 @@ void main() {
     expect(find.text('Organização'), findsOneWidget);
   });
 
-  testWidgets('menu acadêmico permanece visível no desktop', (tester) async {
+  testWidgets('menu acadêmico pode ser recolhido no desktop', (tester) async {
     tester.view.physicalSize = const Size(1280, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -65,5 +67,101 @@ void main() {
     expect(find.text('Menu principal'), findsOneWidget);
     expect(find.text('Sincronização Wi‑Fi'), findsOneWidget);
     expect(find.byIcon(Icons.menu), findsNothing);
+    expect(
+      tester.getSize(find.byKey(const Key('desktop-sidebar-frame'))).width,
+      286,
+    );
+
+    await tester.tap(find.byKey(const Key('desktop-sidebar-collapse')));
+    await tester.pump();
+
+    expect(
+      tester.getSize(find.byKey(const Key('desktop-sidebar-frame'))).width,
+      84,
+    );
+    expect(find.byKey(const Key('desktop-sidebar-expand')), findsOneWidget);
+    expect(find.text('Menu principal'), findsNothing);
+    expect(find.text('Horário de aulas'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('desktop-sidebar-expand')));
+    await tester.pump();
+
+    expect(
+      tester.getSize(find.byKey(const Key('desktop-sidebar-frame'))).width,
+      286,
+    );
+    expect(find.text('Menu principal'), findsOneWidget);
   });
+
+  testWidgets('estado recolhido é restaurado para a conta local',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final store = _ShellStore()
+      ..preferences['desktop_sidebar_collapsed'] = 'true';
+    final wifi = WifiSyncService(store);
+    addTearDown(wifi.dispose);
+    addTearDown(store.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark(),
+        home: AcademicShellScreen(store: store, wifi: wifi),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getSize(find.byKey(const Key('desktop-sidebar-frame'))).width,
+      84,
+    );
+
+    await tester.tap(find.byKey(const Key('desktop-sidebar-expand')));
+    await tester.pump();
+
+    expect(store.preferences['desktop_sidebar_collapsed'], 'false');
+  });
+}
+
+class _ShellStore extends AppStore {
+  final Map<String, String> preferences = <String, String>{};
+
+  @override
+  LocalAccount? get activeAccount => const LocalAccount(
+        id: 'conta-teste',
+        username: 'teste',
+        displayName: 'Conta de teste',
+        email: '',
+        securityQuestion: 'Pergunta?',
+        createdAtMs: 1,
+        updatedAtMs: 1,
+      );
+
+  @override
+  String get deviceId => 'desktop-test';
+
+  @override
+  List<SyncEntity> records(String type) => <SyncEntity>[];
+
+  @override
+  SyncEntity? byId(String id) => null;
+
+  @override
+  List<SyncEntity> deletedRecords() => <SyncEntity>[];
+
+  @override
+  Future<String?> readUserPreference(String key) async => preferences[key];
+
+  @override
+  Future<void> writeUserPreference(
+    String key,
+    String value, {
+    bool notify = false,
+  }) async {
+    preferences[key] = value;
+    if (notify) notifyListeners();
+  }
 }

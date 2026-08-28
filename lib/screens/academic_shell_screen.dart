@@ -42,6 +42,7 @@ class AcademicShellScreen extends StatefulWidget {
 
 class _AcademicShellScreenState extends State<AcademicShellScreen> {
   int selectedIndex = 0;
+  bool desktopSidebarCollapsed = false;
   late final AppAppearanceController appearance;
   late final StudyTimerController studyTimer;
   late final bool ownsAppearance;
@@ -119,6 +120,29 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
     studyTimer = widget.studyTimer ?? StudyTimerController(widget.store);
     if (ownsAppearance) unawaited(appearance.loadForActiveAccount());
     if (ownsStudyTimer) unawaited(studyTimer.initializeForActiveAccount());
+    unawaited(_loadSidebarPreference());
+  }
+
+  Future<void> _loadSidebarPreference() async {
+    if (widget.store.activeAccount == null) return;
+    final saved = await widget.store.readUserPreference(
+      'desktop_sidebar_collapsed',
+    );
+    if (mounted && saved != null) {
+      setState(() => desktopSidebarCollapsed = saved == 'true');
+    }
+  }
+
+  void _toggleDesktopSidebar() {
+    setState(() => desktopSidebarCollapsed = !desktopSidebarCollapsed);
+    if (widget.store.activeAccount != null) {
+      unawaited(
+        widget.store.writeUserPreference(
+          'desktop_sidebar_collapsed',
+          desktopSidebarCollapsed.toString(),
+        ),
+      );
+    }
   }
 
   @override
@@ -218,28 +242,52 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
                 children: <Widget>[
                   if (desktop)
                     SizedBox(
-                      width: 286,
-                      child: _AcademicSidebar(
-                        store: widget.store,
-                        selectedIndex: selectedIndex,
-                        destinations: destinations,
-                        onSelect: _select,
-                        onSync: () => _open(
-                          WifiSyncScreen(
-                            store: widget.store,
-                            wifi: widget.wifi,
-                          ),
-                        ),
-                        onSettings: () => _open(
-                          SettingsScreen(
-                            store: widget.store,
-                            wifi: widget.wifi,
-                            appearance: appearance,
-                            onLogout: widget.onLogout,
-                          ),
-                        ),
-                        onLogout: widget.onLogout,
-                      ),
+                      key: const Key('desktop-sidebar-frame'),
+                      width: desktopSidebarCollapsed ? 84 : 286,
+                      child: desktopSidebarCollapsed
+                          ? _AcademicSidebarCompact(
+                              selectedIndex: selectedIndex,
+                              destinations: destinations,
+                              onSelect: _select,
+                              onExpand: _toggleDesktopSidebar,
+                              onSync: () => _open(
+                                WifiSyncScreen(
+                                  store: widget.store,
+                                  wifi: widget.wifi,
+                                ),
+                              ),
+                              onSettings: () => _open(
+                                SettingsScreen(
+                                  store: widget.store,
+                                  wifi: widget.wifi,
+                                  appearance: appearance,
+                                  onLogout: widget.onLogout,
+                                ),
+                              ),
+                              onLogout: widget.onLogout,
+                            )
+                          : _AcademicSidebar(
+                              store: widget.store,
+                              selectedIndex: selectedIndex,
+                              destinations: destinations,
+                              onSelect: _select,
+                              onCollapse: _toggleDesktopSidebar,
+                              onSync: () => _open(
+                                WifiSyncScreen(
+                                  store: widget.store,
+                                  wifi: widget.wifi,
+                                ),
+                              ),
+                              onSettings: () => _open(
+                                SettingsScreen(
+                                  store: widget.store,
+                                  wifi: widget.wifi,
+                                  appearance: appearance,
+                                  onLogout: widget.onLogout,
+                                ),
+                              ),
+                              onLogout: widget.onLogout,
+                            ),
                     ),
                   Expanded(
                     child: IndexedStack(index: selectedIndex, children: pages),
@@ -332,6 +380,7 @@ class _AcademicSidebar extends StatelessWidget {
     required this.onSelect,
     required this.onSync,
     required this.onSettings,
+    this.onCollapse,
     this.onLogout,
   });
 
@@ -341,6 +390,7 @@ class _AcademicSidebar extends StatelessWidget {
   final ValueChanged<int> onSelect;
   final VoidCallback onSync;
   final VoidCallback onSettings;
+  final VoidCallback? onCollapse;
   final Future<void> Function()? onLogout;
 
   @override
@@ -409,6 +459,15 @@ class _AcademicSidebar extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (onCollapse != null) ...<Widget>[
+                      const SizedBox(width: 4),
+                      IconButton(
+                        key: const Key('desktop-sidebar-collapse'),
+                        tooltip: 'Recolher menu lateral',
+                        onPressed: onCollapse,
+                        icon: const Icon(Icons.chevron_left),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -549,6 +608,166 @@ class _AcademicSidebar extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AcademicSidebarCompact extends StatelessWidget {
+  const _AcademicSidebarCompact({
+    required this.selectedIndex,
+    required this.destinations,
+    required this.onSelect,
+    required this.onExpand,
+    required this.onSync,
+    required this.onSettings,
+    this.onLogout,
+  });
+
+  final int selectedIndex;
+  final List<_AcademicDestination> destinations;
+  final ValueChanged<int> onSelect;
+  final VoidCallback onExpand;
+  final VoidCallback onSync;
+  final VoidCallback onSettings;
+  final Future<void> Function()? onLogout;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFF091326),
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          border: Border(right: BorderSide(color: AppColors.border)),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: <Widget>[
+              const SizedBox(height: 14),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: <Color>[
+                      AppColors.primaryLight,
+                      AppColors.primaryDark,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.school_rounded, color: Colors.white),
+              ),
+              const SizedBox(height: 5),
+              IconButton(
+                key: const Key('desktop-sidebar-expand'),
+                tooltip: 'Expandir menu lateral',
+                onPressed: onExpand,
+                icon: const Icon(Icons.chevron_right),
+              ),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  itemCount: destinations.length,
+                  itemBuilder: (_, index) {
+                    final item = destinations[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: _CompactSidebarButton(
+                        tooltip: item.label,
+                        icon: selectedIndex == index
+                            ? item.selectedIcon
+                            : item.icon,
+                        selected: selectedIndex == index,
+                        onTap: () => onSelect(index),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  children: <Widget>[
+                    _CompactSidebarButton(
+                      tooltip: 'Sincronização Wi‑Fi',
+                      icon: Icons.sync,
+                      iconColor: AppColors.green,
+                      onTap: onSync,
+                    ),
+                    _CompactSidebarButton(
+                      tooltip: 'Dados e configurações',
+                      icon: Icons.settings_outlined,
+                      onTap: onSettings,
+                    ),
+                    if (onLogout != null)
+                      _CompactSidebarButton(
+                        tooltip: 'Trocar de usuário',
+                        icon: Icons.logout,
+                        iconColor: AppColors.orange,
+                        onTap: () => onLogout!(),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactSidebarButton extends StatelessWidget {
+  const _CompactSidebarButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onTap,
+    this.selected = false,
+    this.iconColor,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool selected;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        iconColor ?? (selected ? AppColors.primary : AppColors.textMuted);
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: tooltip,
+        child: Material(
+          color: selected
+              ? AppColors.primary.withValues(alpha: .17)
+              : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(
+              color: selected
+                  ? AppColors.primary.withValues(alpha: .55)
+                  : Colors.transparent,
+            ),
+          ),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(14),
+            child: SizedBox(
+              width: 56,
+              height: 46,
+              child: Icon(icon, color: color),
+            ),
           ),
         ),
       ),

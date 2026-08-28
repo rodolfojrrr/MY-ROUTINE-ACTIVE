@@ -1,6 +1,6 @@
 # Smart Routine SI
 
-**Versão 5.0.0 — estudos, cursos e organização acadêmica 100% local**
+**Versão 5.0.1 — estudos, cursos e organização acadêmica 100% local**
 
 Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação em **Sistemas de Informação**, mas também organiza cursos livres, trilhas, certificações e estudos pessoais. Não há WebView, nuvem, analytics ou login externo: banco, imagens, projetos e credenciais ficam somente nos aparelhos do usuário.
 
@@ -19,6 +19,7 @@ Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação
 - backup `.mra`, importação de `.mra.gz` do WhatsApp e sincronização Wi‑Fi PC ↔ celular;
 - lixeira de segurança para restaurar registros excluídos;
 - interface responsiva para celular compacto e desktop.
+- menu lateral do PC expansível/recolhível, com a escolha salva por usuário.
 
 ## Organização acadêmica
 
@@ -96,7 +97,7 @@ No Android, os projetos podem ser criados, editados e sincronizados. No Windows,
 4. No GitHub, abra **Actions → Validar e gerar aplicativos**.
 5. Baixe `Smart-Routine-SI-Android` e `Smart-Routine-SI-Windows`.
 
-O workflow executa análise estática, 31 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
+O workflow executa análise estática, 32 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
 
 ## BATs incluídos
 

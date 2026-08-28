@@ -1,4 +1,4 @@
-# Arquitetura local — Smart Routine SI 5.0.0
+# Arquitetura local — Smart Routine SI 5.0.1
 
 ## Plataformas e privacidade
 

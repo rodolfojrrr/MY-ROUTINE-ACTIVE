@@ -1,5 +1,5 @@
 #define MyAppName "Smart Routine SI"
-#define MyAppVersion "5.0.0"
+#define MyAppVersion "5.0.1"
 #define MyAppPublisher "Rodolfo Junior"
 #define MyAppExeName "my_routine_active.exe"
 

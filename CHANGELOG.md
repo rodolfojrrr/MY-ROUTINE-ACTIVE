@@ -1,5 +1,14 @@
 # Changelog
 
+## 5.0.1
+
+- Menu lateral do Windows agora pode ser recolhido para uma barra compacta de ícones.
+- Botões dedicados para recolher e expandir, com tooltips de todas as seções.
+- O conteúdo central passa a usar automaticamente o espaço liberado.
+- A preferência aberta/recolhida é salva separadamente para cada usuário local.
+- Comportamento validado no desktop, inclusive restauração após reabrir a conta.
+- Versão elevada para `5.0.1+51`.
+
 ## 5.0.0
 
 - Contas locais para múltiplos usuários, com isolamento por proprietário.
