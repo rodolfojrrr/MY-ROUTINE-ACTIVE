@@ -1863,7 +1863,7 @@ class _LoansTab extends StatelessWidget {
                       child: PremiumCard(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(
+                          leading: Icon(
                             Icons.account_balance,
                             color: AppColors.blue,
                           ),
@@ -1883,7 +1883,7 @@ class _LoansTab extends StatelessWidget {
                                   (loan.payload['monthlyPayment'] as num? ?? 0)
                                       .toDouble(),
                                 ),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.blue,
                                   fontWeight: FontWeight.w900,
                                 ),

@@ -83,35 +83,36 @@ class AcademicSectionTitle extends StatelessWidget {
 class AcademicBadge extends StatelessWidget {
   const AcademicBadge({
     required this.label,
-    this.color = AppColors.primary,
+    this.color,
     this.icon,
     super.key,
   });
 
   final String label;
-  final Color color;
+  final Color? color;
   final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
+    final badgeColor = color ?? AppColors.primary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: .14),
+        color: badgeColor.withValues(alpha: .14),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: .35)),
+        border: Border.all(color: badgeColor.withValues(alpha: .35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           if (icon != null) ...<Widget>[
-            Icon(icon, size: 14, color: color),
+            Icon(icon, size: 14, color: badgeColor),
             const SizedBox(width: 5),
           ],
           Text(
             label,
             style: TextStyle(
-              color: color,
+              color: badgeColor,
               fontSize: 12,
               fontWeight: FontWeight.w800,
             ),

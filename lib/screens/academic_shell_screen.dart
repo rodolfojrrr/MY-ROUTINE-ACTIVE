@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../core/app_appearance.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
+import '../core/study_timer_controller.dart';
 import '../core/wifi_sync_service.dart';
 import 'academic_assessments_screen.dart';
 import 'academic_dashboard_screen.dart';
@@ -9,20 +13,28 @@ import 'academic_management_screen.dart';
 import 'academic_simulations_screen.dart';
 import 'academic_summaries_screen.dart';
 import 'code_workspace_screen.dart';
+import 'daily_goals_screen.dart';
+import 'pdf_tools_screen.dart';
 import 'settings_screen.dart';
-import 'studies_extra_tabs.dart';
 import 'studies_screen.dart';
+import 'study_kanban_screen.dart';
 import 'wifi_sync_screen.dart';
 
 class AcademicShellScreen extends StatefulWidget {
   const AcademicShellScreen({
     required this.store,
     required this.wifi,
+    this.appearance,
+    this.studyTimer,
+    this.onLogout,
     super.key,
   });
 
   final AppStore store;
   final WifiSyncService wifi;
+  final AppAppearanceController? appearance;
+  final StudyTimerController? studyTimer;
+  final Future<void> Function()? onLogout;
 
   @override
   State<AcademicShellScreen> createState() => _AcademicShellScreenState();
@@ -30,6 +42,10 @@ class AcademicShellScreen extends StatefulWidget {
 
 class _AcademicShellScreenState extends State<AcademicShellScreen> {
   int selectedIndex = 0;
+  late final AppAppearanceController appearance;
+  late final StudyTimerController studyTimer;
+  late final bool ownsAppearance;
+  late final bool ownsStudyTimer;
 
   static const destinations = <_AcademicDestination>[
     _AcademicDestination(
@@ -39,10 +55,22 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       selectedIcon: Icons.home,
     ),
     _AcademicDestination(
+      label: 'Metas e foco',
+      title: 'Metas diárias e foco',
+      icon: Icons.flag_outlined,
+      selectedIcon: Icons.flag,
+    ),
+    _AcademicDestination(
       label: 'Resumos',
       title: 'Resumos',
       icon: Icons.description_outlined,
       selectedIcon: Icons.description,
+    ),
+    _AcademicDestination(
+      label: 'Kanban',
+      title: 'Kanban de estudos',
+      icon: Icons.view_kanban_outlined,
+      selectedIcon: Icons.view_kanban,
     ),
     _AcademicDestination(
       label: 'Simulados',
@@ -57,30 +85,48 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       selectedIcon: Icons.event_available,
     ),
     _AcademicDestination(
-      label: 'Flashcards',
-      title: 'Flashcards',
-      icon: Icons.style_outlined,
-      selectedIcon: Icons.style,
-    ),
-    _AcademicDestination(
-      label: 'Foco',
-      title: 'Sessões de foco',
-      icon: Icons.timer_outlined,
-      selectedIcon: Icons.timer,
-    ),
-    _AcademicDestination(
       label: 'IDE de código',
       title: 'IDE acadêmica',
       icon: Icons.terminal_outlined,
       selectedIcon: Icons.terminal_rounded,
     ),
     _AcademicDestination(
+      label: 'Flashcards',
+      title: 'Flashcards',
+      icon: Icons.style_outlined,
+      selectedIcon: Icons.style,
+    ),
+    _AcademicDestination(
       label: 'Organização',
-      title: 'Organização acadêmica',
-      icon: Icons.tune_outlined,
-      selectedIcon: Icons.tune,
+      title: 'Faculdade, cursos e conteúdos',
+      icon: Icons.account_tree_outlined,
+      selectedIcon: Icons.account_tree,
+    ),
+    _AcademicDestination(
+      label: 'Ferramentas PDF',
+      title: 'Ferramentas PDF',
+      icon: Icons.picture_as_pdf_outlined,
+      selectedIcon: Icons.picture_as_pdf,
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    ownsAppearance = widget.appearance == null;
+    ownsStudyTimer = widget.studyTimer == null;
+    appearance = widget.appearance ?? AppAppearanceController(widget.store);
+    studyTimer = widget.studyTimer ?? StudyTimerController(widget.store);
+    if (ownsAppearance) unawaited(appearance.loadForActiveAccount());
+    if (ownsStudyTimer) unawaited(studyTimer.initializeForActiveAccount());
+  }
+
+  @override
+  void dispose() {
+    if (ownsAppearance) appearance.dispose();
+    if (ownsStudyTimer) studyTimer.dispose();
+    super.dispose();
+  }
 
   void _select(int index, {bool closeDrawer = false}) {
     if (closeDrawer) Navigator.of(context).pop();
@@ -99,22 +145,25 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
         store: widget.store,
         onOpenSection: (index) => setState(() => selectedIndex = index),
       ),
+      DailyGoalsScreen(store: widget.store, timer: studyTimer),
       AcademicSummariesScreen(store: widget.store),
+      StudyKanbanScreen(store: widget.store),
       AcademicSimulationsScreen(store: widget.store),
       AcademicAssessmentsScreen(store: widget.store),
-      StudyFlashcardsPage(store: widget.store),
-      StudyFocusTab(store: widget.store),
       CodeWorkspaceScreen(store: widget.store),
+      StudyFlashcardsPage(store: widget.store),
       AcademicManagementScreen(store: widget.store),
+      PdfToolsScreen(store: widget.store),
     ];
     return AnimatedBuilder(
-      animation: widget.store,
+      animation: Listenable.merge(<Listenable>[widget.store, studyTimer]),
       builder: (context, _) => Scaffold(
         drawer: desktop
             ? null
             : Drawer(
                 width: 300,
                 child: _AcademicSidebar(
+                  store: widget.store,
                   selectedIndex: selectedIndex,
                   destinations: destinations,
                   onSelect: (index) => _select(index, closeDrawer: true),
@@ -127,9 +176,15 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
                   onSettings: () {
                     Navigator.of(context).pop();
                     _open(
-                      SettingsScreen(store: widget.store, wifi: widget.wifi),
+                      SettingsScreen(
+                        store: widget.store,
+                        wifi: widget.wifi,
+                        appearance: appearance,
+                        onLogout: widget.onLogout,
+                      ),
                     );
                   },
+                  onLogout: widget.onLogout,
                 ),
               ),
         appBar: AppBar(
@@ -143,34 +198,126 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
             ),
             IconButton(
               tooltip: 'Configurações e backup',
-              onPressed: () =>
-                  _open(SettingsScreen(store: widget.store, wifi: widget.wifi)),
+              onPressed: () => _open(
+                SettingsScreen(
+                  store: widget.store,
+                  wifi: widget.wifi,
+                  appearance: appearance,
+                  onLogout: widget.onLogout,
+                ),
+              ),
               icon: const Icon(Icons.settings_outlined),
             ),
             const SizedBox(width: 6),
           ],
         ),
-        body: Row(
+        body: Stack(
           children: <Widget>[
-            if (desktop)
-              SizedBox(
-                width: 286,
-                child: _AcademicSidebar(
-                  selectedIndex: selectedIndex,
-                  destinations: destinations,
-                  onSelect: _select,
-                  onSync: () => _open(
-                    WifiSyncScreen(store: widget.store, wifi: widget.wifi),
+            Positioned.fill(
+              child: Row(
+                children: <Widget>[
+                  if (desktop)
+                    SizedBox(
+                      width: 286,
+                      child: _AcademicSidebar(
+                        store: widget.store,
+                        selectedIndex: selectedIndex,
+                        destinations: destinations,
+                        onSelect: _select,
+                        onSync: () => _open(
+                          WifiSyncScreen(
+                            store: widget.store,
+                            wifi: widget.wifi,
+                          ),
+                        ),
+                        onSettings: () => _open(
+                          SettingsScreen(
+                            store: widget.store,
+                            wifi: widget.wifi,
+                            appearance: appearance,
+                            onLogout: widget.onLogout,
+                          ),
+                        ),
+                        onLogout: widget.onLogout,
+                      ),
+                    ),
+                  Expanded(
+                    child: IndexedStack(index: selectedIndex, children: pages),
                   ),
-                  onSettings: () => _open(
-                    SettingsScreen(store: widget.store, wifi: widget.wifi),
-                  ),
+                ],
+              ),
+            ),
+            if (studyTimer.isActive && selectedIndex != 1)
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: _FloatingStudyTimer(
+                  timer: studyTimer,
+                  onTap: () => setState(() => selectedIndex = 1),
                 ),
               ),
-            Expanded(
-              child: IndexedStack(index: selectedIndex, children: pages),
-            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FloatingStudyTimer extends StatelessWidget {
+  const _FloatingStudyTimer({required this.timer, required this.onTap});
+
+  final StudyTimerController timer;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    return Material(
+      color: Colors.transparent,
+      elevation: 12,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          constraints: BoxConstraints(maxWidth: width < 520 ? width - 32 : 360),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceRaised,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.primary),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(
+                timer.isRunning ? Icons.play_arrow : Icons.pause,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 9),
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      timer.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    Text(
+                      '${timer.formattedElapsed} • abrir temporizador',
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -179,21 +326,26 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
 
 class _AcademicSidebar extends StatelessWidget {
   const _AcademicSidebar({
+    required this.store,
     required this.selectedIndex,
     required this.destinations,
     required this.onSelect,
     required this.onSync,
     required this.onSettings,
+    this.onLogout,
   });
 
+  final AppStore store;
   final int selectedIndex;
   final List<_AcademicDestination> destinations;
   final ValueChanged<int> onSelect;
   final VoidCallback onSync;
   final VoidCallback onSettings;
+  final Future<void> Function()? onLogout;
 
   @override
   Widget build(BuildContext context) {
+    final account = store.activeAccount;
     return Material(
       color: const Color(0xFF091326),
       child: DecoratedBox(
@@ -211,7 +363,7 @@ class _AcademicSidebar extends StatelessWidget {
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: <Color>[
                             AppColors.primaryLight,
                             AppColors.primaryDark,
@@ -231,7 +383,7 @@ class _AcademicSidebar extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -246,7 +398,7 @@ class _AcademicSidebar extends StatelessWidget {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Sistemas de Informação',
+                            account?.displayName ?? 'Sistemas de Informação',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -349,6 +501,18 @@ class _AcademicSidebar extends StatelessWidget {
                       title: const Text('Dados e configurações'),
                       onTap: onSettings,
                     ),
+                    if (onLogout != null)
+                      ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        leading: const Icon(
+                          Icons.logout,
+                          color: AppColors.orange,
+                        ),
+                        title: const Text('Trocar de usuário'),
+                        onTap: () => onLogout!(),
+                      ),
                     const SizedBox(height: 5),
                     Container(
                       width: double.infinity,

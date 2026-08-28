@@ -1,9 +1,8 @@
-MANIFESTO V3 ARQUIVADO
-======================
+MANIFESTO V3 ARQUIVADO — NÃO APLICAR
+=====================================
 
-A versão atual é Smart Routine SI 4.0.0+40 e tem foco exclusivo nos estudos da
-graduação em Sistemas de Informação.
+A versão atual é Smart Routine SI 5.0.0+50. Este arquivo permanece somente para
+que instalações antigas não confundam o material V3 com a atualização atual.
 
-Consulte PACOTE_V4_MANIFESTO.txt para o escopo e a validação da versão atual.
-Este nome antigo foi preservado somente para substituir a documentação V3 em
-pastas onde o novo ZIP for extraído por cima da versão anterior.
+Consulte 00_LEIA-ME_PRIMEIRO.txt, 00_MIGRACAO_PARA_V5.txt e
+PACOTE_V5_MANIFESTO.txt.

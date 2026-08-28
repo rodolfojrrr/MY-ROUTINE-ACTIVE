@@ -1,50 +1,49 @@
-SMART ROUTINE SI — V4.1.0 ACADÊMICO, AZUL E LOCAL
-==================================================
+SMART ROUTINE SI — V5.0.0 ESTUDOS PRO, LOCAL E MULTIUSUÁRIO
+============================================================
 
-Esta versão é totalmente focada na graduação em Sistemas de Informação.
-Ela gera aplicativo nativo para Android e Windows. Não é site, não abre dentro
-do navegador, não usa nuvem e não exige conta externa.
+Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
+Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
 
-O QUE A VERSÃO 4 ORGANIZA
-- Semestres, matérias e conteúdos em uma hierarquia bem definida.
-- Horário de segunda a domingo, inclusive os blocos 18:30–20:10 e 20:30–22:00.
-- Resumos com várias imagens e PDF individual.
-- Questões e simulados filtrados por matéria e conteúdo.
-- Provas, trabalhos, projetos, atividades e apresentações.
-- Flashcards com revisão espaçada e sessões de foco.
-- Painel principal somente para consulta; cadastros no menu lateral.
-- IDE acadêmica com projetos vinculados a semestre, matéria e conteúdo.
-- Editor de Dart, Python, Java, JavaScript, TypeScript, C, C++, C#, Kotlin,
-  PHP, SQL, HTML/CSS e JSON.
+PRINCIPAIS NOVIDADES
+- Vários usuários locais com login, senha e recuperação.
+- Migração dos dados antigos para a primeira conta sem zerar o banco.
+- Metas diárias e cronograma semanal flexível.
+- Cronômetro global: continua nos menus e volta pausado após fechar o app.
+- Rascunho automático dos resumos durante a digitação.
+- Resumos com imagens e PDF individual.
+- Conversor local de arquivos para PDF.
+- Kanban: Pendentes, Fazendo e Concluídas, com limpeza configurável.
+- Temas azul, roxo, cinza, verde, amarelo e colorido.
+- Semestres, cursos e trilhas, matérias e conteúdos bem separados.
+- Importação direta de .mra e .mra.gz recebido pelo WhatsApp.
+- Lixeira de segurança e sincronização Wi-Fi preservada e melhorada.
+- Interface testada em celular compacto e desktop.
 
-COMO FUNCIONA A IDE
-- O editor, os projetos e os arquivos funcionam no Android e no Windows.
-- O código fica no banco local e acompanha backup .mra e sincronização Wi-Fi.
-- A execução acontece no PC com os compiladores instalados no próprio Windows.
-- No celular, você edita e sincroniza; depois abre o mesmo projeto no PC para rodar.
-- O aplicativo não envia código para a internet nem baixa compiladores sozinho.
-- Consulte docs/IDE_ACADEMICA.md para preparar cada linguagem.
+ATUALIZAÇÃO SEM PERDER DADOS
+1. NÃO desinstale o aplicativo atual e NÃO limpe seus dados.
+2. Exporte um backup .mra antes de atualizar.
+3. Preserve a mesma chave de assinatura Android.
+4. Instale a nova versão por cima da atual.
+5. Crie a primeira conta local. Ela assumirá os dados existentes.
+6. Se havia PIN, informe-o uma única vez.
 
-ANTES DE ATUALIZAR
-1. Se já houver dados importantes, exporte um backup .mra no aplicativo atual.
-2. Preserve a mesma chave de assinatura Android usada na versão instalada.
-3. Extraia este ZIP sobre a pasta do projeto ou substitua o conteúdo do repositório.
+Credenciais não são sincronizadas. Para usar a mesma base no PC e celular,
+crie o MESMO NOME DE USUÁRIO nos dois aparelhos e depois sincronize/importe.
+As senhas podem ser diferentes porque ficam somente em cada aparelho.
 
-PARA ENVIAR AO GITHUB PELO PC
-1. Abra 07_SUBIR_GITHUB.bat.
-2. Digite apenas a mensagem do commit — não cole a URL nesse campo.
-3. Aguarde o processo terminar.
-4. Abra Actions e baixe Smart-Routine-SI-Android e Smart-Routine-SI-Windows.
+PARA ENVIAR AO GITHUB
+1. Extraia o ZIP inteiro.
+2. Execute 07_SUBIR_GITHUB.bat.
+3. Digite apenas a mensagem do commit ou aperte Enter.
+4. Abra a aba Actions no GitHub.
+5. Baixe Smart-Routine-SI-Android e Smart-Routine-SI-Windows.
 
-PARA ENVIAR PELO CELULAR
-Também é possível usar o aplicativo/site do GitHub e carregar os arquivos,
-mas enviar a pasta completa pelo BAT no PC é mais rápido e reduz o risco de
-esquecer arquivos ocultos de configuração.
-
-REPOSITÓRIO
+REPOSITÓRIO CONFIGURADO
 https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
-BANCO E SINCRONIZAÇÃO
-O formato .mra e a sincronização Wi-Fi PC ↔ celular foram mantidos. O repositório
-vem com banco zerado. Seus dados pessoais ficam apenas nos aparelhos e nos
-backups .mra criados por você.
+LEIA TAMBÉM
+- 00_MIGRACAO_PARA_V5.txt
+- README.md
+- docs/CONTAS_E_RECUPERACAO.md
+- docs/SINCRONIZACAO_WIFI.md
+- docs/ASSINATURA_ANDROID.md

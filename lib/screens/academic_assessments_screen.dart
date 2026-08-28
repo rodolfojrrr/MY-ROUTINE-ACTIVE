@@ -53,7 +53,7 @@ class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
 
     return AcademicPageBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Calendário acadêmico',
           title: 'Provas, trabalhos e projetos',
           subtitle:

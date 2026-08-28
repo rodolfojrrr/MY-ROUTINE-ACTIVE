@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_appearance.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/wifi_sync_service.dart';
 import '../widgets/premium_widgets.dart';
 import 'conflicts_screen.dart';
+import 'recycle_bin_screen.dart';
 import 'wifi_sync_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({required this.store, required this.wifi, super.key});
+  const SettingsScreen({
+    required this.store,
+    required this.wifi,
+    this.appearance,
+    this.onLogout,
+    super.key,
+  });
 
   final AppStore store;
   final WifiSyncService wifi;
+  final AppAppearanceController? appearance;
+  final Future<void> Function()? onLogout;
 
   void message(BuildContext context, String text) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
@@ -43,63 +53,6 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> configurePin(BuildContext context) async {
-    final first = TextEditingController();
-    final second = TextEditingController();
-    final result = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Definir PIN local'),
-        content: SizedBox(
-          width: 420,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              const Text(
-                'O PIN protege a abertura neste aparelho. Ele não cria conta e não sai do dispositivo.',
-                style: TextStyle(color: AppColors.textMuted),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: first,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Novo PIN'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: second,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Confirmar PIN'),
-              ),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (first.text.length >= 4 && first.text == second.text) {
-                Navigator.pop(dialogContext, first.text);
-              }
-            },
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
-    );
-    first.dispose();
-    second.dispose();
-    if (result != null) {
-      await store.setPin(result);
-      if (context.mounted) message(context, 'PIN local atualizado.');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -123,6 +76,10 @@ class SettingsScreen extends StatelessWidget {
                             'O banco fica no aparelho. Backups e sincronização só acontecem quando você manda.',
                       ),
                       const SizedBox(height: 20),
+                      if (appearance != null) ...<Widget>[
+                        _AppearanceSettings(controller: appearance!),
+                        const SizedBox(height: 12),
+                      ],
                       _SettingsCard(
                         icon: Icons.sync,
                         color: AppColors.green,
@@ -158,34 +115,34 @@ class SettingsScreen extends StatelessWidget {
                         onTap: () => importBackup(context),
                       ),
                       const SizedBox(height: 12),
-                      FutureBuilder<bool>(
-                        future: store.hasPin(),
-                        builder: (context, snapshot) {
-                          final enabled = snapshot.data == true;
-                          return _SettingsCard(
-                            icon: Icons.lock_outline,
-                            color: AppColors.orange,
-                            title: enabled
-                                ? 'PIN local ativado'
-                                : 'Proteger com PIN local',
-                            subtitle: enabled
-                                ? 'Você pode trocar ou remover a proteção deste aparelho.'
-                                : 'Sem e-mail, sem conta e sem nuvem.',
-                            action: enabled ? 'Trocar' : 'Ativar',
-                            onTap: () => configurePin(context),
-                            secondaryAction: enabled
-                                ? () async {
-                                    await store.clearPin();
-                                    if (context.mounted) {
-                                      message(
-                                        context,
-                                        'PIN removido deste aparelho.',
-                                      );
-                                    }
-                                  }
-                                : null,
-                          );
-                        },
+                      _SettingsCard(
+                        icon: Icons.account_circle_outlined,
+                        color: AppColors.orange,
+                        title:
+                            store.activeAccount?.displayName ?? 'Conta local',
+                        subtitle:
+                            '@${store.activeAccount?.username ?? 'usuário'} • dados isolados neste perfil',
+                        action: onLogout == null ? 'Ativa' : 'Trocar',
+                        onTap: onLogout == null
+                            ? () {}
+                            : () async {
+                                Navigator.of(context).pop();
+                                await onLogout!();
+                              },
+                      ),
+                      const SizedBox(height: 12),
+                      _SettingsCard(
+                        icon: Icons.restore_from_trash_outlined,
+                        color: AppColors.green,
+                        title: 'Lixeira de segurança',
+                        subtitle:
+                            '${store.deletedRecords().length} item(ns) recuperável(is). Exclusões nunca somem imediatamente.',
+                        action: 'Abrir',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => RecycleBinScreen(store: store),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       if (store.conflictCount > 0)
@@ -249,6 +206,96 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+class _AppearanceSettings extends StatelessWidget {
+  const _AppearanceSettings({required this.controller});
+
+  final AppAppearanceController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) => PremiumCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const Row(
+              children: <Widget>[
+                Icon(Icons.palette_outlined),
+                SizedBox(width: 9),
+                Text(
+                  'Cor do aplicativo',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'A organização não muda; escolha a identidade que deixa o estudo mais agradável para você.',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: AppAccentPalette.values.map((palette) {
+                final selected = controller.palette == palette;
+                return Semantics(
+                  selected: selected,
+                  button: true,
+                  label: 'Tema ${palette.label}',
+                  child: InkWell(
+                    onTap: () => controller.select(palette),
+                    borderRadius: BorderRadius.circular(14),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: 128,
+                      padding: const EdgeInsets.all(11),
+                      decoration: BoxDecoration(
+                        color: palette.primary.withValues(alpha: .13),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: selected ? palette.primary : AppColors.border,
+                          width: selected ? 2 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: <Color>[palette.light, palette.dark],
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              palette.label,
+                              style: TextStyle(
+                                fontWeight: selected
+                                    ? FontWeight.w900
+                                    : FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _SettingsCard extends StatelessWidget {
   const _SettingsCard({
     required this.icon,
@@ -257,7 +304,6 @@ class _SettingsCard extends StatelessWidget {
     required this.subtitle,
     required this.action,
     required this.onTap,
-    this.secondaryAction,
   });
 
   final IconData icon;
@@ -266,14 +312,13 @@ class _SettingsCard extends StatelessWidget {
   final String subtitle;
   final String action;
   final VoidCallback onTap;
-  final VoidCallback? secondaryAction;
 
   @override
   Widget build(BuildContext context) {
     return PremiumCard(
-      child: Row(
-        children: <Widget>[
-          Container(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final iconWidget = Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
@@ -281,32 +326,52 @@ class _SettingsCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(icon, color: color),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          );
+          final textWidget = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                style: const TextStyle(color: AppColors.textMuted),
+              ),
+            ],
+          );
+          final actions = <Widget>[
+            FilledButton.tonal(onPressed: onTap, child: Text(action)),
+          ];
+          if (constraints.maxWidth < 590) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    iconWidget,
+                    const SizedBox(width: 13),
+                    Expanded(child: textWidget),
+                  ],
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: AppColors.textMuted),
-                ),
+                const SizedBox(height: 13),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: actions),
               ],
-            ),
-          ),
-          if (secondaryAction != null)
-            TextButton(
-              onPressed: secondaryAction,
-              child: const Text('Remover'),
-            ),
-          const SizedBox(width: 5),
-          FilledButton.tonal(onPressed: onTap, child: Text(action)),
-        ],
+            );
+          }
+          return Row(
+            children: <Widget>[
+              iconWidget,
+              const SizedBox(width: 14),
+              Expanded(child: textWidget),
+              ...actions,
+            ],
+          );
+        },
       ),
     );
   }

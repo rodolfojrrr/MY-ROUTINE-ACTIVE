@@ -1,0 +1,41 @@
+MIGRAÇÃO SEGURA PARA O SMART ROUTINE SI V5
+===========================================
+
+REGRA PRINCIPAL
+Não desinstale o aplicativo e não use “Limpar armazenamento”. Uma desinstalação
+remove o banco local do aparelho. Exporte também um .mra antes da atualização.
+
+O QUE A MIGRAÇÃO FAZ
+- Eleva o banco local da versão 1 para a versão 2.
+- Cria somente a tabela de contas locais.
+- Mantém a tabela de registros acadêmicos e todos os seus dados.
+- A primeira conta criada assume registros antigos ainda sem proprietário.
+- Antes de alterar a propriedade, cria um snapshot automático .mra.
+- Se a versão antiga tinha PIN, exige esse PIN uma única vez.
+- Depois, cada conta enxerga somente seus próprios registros.
+
+ANDROID
+O APK novo só instala por cima do antigo se usar o mesmo identificador e a mesma
+chave de assinatura. O identificador foi preservado. Leia
+docs/ASSINATURA_ANDROID.md e mantenha os Secrets MRA_* do GitHub.
+
+Se a assinatura anterior for diferente:
+1. Exporte um backup .mra no aplicativo antigo.
+2. Guarde o arquivo fora do celular.
+3. Instale o novo APK.
+4. Crie uma conta com o nome de usuário escolhido.
+5. Importe o .mra nessa conta.
+
+PC E CELULAR
+As credenciais são locais e não viajam no .mra. Crie exatamente o mesmo nome de
+usuário nos dois aparelhos para que a conta tenha o mesmo identificador. A senha,
+pergunta e resposta podem ser próprias de cada dispositivo. Depois sincronize na
+mesma rede Wi-Fi ou transfira o backup manualmente.
+
+WHATSAPP
+O seletor agora aceita .mra e .mra.gz. Não é necessário renomear nem descompactar
+o arquivo que o WhatsApp acrescentou a extensão .gz.
+
+RECUPERAÇÃO
+A recuperação usa a resposta de segurança ou o código SR-XXXX-XXXX-XXXX-XXXX.
+Não há e-mail porque não existe servidor. Guarde o código fora do aparelho.

@@ -35,7 +35,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Smart Routine SI'), findsOneWidget);
+    expect(find.text('Metas e foco'), findsOneWidget);
     expect(find.text('Resumos'), findsOneWidget);
+    expect(find.text('Kanban'), findsOneWidget);
     expect(find.text('Simulados'), findsOneWidget);
     expect(find.text('Organização'), findsOneWidget);
   });

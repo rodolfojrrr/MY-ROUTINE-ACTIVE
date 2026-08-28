@@ -193,7 +193,7 @@ class _SubjectsTab extends StatelessWidget {
     final subjects = store.records(EntityTypes.subject);
     return _TabBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Organização acadêmica',
           title: 'Matérias',
           subtitle:
@@ -228,7 +228,7 @@ class _SubjectsTab extends StatelessWidget {
                         color: AppColors.primary.withValues(alpha: .16),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Icon(Icons.code, color: AppColors.primary),
+                      child: Icon(Icons.code, color: AppColors.primary),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -312,7 +312,7 @@ class _ScheduleTab extends StatelessWidget {
     });
     return _TabBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Faculdade à noite',
           title: 'Horário semanal',
           subtitle:
@@ -347,7 +347,7 @@ class _ScheduleTab extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       day.value,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w900,
                         fontSize: 18,
@@ -357,7 +357,7 @@ class _ScheduleTab extends StatelessWidget {
                     ...items.map(
                       (item) => ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.schedule,
                           color: AppColors.primary,
                         ),
@@ -553,7 +553,7 @@ class _ExamsTab extends StatelessWidget {
       );
     return _TabBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Avaliações',
           title: 'Provas e trabalhos',
           subtitle: 'Registre datas, conteúdos e observações de cada matéria.',
@@ -582,7 +582,7 @@ class _ExamsTab extends StatelessWidget {
               child: PremiumCard(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.assignment_outlined,
                     color: AppColors.primary,
                   ),
@@ -750,7 +750,7 @@ class _NotesTab extends StatelessWidget {
     final notes = store.records(EntityTypes.studyNote);
     return _TabBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Conhecimento',
           title: 'Anotações por matéria',
           subtitle:
@@ -799,8 +799,7 @@ class _NotesTab extends StatelessWidget {
                                   store,
                                   note.payload['subjectId'] as String?,
                                 ),
-                                style:
-                                    const TextStyle(color: AppColors.primary),
+                                style: TextStyle(color: AppColors.primary),
                               ),
                             ],
                           ),
@@ -995,7 +994,7 @@ class _FlashcardsTab extends StatelessWidget {
     final cards = store.records(EntityTypes.flashcard);
     return _TabBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Memorização ativa',
           title: 'Flashcards',
           subtitle:
@@ -1057,14 +1056,14 @@ class _FlashcardsTab extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       _subjectName(store, card.payload['subjectId'] as String?),
-                      style: const TextStyle(color: AppColors.primary),
+                      style: TextStyle(color: AppColors.primary),
                     ),
                     Text(
                       AcademicData.contentName(
                         store,
                         card.payload['contentId'] as String?,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.blue,
                         fontSize: 12,
                       ),

@@ -197,7 +197,7 @@ class _ServerCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          const Icon(Icons.computer, color: AppColors.blue, size: 42),
+          Icon(Icons.computer, color: AppColors.blue, size: 42),
           const SizedBox(height: 12),
           const Text(
             '1. No computador',
@@ -233,6 +233,33 @@ class _ServerCard extends StatelessWidget {
                 fontWeight: FontWeight.w900,
               ),
             ),
+            if (wifi.lanAddresses.length > 1) ...<Widget>[
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: wifi.localIp,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Rede usada para o QR Code',
+                  helperText:
+                      'Prefira Wi‑Fi ou Ethernet; evite VPN e adaptadores virtuais.',
+                ),
+                items: wifi.lanAddresses
+                    .map(
+                      (item) => DropdownMenuItem<String>(
+                        value: item.address,
+                        child: Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) wifi.selectDisplayedIp(value);
+                },
+              ),
+            ],
             const SizedBox(height: 14),
             OutlinedButton.icon(
               onPressed: wifi.stopServer,

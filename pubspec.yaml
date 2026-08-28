@@ -1,11 +1,12 @@
 name: my_routine_active
 description: Organizador acadêmico local para Sistemas de Informação.
 publish_to: "none"
-version: 4.1.0+41
+version: 5.0.0+50
 environment:
   sdk: ">=3.5.0 <4.0.0"
 
 dependencies:
+  archive: ^4.0.9
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8

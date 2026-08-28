@@ -1,121 +1,102 @@
 # Smart Routine SI
 
-**Versão 4.1.0 — edição acadêmica local com IDE integrada**
+**Versão 5.0.0 — estudos, cursos e organização acadêmica 100% local**
 
-Aplicativo pessoal em Flutter para organizar a graduação em **Sistemas de Informação** no Android e no Windows. É um aplicativo nativo, não uma página dentro do navegador. Todos os dados ficam nos seus aparelhos: não há Firebase, Supabase, analytics, conta externa nem armazenamento em nuvem.
+Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação em **Sistemas de Informação**, mas também organiza cursos livres, trilhas, certificações e estudos pessoais. Não há WebView, nuvem, analytics ou login externo: banco, imagens, projetos e credenciais ficam somente nos aparelhos do usuário.
+
+## O que há nesta versão
+
+- contas locais para vários usuários, com senha, pergunta de segurança e código de recuperação;
+- migração automática dos dados existentes para a primeira conta, sem zerar o banco;
+- semestres, cursos e trilhas → matérias → conteúdos → resumos, avaliações, questões e projetos;
+- metas diárias flexíveis e cronograma semanal opcional;
+- cronômetro global que continua ao trocar de tela e volta **pausado** após fechar ou ocultar o aplicativo;
+- Kanban com Pendentes, Fazendo e Concluídas, movimentação livre, prazos e limpeza configurável;
+- resumos com várias imagens, rascunho automático e PDF individual;
+- conversor local de arquivos para PDF;
+- temas azul, roxo, cinza, verde, amarelo e colorido;
+- simulados, avaliações, flashcards e IDE acadêmica local;
+- backup `.mra`, importação de `.mra.gz` do WhatsApp e sincronização Wi‑Fi PC ↔ celular;
+- lixeira de segurança para restaurar registros excluídos;
+- interface responsiva para celular compacto e desktop.
 
 ## Organização acadêmica
 
-O conteúdo segue uma hierarquia única para evitar resumos e questões soltos:
-
 ```text
-Semestre
+Semestre, curso ou trilha
 └── Matéria
     └── Conteúdo
         ├── Resumos e imagens
+        ├── Avaliações e questões
         ├── Flashcards
-        ├── Questões de simulados
         └── Projetos de código
 ```
 
-- semestres atuais, concluídos ou planejados;
-- matérias com código, professor, sala, carga horária e ordem de exibição;
-- conteúdos ordenados dentro de cada matéria;
-- exclusão em cascata com confirmação para impedir registros órfãos;
-- filtros por semestre, matéria e conteúdo nas telas de estudo.
+O painel inicial é de consulta. Cadastros e edições ficam no menu lateral, que aparece pelos três traços no celular e permanentemente no desktop. O horário semanal aceita segunda a domingo.
 
-## Menu principal somente para consulta
+## Metas, cronômetro e Kanban
 
-A tela inicial funciona como painel de exibição e não mistura formulários com sua rotina diária:
+As metas podem ser gerais ou vinculadas a uma matéria/conteúdo. O cronograma semanal serve como sugestão, não como trava: o usuário continua livre para iniciar qualquer foco ou meta. O cronômetro pertence ao aplicativo inteiro, portanto não zera quando o usuário abre um resumo, consulta o horário ou troca de menu.
 
-- horário de aulas de segunda a domingo;
-- blocos rápidos sugeridos de `18:30–20:10` e `20:30–22:00`;
-- semestre atual e todas as cadeiras cursadas em cada período;
-- detalhes de cada matéria, seus conteúdos, resumos e avaliações;
-- próximas provas, trabalhos, projetos, atividades e apresentações;
-- totais de matérias, resumos, avaliações e questões.
+Se o aplicativo for ocultado ou fechado, o estado é salvo e a sessão volta pausada na próxima abertura. O Kanban permite mover cartões por arrastar, pelo menu de ações ou por botões, e a permanência de concluídos pode ser configurada de zero a 90 dias ou para sempre.
 
-Os cadastros e edições ficam no menu lateral, aberto pelos três traços no celular e permanentemente visível em telas maiores.
+## Resumos e PDF
 
-## IDE acadêmica local
+- rascunho local salvo durante a digitação;
+- restauração do rascunho ao reabrir o formulário;
+- matéria e conteúdo relacionados;
+- várias imagens JPG/PNG, com reordenação;
+- filtros por período, matéria e conteúdo;
+- PDF individual com identificação acadêmica, texto e imagens;
+- conversor geral para imagens, texto, código, HTML e PDF;
+- no Windows, DOCX/XLSX/PPTX tentam usar LibreOffice ou Microsoft Office; sem esses programas, o aplicativo cria um PDF de leitura com o texto extraído.
 
-A IDE fica dentro do mesmo aplicativo no Android e no Windows e organiza cada projeto por semestre, matéria e conteúdo:
+O arquivo original nunca é apagado ou substituído pelo conversor.
 
-- editor nativo com numeração de linhas, realce de sintaxe, desfazer/refazer, busca, quebra de linha e salvamento automático;
-- projetos com vários arquivos, arquivo principal configurável, importação e exportação;
-- modelos iniciais para Dart, Python, Java, JavaScript, TypeScript, C, C++, C#, Kotlin, PHP, SQL, HTML/CSS e JSON;
-- saída de compilação e execução em um terminal integrado;
-- verificação dos ambientes instalados no Windows;
-- código armazenado no banco local e incluído no backup `.mra` e na sincronização Wi‑Fi;
-- nenhuma execução remota, envio de código ou download automático de compiladores.
+## Contas locais e recuperação
 
-O editor funciona tanto no celular quanto no PC. A compilação e a execução acontecem no Windows usando os ambientes instalados na própria máquina, como JDK, Python, Node.js, GCC ou .NET. No Android você pode criar, editar e sincronizar todos os arquivos; depois, abre o mesmo projeto no PC para executá-lo. HTML é pré-visualizado no navegador padrão local, SQL usa o executável local do SQLite e JSON é um formato apenas de edição.
+Cada conta enxerga apenas seus próprios dados. Senhas, respostas e códigos são armazenados como hashes com salt; o aplicativo não guarda a senha em texto. A recuperação funciona pela pergunta de segurança ou pelo código exibido no cadastro.
 
-## Resumos com imagens e PDF
+Como não existe servidor, não há envio de e-mail. Guarde o código fora do aparelho. Credenciais não entram no backup nem na sincronização.
 
-- título, texto completo e tags;
-- vínculo obrigatório com matéria e conteúdo;
-- várias imagens JPG/PNG em cada resumo;
-- reordenação e remoção das imagens antes de salvar;
-- busca e filtros acadêmicos;
-- visualização em tela cheia;
-- geração de um PDF individual com identificação do semestre, matéria e conteúdo, texto e imagens anexadas;
-- compatibilidade com anotações antigas que usavam apenas uma imagem.
+Para usar a mesma coleção acadêmica no PC e no celular, crie uma conta com o **mesmo nome de usuário** nos dois aparelhos. As senhas podem ser diferentes, pois são locais. Depois, sincronize pelo Wi‑Fi ou importe o `.mra` na conta correspondente.
 
-## Questões e simulados
+## Atualização sem perder dados
 
-- banco de questões com quatro alternativas, resposta correta e explicação;
-- dificuldade e vínculo com matéria/conteúdo;
-- simulado geral ou filtrado por cadeira e assunto;
-- quantidade configurável e cronômetro opcional;
-- navegação questão por questão e confirmação antes de entregar respostas em branco;
-- resultado com percentual, correção detalhada e explicações;
-- histórico local de tentativas e estatísticas de desempenho.
+1. Não desinstale o aplicativo e não limpe os dados.
+2. Por segurança, exporte um `.mra` na versão atual.
+3. Instale a nova versão por cima usando a mesma assinatura Android.
+4. Na primeira abertura, crie a primeira conta local.
+5. Essa conta assume os registros já existentes e o aplicativo cria antes um snapshot automático.
+6. Se havia PIN, informe-o uma única vez durante a migração.
 
-## Avaliações, flashcards e foco
+O banco passa da versão 1 para a versão 2 adicionando a tabela de contas; a tabela acadêmica existente não é recriada. Leia `00_MIGRACAO_PARA_V5.txt`.
 
-- provas, trabalhos, projetos, atividades e apresentações;
-- data, horário, peso, nota, observações, situação e conteúdo relacionado;
-- agenda de próximas avaliações e histórico concluído;
-- flashcards por matéria e conteúdo, com repetição espaçada;
-- revisão de cartões vencidos, acertos, erros e próxima revisão;
-- cronômetro de foco/Pomodoro e histórico de tempo estudado.
+## Backup e sincronização local
 
-## Privacidade, backup e sincronização
+- SQLite separado em cada aparelho;
+- exportação da conta aberta em `.mra`;
+- importação de `.mra` e `.mra.gz` sem renomear o arquivo recebido pelo WhatsApp;
+- snapshot automático antes de importar, sincronizar ou migrar dados legados;
+- sincronização bidirecional na mesma rede Wi‑Fi, sem internet;
+- seleção entre os IPs do PC, priorizando Wi‑Fi/Ethernet e rebaixando VPN, WSL, Hyper‑V e adaptadores virtuais;
+- conflitos e exclusões preservados para evitar perda silenciosa.
 
-- SQLite local e independente em cada aparelho;
-- exportação e importação manual do banco no formato `.mra`;
-- textos e imagens incluídos no backup;
-- cópia de segurança automática antes de importações e sincronizações;
-- sincronização bidirecional PC ↔ celular pela mesma rede Wi‑Fi;
-- mesclagem por UUID, revisão e horário de atualização;
-- exclusões sincronizadas e conflitos preservados para revisão;
-- PIN local opcional;
-- limite ampliado para transferir resumos com várias imagens.
+## IDE acadêmica
 
-O formato `.mra`, o identificador Android, a pasta de dados do Windows e o protocolo Wi‑Fi foram mantidos. Assim, esta versão pode ser instalada como atualização da anterior e continua aceitando seus backups existentes.
+O editor nativo organiza projetos por período, matéria e conteúdo e oferece vários arquivos, busca, realce, numeração de linhas, desfazer/refazer, autosave, importação/exportação e saída de execução. Há modelos para Dart, Python, Java, JavaScript, TypeScript, C, C++, C#, Kotlin, PHP, SQL, HTML/CSS e JSON.
 
-## Primeiro uso recomendado
-
-1. Abra **Organização acadêmica**.
-2. Cadastre o semestre atual.
-3. Cadastre as matérias desse semestre.
-4. Cadastre os conteúdos de cada matéria.
-5. Monte o horário semanal.
-6. Use **Resumos**, **Flashcards**, **Simulados**, **Avaliações** e a **IDE de código** durante o período.
-7. Vincule cada projeto da IDE à matéria e ao conteúdo correspondente.
-8. Faça backup `.mra` regularmente e sincronize quando PC e celular estiverem na mesma rede.
+No Android, os projetos podem ser criados, editados e sincronizados. No Windows, a execução usa somente os compiladores já instalados no PC. Consulte `docs/IDE_ACADEMICA.md`.
 
 ## Gerar APK e Windows pelo GitHub
 
-1. Execute `07_SUBIR_GITHUB.bat` no computador ou envie os arquivos pelo aplicativo/site do GitHub.
-2. Abra a aba **Actions** do repositório.
-3. Aguarde o fluxo **Validar e gerar aplicativos** ficar verde.
-4. Abra a execução e baixe os artefatos:
-   - `Smart-Routine-SI-Android` — contém o APK;
-   - `Smart-Routine-SI-Windows` — contém a versão portátil e o instalador.
+1. Extraia o ZIP.
+2. Execute `07_SUBIR_GITHUB.bat`.
+3. Digite apenas uma mensagem de commit ou pressione Enter.
+4. No GitHub, abra **Actions → Validar e gerar aplicativos**.
+5. Baixe `Smart-Routine-SI-Android` e `Smart-Routine-SI-Windows`.
 
-O workflow executa `flutter analyze`, `flutter test`, confirma que o repositório não contém banco pessoal e gera as duas plataformas.
+O workflow executa análise estática, 31 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
 
 ## BATs incluídos
 
@@ -126,31 +107,9 @@ O workflow executa `flutter analyze`, `flutter test`, confirma que o repositóri
 | Executar no Android por USB | `03_EXECUTAR_ANDROID_USB.bat` |
 | Analisar e testar | `04_VALIDAR_PROJETO.bat` |
 | Gerar APK local | `05_GERAR_APK.bat` |
-| Gerar Windows portátil e Setup | `06_GERAR_WINDOWS.bat` |
-| Criar commit e enviar ao GitHub | `07_SUBIR_GITHUB.bat` |
-| Limpar arquivos de compilação | `08_LIMPAR_BUILD.bat` |
-| Criar assinatura Android fixa | `09_GERAR_ASSINATURA_ANDROID.bat` |
+| Gerar Windows e Setup | `06_GERAR_WINDOWS.bat` |
+| Enviar ao GitHub | `07_SUBIR_GITHUB.bat` |
+| Limpar compilação | `08_LIMPAR_BUILD.bat` |
+| Criar assinatura Android | `09_GERAR_ASSINATURA_ANDROID.bat` |
 
-## Atualização Android sem perder dados
-
-Para que o Android aceite um APK novo por cima do instalado, as versões precisam usar a mesma chave. Execute `09_GERAR_ASSINATURA_ANDROID.bat` uma única vez e cadastre os quatro Secrets `MRA_*` no GitHub. Esses nomes foram mantidos por compatibilidade. Leia `docs/ASSINATURA_ANDROID.md` antes da primeira migração.
-
-> Se o APK antigo usar outra assinatura, exporte primeiro um backup `.mra`. Depois de instalar a edição assinada pela chave fixa, importe esse backup e preserve a mesma chave em todas as atualizações futuras.
-
-## Estrutura principal
-
-```text
-lib/core/       banco, modelo acadêmico, IDE, PDF, backup e sincronização
-lib/screens/    painel, IDE, resumos, simulados, avaliações e organização
-lib/widgets/    componentes visuais responsivos
-test/           testes de backup, dados acadêmicos e compatibilidade
-third_party/    editor e realce de sintaxe incluídos localmente
-android/        aplicativo Android
-windows/        aplicativo Windows
-installer/      instalador Inno Setup
-docs/           documentação técnica e operacional
-```
-
-Leia também `docs/IDE_ACADEMICA.md` para ver os ambientes de execução de cada linguagem.
-
-O repositório deve permanecer sem arquivos `.db`, `.sqlite`, `.sqlite3`, `.mra`, `.jks` ou senhas.
+O repositório deve permanecer sem `.db`, `.sqlite`, `.mra`, `.jks`, chaves ou dados pessoais.

@@ -1,41 +1,47 @@
-# Arquitetura local — Smart Routine SI 4.1.0
+# Arquitetura local — Smart Routine SI 5.0.0
 
-## Plataformas
+## Plataformas e privacidade
 
-Uma única base Flutter gera aplicativos nativos para Android e Windows. A interface é renderizada pelo Flutter; não há WebView, PWA ou site incorporado.
+Uma base Flutter gera aplicativos nativos para Android e Windows. Não há WebView, backend, analytics ou autenticação externa. GitHub guarda somente o código e executa builds; dados acadêmicos e credenciais ficam nos aparelhos.
+
+## Banco e migração
+
+O SQLite usa duas áreas principais:
+
+- `entities`: registros versionados com UUID, tipo, JSON, revisão, aparelho, atualização e tombstone;
+- `local_accounts`: credenciais locais, perguntas e hashes de recuperação.
+
+`settings` guarda preferências por usuário e por aparelho. `sync_conflicts` preserva divergências.
+
+Na migração v1 → v2, somente `local_accounts` é criada. A tabela `entities` não é apagada. A primeira conta reivindica registros legados ainda sem `ownerId`, depois de um snapshot automático. Um PIN legado, quando configurado, é exigido antes dessa etapa.
+
+## Isolamento de usuários
+
+Cada registro novo recebe `ownerId`. Consultas, edições, exclusões, backups e sincronização filtram a conta aberta. O identificador da conta deriva do nome de usuário normalizado, permitindo criar a mesma identidade de dados em dois aparelhos sem transferir credenciais.
+
+Senhas, respostas e códigos de recuperação recebem salt aleatório e derivação SHA-256 iterativa. Eles não são exportados nem sincronizados.
 
 ## Modelo acadêmico
 
-A organização principal segue `semestre → matéria → conteúdo`. Resumos, flashcards e questões registram o identificador da matéria e do conteúdo. Horários e avaliações registram a matéria e podem apontar para um conteúdo específico.
+A hierarquia é `período → matéria → conteúdo`. Um período pode representar semestre, curso ou trilha. Resumos, avaliações, questões, flashcards, metas, cartões Kanban e projetos podem apontar para matéria/conteúdo sem obrigar o usuário a preencher relações quando a atividade for geral.
 
-O painel inicial é de leitura. As operações de cadastro, edição e exclusão ficam nas seções do menu lateral. Isso mantém a visão diária simples sem limitar a estrutura de dados.
+Tipos legados continuam reconhecidos internamente para que atualizações antigas não descartem registros, embora módulos fora de estudos não apareçam na navegação.
 
-## Persistência
+## Proteção contra perda
 
-A tabela `entities` guarda registros genéricos e versionados com UUID, tipo, JSON, revisão, dispositivo de origem, instante de atualização e tombstone de exclusão. Os tipos acadêmicos principais incluem `semester` e `study_content`; projetos, arquivos e execuções da IDE usam `code_project`, `code_file` e `code_run`. Os tipos anteriores de matéria, aula, prova, resumo, flashcard, questão, simulado e sessão de estudo continuam compatíveis.
+- snapshot `.mra` antes de migração, importação e sincronização;
+- rascunho separado do resumo durante a edição;
+- timer persistido periodicamente e pausado no ciclo de vida;
+- tombstones para exclusões e lixeira para restauração;
+- conflitos Wi-Fi preservados antes de escolher a versão vencedora;
+- original preservado no conversor de PDF.
 
-A tabela `settings` guarda preferências, ID do aparelho e configuração do PIN. `sync_conflicts` preserva divergências encontradas na mesclagem para que nenhuma edição desapareça silenciosamente.
+## Backup e sincronização
 
-Os tipos legados de versões anteriores continuam reconhecidos pelo banco e pela sincronização. Eles não aparecem na navegação acadêmica, mas essa compatibilidade evita perda de dados durante a atualização.
+O `.mra` é JSON compactado em GZip com manifesto e SHA-256. A versão também aceita uma segunda camada GZip (`.mra.gz`). Imagens e arquivos de código acompanham as entidades. A sincronização usa HTTP temporário apenas na LAN e mescla UUID, horário, revisão e aparelho.
 
-## Resumos e PDF
+## IDE e PDF
 
-As imagens são armazenadas em Base64 junto ao resumo. Um resumo novo aceita uma lista ordenada de imagens; o leitor também converte em memória o formato antigo de imagem única. O PDF é montado localmente com título, semestre, matéria, conteúdo, texto e anexos e só é gravado no local escolhido pelo usuário.
+Projetos da IDE são entidades sincronizáveis. No Windows, arquivos são materializados numa área local temporária para usar compiladores instalados; no Android, edição e sincronização continuam disponíveis sem embutir compiladores.
 
-## Backup `.mra`
-
-O `.mra` é um envelope JSON compactado com GZip. O manifesto contém versão, dispositivo, quantidade de entidades e hash SHA-256. Como as imagens ficam nos registros, elas acompanham o backup e a sincronização.
-
-## Sincronização Wi‑Fi
-
-PC e celular se comunicam diretamente na rede local. A mesclagem considera UUID, revisão e horário de atualização. Exclusões usam tombstones. Antes de importar ou mesclar dados, o aplicativo cria uma cópia de segurança automática.
-
-## IDE acadêmica
-
-O editor é um componente Flutter nativo e não usa WebView. Projetos e arquivos ficam nas entidades sincronizáveis e podem ser vinculados a semestre, matéria e conteúdo. Ao executar um projeto no Windows, o aplicativo materializa temporariamente os arquivos em `MyRoutineActive/code_workspace/<id-do-projeto>` dentro da pasta de suporte da aplicação e chama somente os ambientes já instalados na máquina.
-
-O Android oferece a mesma edição e organização, mas não inclui compiladores. Essa separação mantém o APK enxuto, offline e previsível: o celular edita e sincroniza; o Windows compila e executa. O aplicativo não usa serviços de compilação remota e não instala ferramentas sem autorização.
-
-## Ausência de nuvem
-
-Não há backend remoto, analytics ou autenticação externa. GitHub é usado somente para armazenar o código e executar as compilações do aplicativo. Banco, imagens, backups, projetos pessoais e chave de assinatura são ignorados pelo Git.
+PDFs são criados no aparelho. Imagens e formatos textuais são convertidos diretamente. No Windows, formatos Office usam LibreOffice/Microsoft Office quando disponíveis; o fallback extrai conteúdo para um PDF de leitura.

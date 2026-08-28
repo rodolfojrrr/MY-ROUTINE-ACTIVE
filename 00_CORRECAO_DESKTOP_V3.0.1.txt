@@ -1,8 +1,0 @@
-CORREÇÃO ANTIGA INCORPORADA À VERSÃO 4
-=======================================
-
-A correção de desktop da versão 3.0.1 já faz parte do Smart Routine SI 4.0.0.
-Não é necessário aplicar nenhum pacote adicional.
-
-Para gerar a versão Windows atual, use 06_GERAR_WINDOWS.bat ou baixe o artefato
-Smart-Routine-SI-Windows na aba Actions do GitHub.

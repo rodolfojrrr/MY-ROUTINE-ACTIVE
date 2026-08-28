@@ -60,7 +60,7 @@ class _PinScreenState extends State<PinScreen> {
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: <Color>[
                             AppColors.primaryLight,
                             AppColors.primaryDark,

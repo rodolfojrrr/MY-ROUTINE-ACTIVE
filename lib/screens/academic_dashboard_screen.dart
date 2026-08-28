@@ -65,12 +65,22 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           b.payload['date'] as String? ?? '',
         ),
       );
+    final todayKey = DateFormat('yyyy-MM-dd').format(now);
+    final todayGoals = widget.store
+        .records(EntityTypes.dailyStudyGoal)
+        .where((item) => item.payload['date'] == todayKey)
+        .toList();
+    final openKanban = widget.store
+        .records(EntityTypes.kanbanTask)
+        .where((item) => item.payload['status'] != 'done')
+        .toList();
 
     return AcademicPageBody(
       children: <Widget>[
         _AcademicHero(
           now: now,
           semester: currentSemester?.payload['name'] as String?,
+          displayName: widget.store.activeAccount?.displayName,
         ),
         const SizedBox(height: 18),
         ResponsiveGrid(
@@ -102,7 +112,30 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
               icon: Icons.quiz_outlined,
               color: AppColors.green,
             ),
+            MetricCard(
+              label: 'Metas de hoje',
+              value:
+                  '${todayGoals.where((item) => item.payload['completed'] != true).length}',
+              caption: '${todayGoals.length} planejada(s)',
+              icon: Icons.flag_outlined,
+              color: AppColors.cyan,
+            ),
+            MetricCard(
+              label: 'Atividades em aberto',
+              value: '${openKanban.length}',
+              caption: 'No Kanban de estudos',
+              icon: Icons.view_kanban_outlined,
+              color: AppColors.orange,
+            ),
           ],
+        ),
+        const SizedBox(height: 24),
+        _TodayStudyOverview(
+          store: widget.store,
+          goals: todayGoals,
+          tasks: openKanban,
+          onOpenGoals: () => widget.onOpenSection(1),
+          onOpenKanban: () => widget.onOpenSection(3),
         ),
         const SizedBox(height: 24),
         const AcademicSectionTitle(
@@ -139,11 +172,11 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
         ),
         const SizedBox(height: 24),
         AcademicSectionTitle(
-          title: 'Semestres e matérias',
+          title: 'Períodos, cursos e matérias',
           subtitle:
               'Abra uma cadeira para visualizar conteúdos, resumos e avaliações.',
           trailing: TextButton(
-            onPressed: () => widget.onOpenSection(7),
+            onPressed: () => widget.onOpenSection(8),
             child: const Text('Organizar'),
           ),
         ),
@@ -173,7 +206,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           title: 'Próximas avaliações',
           subtitle: 'Provas, trabalhos, projetos e apresentações.',
           trailing: TextButton(
-            onPressed: () => widget.onOpenSection(3),
+            onPressed: () => widget.onOpenSection(5),
             child: const Text('Ver agenda'),
           ),
         ),
@@ -227,14 +260,14 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                 color: AppColors.primary,
                 title: 'Biblioteca de resumos',
                 subtitle: 'Texto, imagens e PDF por conteúdo.',
-                onTap: () => widget.onOpenSection(1),
+                onTap: () => widget.onOpenSection(2),
               ),
               AcademicActionCard(
                 icon: Icons.quiz_outlined,
                 color: AppColors.green,
                 title: 'Treinar com simulados',
                 subtitle: 'Questões filtradas por matéria e conteúdo.',
-                onTap: () => widget.onOpenSection(2),
+                onTap: () => widget.onOpenSection(4),
               ),
               AcademicActionCard(
                 icon: Icons.terminal_rounded,
@@ -272,18 +305,180 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
   }
 }
 
+class _TodayStudyOverview extends StatelessWidget {
+  const _TodayStudyOverview({
+    required this.store,
+    required this.goals,
+    required this.tasks,
+    required this.onOpenGoals,
+    required this.onOpenKanban,
+  });
+
+  final AppStore store;
+  final List<SyncEntity> goals;
+  final List<SyncEntity> tasks;
+  final VoidCallback onOpenGoals;
+  final VoidCallback onOpenKanban;
+
+  @override
+  Widget build(BuildContext context) {
+    final goalsCard = PremiumCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _OverviewHeader(
+            icon: Icons.flag_outlined,
+            color: AppColors.cyan,
+            title: 'Metas de hoje',
+            onTap: onOpenGoals,
+          ),
+          const SizedBox(height: 8),
+          if (goals.isEmpty)
+            const Text(
+              'Dia livre: crie metas somente quando elas ajudarem seu ritmo.',
+              style: TextStyle(color: AppColors.textMuted),
+            )
+          else
+            ...goals.take(3).map(
+                  (goal) => ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      goal.payload['completed'] == true
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      color: goal.payload['completed'] == true
+                          ? AppColors.green
+                          : AppColors.cyan,
+                    ),
+                    title: Text(
+                      goal.payload['title'] as String? ?? 'Meta de estudo',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      '${AcademicData.subjectName(store, goal.payload['subjectId'] as String?)} • ${goal.payload['plannedMinutes'] ?? 30} min',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+        ],
+      ),
+    );
+    final tasksCard = PremiumCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _OverviewHeader(
+            icon: Icons.view_kanban_outlined,
+            color: AppColors.orange,
+            title: 'Atividades em aberto',
+            onTap: onOpenKanban,
+          ),
+          const SizedBox(height: 8),
+          if (tasks.isEmpty)
+            const Text(
+              'Kanban limpo. Cadastre atividades quando precisar visualizar o fluxo.',
+              style: TextStyle(color: AppColors.textMuted),
+            )
+          else
+            ...tasks.take(3).map(
+                  (task) => ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      task.payload['status'] == 'doing'
+                          ? Icons.timelapse
+                          : Icons.pending_actions_outlined,
+                      color: task.payload['status'] == 'doing'
+                          ? AppColors.cyan
+                          : AppColors.orange,
+                    ),
+                    title: Text(
+                      task.payload['title'] as String? ?? 'Atividade',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      task.payload['status'] == 'doing'
+                          ? 'Fazendo agora'
+                          : 'Pendente',
+                    ),
+                  ),
+                ),
+        ],
+      ),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) => constraints.maxWidth >= 760
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(child: goalsCard),
+                const SizedBox(width: 14),
+                Expanded(child: tasksCard),
+              ],
+            )
+          : Column(
+              children: <Widget>[
+                goalsCard,
+                const SizedBox(height: 12),
+                tasksCard,
+              ],
+            ),
+    );
+  }
+}
+
+class _OverviewHeader extends StatelessWidget {
+  const _OverviewHeader({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Icon(icon, color: color),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+          ),
+        ),
+        TextButton(onPressed: onTap, child: const Text('Abrir')),
+      ],
+    );
+  }
+}
+
 class _AcademicHero extends StatelessWidget {
-  const _AcademicHero({required this.now, required this.semester});
+  const _AcademicHero({
+    required this.now,
+    required this.semester,
+    required this.displayName,
+  });
 
   final DateTime now;
   final String? semester;
+  final String? displayName;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: <Color>[AppColors.primaryLight, AppColors.primaryDark],
@@ -328,7 +523,7 @@ class _AcademicHero extends StatelessWidget {
               ),
               const SizedBox(height: 11),
               Text(
-                _greeting(now),
+                _greeting(now, displayName),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 30,
@@ -375,7 +570,7 @@ class _ScheduleViewer extends StatelessWidget {
         children: <Widget>[
           Text(
             AcademicData.weekdayLong[weekday] ?? '',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.primary,
               fontSize: 18,
               fontWeight: FontWeight.w900,
@@ -407,7 +602,7 @@ class _ScheduleViewer extends StatelessWidget {
                   child: Text(
                     '${item.payload['start']}\n${item.payload['end']}',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w900,
                     ),
@@ -580,7 +775,7 @@ class _SubjectViewerCard extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                const Icon(Icons.code_rounded, color: AppColors.primary),
+                Icon(Icons.code_rounded, color: AppColors.primary),
                 const Spacer(),
                 const Icon(
                   Icons.arrow_forward_rounded,
@@ -660,10 +855,10 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
+                            gradient: LinearGradient(
                               colors: <Color>[
-                                Color(0xFF1C76DF),
-                                Color(0xFF102F59),
+                                AppColors.primaryLight,
+                                AppColors.primaryDark,
                               ],
                             ),
                             borderRadius: BorderRadius.circular(24),
@@ -803,7 +998,7 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                                     else
                                       ...linked.map(
                                         (summary) => ListTile(
-                                          leading: const Icon(
+                                          leading: Icon(
                                             Icons.description_outlined,
                                             color: AppColors.blue,
                                           ),
@@ -880,8 +1075,11 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
   }
 }
 
-String _greeting(DateTime now) {
-  if (now.hour < 12) return 'Bom dia, Rodolfo.';
-  if (now.hour < 18) return 'Boa tarde, Rodolfo.';
-  return 'Boa noite, Rodolfo.';
+String _greeting(DateTime now, String? displayName) {
+  final clean = displayName?.trim() ?? '';
+  final firstName =
+      clean.isEmpty ? '' : ', ${clean.split(RegExp(r'\s+')).first}';
+  if (now.hour < 12) return 'Bom dia$firstName.';
+  if (now.hour < 18) return 'Boa tarde$firstName.';
+  return 'Boa noite$firstName.';
 }

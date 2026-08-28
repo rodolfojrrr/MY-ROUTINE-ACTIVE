@@ -61,7 +61,7 @@ class StudyTodayTab extends StatelessWidget {
 
     return _StudyBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Hoje',
           title: 'Seu plano de estudos do dia',
           subtitle:
@@ -99,7 +99,7 @@ class StudyTodayTab extends StatelessWidget {
             borderColor: AppColors.primary,
             child: Row(
               children: <Widget>[
-                const Icon(
+                Icon(
                   Icons.psychology_alt_outlined,
                   color: AppColors.primary,
                   size: 34,
@@ -153,7 +153,7 @@ class StudyTodayTab extends StatelessWidget {
                 ...classes.map(
                   (item) => ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.schedule,
                       color: AppColors.primary,
                     ),
@@ -390,7 +390,7 @@ class QuestionBankTab extends StatelessWidget {
     final mocks = store.records(EntityTypes.mockExam).take(8).toList();
     return _StudyBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Questões',
           title: 'Banco de questões e simulados',
           subtitle:
@@ -467,7 +467,7 @@ class QuestionBankTab extends StatelessWidget {
                       : (value.correct * 100 / value.attempts).round();
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.insights,
                       color: AppColors.primary,
                     ),
@@ -532,7 +532,7 @@ class QuestionBankTab extends StatelessWidget {
               child: PremiumCard(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.quiz_outlined,
                     color: AppColors.primary,
                   ),
@@ -717,7 +717,7 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
 
     return _StudyBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Foco',
           title: 'Pomodoro e tempo estudado',
           subtitle:
@@ -830,7 +830,7 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
                 ...subjectMinutes.take(10).map(
                       (entry) => ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.menu_book_outlined,
                           color: AppColors.primary,
                         ),
@@ -864,7 +864,7 @@ class _StudyFocusTabState extends State<StudyFocusTab> {
                 ...sessions.take(10).map(
                       (item) => ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.timer_outlined,
                           color: AppColors.primary,
                         ),
@@ -963,7 +963,7 @@ class _QuickMockScreenState extends State<QuickMockScreen> {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          const PageIntro(
+                          PageIntro(
                             eyebrow: 'Simulado',
                             title: 'Resolva sem consultar',
                             subtitle:

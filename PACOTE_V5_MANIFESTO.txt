@@ -1,0 +1,27 @@
+SMART ROUTINE SI 5.0.0+50 — MANIFESTO DO PACOTE
+================================================
+
+ESCOPO
+- Android e Windows nativos em Flutter.
+- Uso local/offline, sem WebView e sem nuvem.
+- Foco em Sistemas de Informação, faculdade, cursos e estudos gerais.
+- Contas locais, metas, cronograma, timer persistente, Kanban, rascunhos,
+  resumos/PDF, conversor, temas, simulados, flashcards e IDE acadêmica.
+- Backup .mra/.mra.gz, lixeira e sincronização Wi-Fi bidirecional.
+
+COMPATIBILIDADE
+- Mesmo identificador Android e mesma pasta de dados no Windows.
+- Banco migrado sem recriação da tabela acadêmica.
+- Tipos antigos preservados internamente para não descartar registros.
+- Primeiro usuário reivindica os dados legados com snapshot prévio.
+
+VALIDAÇÃO DA ENTREGA
+- dart analyze: nenhum problema.
+- flutter test: 31 testes aprovados.
+- Migração v1 → v2 com dados preservados.
+- Contas isoladas e recuperação de senha testadas.
+- Rascunho e digitação contínua testados.
+- Timer persistente testado.
+- .mra e .mra.gz testados.
+- Telas novas testadas em 360 × 760 e navegação em celular/desktop.
+- Repositório auditado sem banco, backup, chave privada ou credencial pessoal.

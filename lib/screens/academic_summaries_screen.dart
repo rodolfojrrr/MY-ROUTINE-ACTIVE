@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../core/app_store.dart';
 import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/sync_entity.dart';
+import '../core/summary_draft_service.dart';
 import '../widgets/premium_widgets.dart';
 import 'academic_shared.dart';
 
@@ -99,7 +101,7 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
 
     return AcademicPageBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Biblioteca acadêmica',
           title: 'Resumos por matéria e conteúdo',
           subtitle:
@@ -269,7 +271,7 @@ class _SummaryCard extends StatelessWidget {
                   color: AppColors.primary.withValues(alpha: .14),
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.description_outlined,
                   color: AppColors.primary,
                 ),
@@ -440,11 +442,17 @@ class _AcademicSummaryEditorDialogState
   late String? subjectId;
   late String? contentId;
   late List<Map<String, dynamic>> images;
+  late final SummaryDraftService draftService;
+  final ValueNotifier<String> draftStatus = ValueNotifier<String>('');
+  Timer? draftDebounce;
   bool picking = false;
+  bool saved = false;
+  bool draftPersisted = false;
 
   @override
   void initState() {
     super.initState();
+    draftService = SummaryDraftService(widget.store);
     final subjects = widget.store.records(EntityTypes.subject);
     title = TextEditingController(
       text: widget.entity?.payload['title'] as String? ?? '',
@@ -468,13 +476,84 @@ class _AcademicSummaryEditorDialogState
         : AcademicData.summaryImages(widget.entity!)
             .map((item) => Map<String, dynamic>.from(item))
             .toList();
+    title.addListener(_scheduleDraft);
+    body.addListener(_scheduleDraft);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _restoreDraft());
   }
 
   @override
   void dispose() {
+    draftDebounce?.cancel();
+    if (!saved && !draftPersisted) unawaited(_saveDraftNow());
+    title.removeListener(_scheduleDraft);
+    body.removeListener(_scheduleDraft);
+    draftStatus.dispose();
     title.dispose();
     body.dispose();
     super.dispose();
+  }
+
+  Future<void> _restoreDraft() async {
+    final draft = await draftService.load(widget.entity?.id);
+    if (!mounted || draft == null || !draft.hasContent) return;
+    if (widget.entity != null &&
+        draft.savedAtMs <= widget.entity!.updatedAtMs) {
+      await draftService.clear(widget.entity?.id);
+      return;
+    }
+    final subjects = widget.store.records(EntityTypes.subject);
+    final restoredSubject = subjects.any((item) => item.id == draft.subjectId)
+        ? draft.subjectId
+        : subjectId;
+    final contents = AcademicData.contentsForSubject(
+      widget.store,
+      restoredSubject,
+    );
+    final restoredContent = contents.any((item) => item.id == draft.contentId)
+        ? draft.contentId
+        : contentId;
+    title.text = draft.title;
+    body.text = draft.body;
+    setState(() {
+      subjectId = restoredSubject;
+      contentId = restoredContent;
+      images =
+          draft.images.map((item) => Map<String, dynamic>.from(item)).toList();
+    });
+    draftStatus.value = 'Rascunho restaurado automaticamente';
+    draftPersisted = true;
+  }
+
+  void _scheduleDraft() {
+    if (saved) return;
+    draftPersisted = false;
+    draftDebounce?.cancel();
+    draftStatus.value = 'Salvando rascunho…';
+    draftDebounce = Timer(const Duration(milliseconds: 750), () {
+      unawaited(_saveDraftNow());
+    });
+  }
+
+  Future<void> _saveDraftNow() async {
+    if (saved) return;
+    final draft = SummaryDraft(
+      title: title.text,
+      body: body.text,
+      subjectId: subjectId,
+      contentId: contentId,
+      images: images.map((item) => Map<String, dynamic>.from(item)).toList(),
+      savedAtMs: DateTime.now().millisecondsSinceEpoch,
+      sourceUpdatedAtMs: widget.entity?.updatedAtMs ?? 0,
+    );
+    if (draft.hasContent) {
+      await draftService.save(widget.entity?.id, draft);
+      draftPersisted = true;
+      if (mounted) draftStatus.value = 'Rascunho salvo neste aparelho';
+    } else {
+      await draftService.clear(widget.entity?.id);
+      draftPersisted = true;
+      if (mounted) draftStatus.value = '';
+    }
   }
 
   Future<void> _pickImages() async {
@@ -494,6 +573,7 @@ class _AcademicSummaryEditorDialogState
         );
         if (images.length > 12) images = images.take(12).toList();
       });
+      _scheduleDraft();
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -514,195 +594,257 @@ class _AcademicSummaryEditorDialogState
         ),
       );
     final contents = AcademicData.contentsForSubject(widget.store, subjectId);
-    return AlertDialog(
-      title: Text(widget.entity == null ? 'Novo resumo' : 'Editar resumo'),
-      content: SizedBox(
-        width: 720,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              TextField(
-                controller: title,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Título do resumo',
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop && !saved) unawaited(_saveDraftNow());
+      },
+      child: AlertDialog(
+        title: Text(widget.entity == null ? 'Novo resumo' : 'Editar resumo'),
+        content: SizedBox(
+          width: 720,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                TextField(
+                  key: const ValueKey<String>('summary-title-field'),
+                  controller: title,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Título do resumo',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final subject = DropdownButtonFormField<String>(
-                    initialValue: subjectId,
-                    decoration: const InputDecoration(labelText: 'Matéria'),
-                    items: subjects
-                        .map(
-                          (item) => DropdownMenuItem<String>(
-                            value: item.id,
-                            child: Text(item.payload['name'] as String? ?? ''),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) => setState(() {
-                      subjectId = value;
-                      final available = AcademicData.contentsForSubject(
-                        widget.store,
-                        subjectId,
+                const SizedBox(height: 12),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final subject = DropdownButtonFormField<String>(
+                      initialValue: subjectId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Matéria'),
+                      items: subjects
+                          .map(
+                            (item) => DropdownMenuItem<String>(
+                              value: item.id,
+                              child: Text(
+                                item.payload['name'] as String? ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) => setState(() {
+                        subjectId = value;
+                        final available = AcademicData.contentsForSubject(
+                          widget.store,
+                          subjectId,
+                        );
+                        contentId =
+                            available.isEmpty ? null : available.first.id;
+                        _scheduleDraft();
+                      }),
+                    );
+                    final content = DropdownButtonFormField<String>(
+                      initialValue: contentId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Conteúdo'),
+                      items: contents
+                          .map(
+                            (item) => DropdownMenuItem<String>(
+                              value: item.id,
+                              child: Text(
+                                item.payload['title'] as String? ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() => contentId = value);
+                        _scheduleDraft();
+                      },
+                    );
+                    if (constraints.maxWidth >= 600) {
+                      return Row(
+                        children: <Widget>[
+                          Expanded(child: subject),
+                          const SizedBox(width: 12),
+                          Expanded(child: content),
+                        ],
                       );
-                      contentId = available.isEmpty ? null : available.first.id;
-                    }),
-                  );
-                  final content = DropdownButtonFormField<String>(
-                    initialValue: contentId,
-                    decoration: const InputDecoration(labelText: 'Conteúdo'),
-                    items: contents
-                        .map(
-                          (item) => DropdownMenuItem<String>(
-                            value: item.id,
-                            child: Text(item.payload['title'] as String? ?? ''),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) => setState(() => contentId = value),
-                  );
-                  if (constraints.maxWidth >= 600) {
-                    return Row(
+                    }
+                    return Column(
                       children: <Widget>[
-                        Expanded(child: subject),
-                        const SizedBox(width: 12),
-                        Expanded(child: content),
+                        subject,
+                        const SizedBox(height: 12),
+                        content,
                       ],
                     );
-                  }
-                  return Column(
-                    children: <Widget>[
-                      subject,
-                      const SizedBox(height: 12),
-                      content,
-                    ],
-                  );
-                },
-              ),
-              if (contents.isEmpty) ...<Widget>[
-                const SizedBox(height: 8),
-                const Text(
-                  'Essa matéria ainda não possui conteúdo. Cadastre-o em Organização acadêmica.',
-                  style: TextStyle(color: AppColors.orange),
+                  },
                 ),
-              ],
-              const SizedBox(height: 12),
-              TextField(
-                controller: body,
-                minLines: 10,
-                maxLines: 24,
-                decoration: const InputDecoration(
-                  labelText: 'Texto do resumo',
-                  alignLabelWithHint: true,
-                  hintText:
-                      'Organize conceitos, exemplos, trechos de código e observações da aula…',
-                ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: picking ? null : _pickImages,
-                      icon: picking
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.add_photo_alternate_outlined),
-                      label: Text(
-                        images.isEmpty
-                            ? 'Adicionar imagens'
-                            : 'Adicionar mais (${images.length}/12)',
-                      ),
-                    ),
+                if (contents.isEmpty) ...<Widget>[
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Essa matéria ainda não possui conteúdo. Cadastre-o em Organização acadêmica.',
+                    style: TextStyle(color: AppColors.orange),
                   ),
                 ],
-              ),
-              if (images.isNotEmpty) ...<Widget>[
                 const SizedBox(height: 12),
-                SizedBox(
-                  height: 116,
-                  child: ReorderableListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: images.length,
-                    onReorderItem: (oldIndex, newIndex) => setState(() {
-                      final item = images.removeAt(oldIndex);
-                      images.insert(newIndex, item);
-                    }),
-                    itemBuilder: (_, index) => Container(
-                      key: ValueKey<String>('${images[index]['name']}-$index'),
-                      width: 132,
-                      margin: const EdgeInsets.only(right: 9),
-                      child: Stack(
-                        children: <Widget>[
-                          Positioned.fill(
-                            child: _MemoryThumbnail(
-                              base64: images[index]['base64'] as String? ?? '',
-                              width: 132,
+                TextField(
+                  key: const ValueKey<String>('summary-body-field'),
+                  controller: body,
+                  minLines: 10,
+                  maxLines: 24,
+                  decoration: const InputDecoration(
+                    labelText: 'Texto do resumo',
+                    alignLabelWithHint: true,
+                    hintText:
+                        'Organize conceitos, exemplos, trechos de código e observações da aula…',
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: picking ? null : _pickImages,
+                        icon: picking
+                            ? const SizedBox.square(
+                                dimension: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.add_photo_alternate_outlined),
+                        label: Text(
+                          images.isEmpty
+                              ? 'Adicionar imagens'
+                              : 'Adicionar mais (${images.length}/12)',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (images.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 116,
+                    child: ReorderableListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: images.length,
+                      onReorderItem: (oldIndex, newIndex) => setState(() {
+                        final item = images.removeAt(oldIndex);
+                        images.insert(newIndex, item);
+                        _scheduleDraft();
+                      }),
+                      itemBuilder: (_, index) => Container(
+                        key:
+                            ValueKey<String>('${images[index]['name']}-$index'),
+                        width: 132,
+                        margin: const EdgeInsets.only(right: 9),
+                        child: Stack(
+                          children: <Widget>[
+                            Positioned.fill(
+                              child: _MemoryThumbnail(
+                                base64:
+                                    images[index]['base64'] as String? ?? '',
+                                width: 132,
+                              ),
                             ),
-                          ),
-                          Positioned(
-                            top: 3,
-                            right: 3,
-                            child: IconButton.filled(
-                              tooltip: 'Remover imagem',
-                              visualDensity: VisualDensity.compact,
-                              onPressed: () =>
-                                  setState(() => images.removeAt(index)),
-                              icon: const Icon(Icons.close, size: 17),
+                            Positioned(
+                              top: 3,
+                              right: 3,
+                              child: IconButton.filled(
+                                tooltip: 'Remover imagem',
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () {
+                                  setState(() => images.removeAt(index));
+                                  _scheduleDraft();
+                                },
+                                icon: const Icon(Icons.close, size: 17),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 7),
-                const Text(
-                  'Arraste para ordenar. As imagens entram no PDF, backup e sincronização Wi‑Fi.',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  const SizedBox(height: 7),
+                  const Text(
+                    'Arraste para ordenar. As imagens entram no PDF, backup e sincronização Wi‑Fi.',
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  ),
+                ],
+                const SizedBox(height: 10),
+                ValueListenableBuilder<String>(
+                  valueListenable: draftStatus,
+                  builder: (context, status, _) => AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    child: status.isEmpty
+                        ? const SizedBox.shrink()
+                        : Row(
+                            key: ValueKey<String>(status),
+                            children: <Widget>[
+                              const Icon(
+                                Icons.cloud_done_outlined,
+                                size: 17,
+                                color: AppColors.green,
+                              ),
+                              const SizedBox(width: 7),
+                              Text(
+                                status,
+                                style: const TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
                 ),
               ],
-            ],
+            ),
           ),
         ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () async {
+              await _saveDraftNow();
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Fechar e guardar rascunho'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (title.text.trim().isEmpty ||
+                  subjectId == null ||
+                  contentId == null) {
+                return;
+              }
+              await widget.store.save(
+                  EntityTypes.studyNote,
+                  <String, dynamic>{
+                    'title': title.text.trim(),
+                    'body': body.text.trim(),
+                    'subjectId': subjectId,
+                    'contentId': contentId,
+                    'images': images,
+                    'createdAt': widget.entity?.payload['createdAt'] ??
+                        DateTime.now().toIso8601String(),
+                    'editedAt': DateTime.now().toIso8601String(),
+                  },
+                  id: widget.entity?.id);
+              saved = true;
+              draftDebounce?.cancel();
+              await draftService.clear(widget.entity?.id);
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Salvar resumo'),
+          ),
+        ],
       ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
-        ),
-        FilledButton(
-          onPressed: () async {
-            if (title.text.trim().isEmpty ||
-                subjectId == null ||
-                contentId == null) {
-              return;
-            }
-            await widget.store.save(
-                EntityTypes.studyNote,
-                <String, dynamic>{
-                  'title': title.text.trim(),
-                  'body': body.text.trim(),
-                  'subjectId': subjectId,
-                  'contentId': contentId,
-                  'images': images,
-                  'createdAt': widget.entity?.payload['createdAt'] ??
-                      DateTime.now().toIso8601String(),
-                  'editedAt': DateTime.now().toIso8601String(),
-                },
-                id: widget.entity?.id);
-            if (context.mounted) Navigator.pop(context);
-          },
-          child: const Text('Salvar resumo'),
-        ),
-      ],
     );
   }
 }

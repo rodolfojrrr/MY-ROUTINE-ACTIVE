@@ -6,12 +6,43 @@ import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'sync_entity.dart';
+import 'local_account.dart';
 
 class LocalDatabase {
   LocalDatabase._();
 
   static final LocalDatabase instance = LocalDatabase._();
   Database? _database;
+
+  static Future<LocalDatabase> createInMemoryForTesting() async {
+    sqfliteFfiInit();
+    final instance = LocalDatabase._();
+    instance._database = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(
+        version: 2,
+        onCreate: instance._onCreate,
+        onUpgrade: instance._onUpgrade,
+        onConfigure: instance._onConfigure,
+      ),
+    );
+    return instance;
+  }
+
+  static Future<LocalDatabase> openPathForTesting(String path) async {
+    sqfliteFfiInit();
+    final instance = LocalDatabase._();
+    instance._database = await databaseFactoryFfi.openDatabase(
+      path,
+      options: OpenDatabaseOptions(
+        version: 2,
+        onCreate: instance._onCreate,
+        onUpgrade: instance._onUpgrade,
+        onConfigure: instance._onConfigure,
+      ),
+    );
+    return instance;
+  }
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -25,16 +56,18 @@ class LocalDatabase {
       _database = await databaseFactoryFfi.openDatabase(
         dbPath,
         options: OpenDatabaseOptions(
-          version: 1,
+          version: 2,
           onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
           onConfigure: _onConfigure,
         ),
       );
     } else {
       _database = await openDatabase(
         dbPath,
-        version: 1,
+        version: 2,
         onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
         onConfigure: _onConfigure,
       );
     }
@@ -78,6 +111,37 @@ class LocalDatabase {
         resolved INTEGER NOT NULL DEFAULT 0
       )
     ''');
+    await _createAccountsTable(db);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) await _createAccountsTable(db);
+  }
+
+  Future<void> _createAccountsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS local_accounts (
+        id TEXT PRIMARY KEY,
+        username TEXT NOT NULL,
+        username_normalized TEXT NOT NULL UNIQUE,
+        display_name TEXT NOT NULL,
+        email TEXT NOT NULL DEFAULT '',
+        email_normalized TEXT NOT NULL DEFAULT '',
+        password_salt TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
+        recovery_salt TEXT NOT NULL,
+        recovery_hash TEXT NOT NULL,
+        security_question TEXT NOT NULL,
+        answer_salt TEXT NOT NULL,
+        answer_hash TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_local_accounts_email '
+      "ON local_accounts(email_normalized) WHERE email_normalized <> ''",
+    );
   }
 
   Future<List<SyncEntity>> getAllEntities({bool includeDeleted = true}) async {
@@ -136,6 +200,57 @@ class LocalDatabase {
           'value': value,
         },
         conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<List<LocalAccount>> listAccounts() async {
+    final db = await database;
+    final rows = await db.query('local_accounts', orderBy: 'display_name');
+    return rows.map(LocalAccount.fromMap).toList(growable: false);
+  }
+
+  Future<Map<String, Object?>?> findAccountByIdentifier(
+    String identifier, {
+    bool includeId = false,
+  }) async {
+    final db = await database;
+    final rows = await db.query(
+      'local_accounts',
+      where: includeId
+          ? 'id = ? OR username_normalized = ? OR email_normalized = ?'
+          : 'username_normalized = ? OR email_normalized = ?',
+      whereArgs: includeId
+          ? <Object?>[identifier, identifier, identifier]
+          : <Object?>[identifier, identifier],
+      limit: 1,
+    );
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  Future<void> insertAccount(Map<String, Object?> row) async {
+    final db = await database;
+    await db.insert('local_accounts', row);
+  }
+
+  Future<void> updateAccountCredentials({
+    required String id,
+    required String passwordSalt,
+    required String passwordHash,
+    required String recoverySalt,
+    required String recoveryHash,
+  }) async {
+    final db = await database;
+    await db.update(
+      'local_accounts',
+      <String, Object?>{
+        'password_salt': passwordSalt,
+        'password_hash': passwordHash,
+        'recovery_salt': recoverySalt,
+        'recovery_hash': recoveryHash,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      where: 'id = ?',
+      whereArgs: <Object?>[id],
+    );
   }
 
   Future<void> addConflict({

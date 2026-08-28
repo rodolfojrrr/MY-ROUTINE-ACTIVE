@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
 import 'app_store.dart';
+import 'backup_service.dart';
 import 'sync_entity.dart';
 
 class FileTransferService {
@@ -24,7 +25,7 @@ class FileTransferService {
     final picked = await FilePicker.platform.pickFiles(
       dialogTitle: 'Importar backup do Smart Routine SI',
       type: FileType.custom,
-      allowedExtensions: const <String>['mra'],
+      allowedExtensions: const <String>['mra', 'gz'],
       withData: true,
     );
     if (picked == null || picked.files.isEmpty) return null;
@@ -32,7 +33,25 @@ class FileTransferService {
     final bytes = file.bytes ??
         (file.path == null ? null : await File(file.path!).readAsBytes());
     if (bytes == null) throw const FileSystemException('Arquivo sem dados.');
-    return store.importBundle(bytes);
+    final normalized = normalizeBackupBytes(bytes);
+    return store.importBundle(normalized);
+  }
+
+  static List<int> normalizeBackupBytes(List<int> bytes) {
+    try {
+      BackupService.decodeBundle(bytes);
+      return bytes;
+    } catch (originalError) {
+      try {
+        final unwrapped = gzip.decode(bytes);
+        BackupService.decodeBundle(unwrapped);
+        return unwrapped;
+      } catch (_) {
+        throw FormatException(
+          'Este arquivo não é um backup .mra válido. Se ele veio pelo WhatsApp, pode usar tanto .mra quanto .mra.gz. Detalhe: $originalError',
+        );
+      }
+    }
   }
 
   static Future<Map<String, dynamic>?> pickImagePayload() async {

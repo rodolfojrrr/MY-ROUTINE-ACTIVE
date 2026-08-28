@@ -116,7 +116,7 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
 
     return AcademicPageBody(
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Prática direcionada',
           title: 'Questões e simulados',
           subtitle:
@@ -316,7 +316,7 @@ class _QuestionCard extends StatelessWidget {
               color: AppColors.primary.withValues(alpha: .14),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.quiz_outlined, color: AppColors.primary),
+            child: Icon(Icons.quiz_outlined, color: AppColors.primary),
           ),
           const SizedBox(width: 13),
           Expanded(

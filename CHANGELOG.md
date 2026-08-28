@@ -1,5 +1,23 @@
 # Changelog
 
+## 5.0.0
+
+- Contas locais para múltiplos usuários, com isolamento por proprietário.
+- Login por usuário/e-mail e senha, pergunta de segurança e código de recuperação.
+- Migração segura do banco v1 para v2: primeira conta assume os dados antigos após snapshot automático e validação do PIN legado, quando existir.
+- Metas diárias livres ou ligadas a matéria/conteúdo e cronograma semanal opcional.
+- Cronômetro global persistente, sem reiniciar ao navegar e restaurado pausado após fechar ou ocultar o app.
+- Rascunho automático dos resumos e correção da estabilidade dos campos de digitação.
+- Novo Kanban com Pendentes, Fazendo e Concluídas, drag-and-drop, movimentação manual, prazos, ordenação e retenção configurável.
+- Conversor local de arquivos para PDF e geração de PDF individual dos resumos preservada.
+- Paletas azul, roxa, cinza, verde, amarela e colorida, aplicadas sem reiniciar.
+- Períodos ampliados para semestre, curso ou trilha, mantendo a hierarquia matéria → conteúdo.
+- Importação de `.mra.gz` recebido pelo WhatsApp, além do `.mra` normal.
+- Sincronização Wi-Fi aprimorada com lista de IPs e prioridade para adaptadores físicos.
+- Lixeira local para restaurar registros excluídos.
+- Layout das ferramentas novas validado em 360 × 760 e navegação responsiva testada em celular e desktop.
+- Versão elevada para `5.0.0+50`.
+
 ## 4.1.0
 
 - Identidade visual redesenhada em azul, com novo ícone no Android e no Windows.

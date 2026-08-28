@@ -182,7 +182,7 @@ class _WorkspaceHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        const PageIntro(
+        PageIntro(
           eyebrow: 'Laboratório de desenvolvimento',
           title: 'IDE acadêmica',
           subtitle:
@@ -257,7 +257,7 @@ class _ProjectRail extends StatelessWidget {
               IconButton(
                 tooltip: 'Novo projeto',
                 onPressed: onCreate,
-                icon: const Icon(Icons.add, color: AppColors.primary),
+                icon: Icon(Icons.add, color: AppColors.primary),
               ),
             ],
           ),
@@ -594,7 +594,7 @@ class _ProjectDialogState extends State<_ProjectDialog> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'VÍNCULO ACADÊMICO',
@@ -720,7 +720,7 @@ class _RuntimeDialogState extends State<_RuntimeDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: <Widget>[
           Icon(Icons.memory_outlined, color: AppColors.primary),
           SizedBox(width: 10),
@@ -1452,7 +1452,7 @@ class _ProjectToolbar extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: <Color>[
                   AppColors.primaryLight,
                   AppColors.primaryDark,
@@ -1590,7 +1590,7 @@ class _VerticalFileRail extends StatelessWidget {
               IconButton(
                 tooltip: 'Novo arquivo',
                 onPressed: onNew,
-                icon: const Icon(
+                icon: Icon(
                   Icons.note_add_outlined,
                   size: 20,
                   color: AppColors.primary,
@@ -1722,7 +1722,7 @@ class _HorizontalFileRail extends StatelessWidget {
         IconButton(
           tooltip: 'Novo arquivo',
           onPressed: onNew,
-          icon: const Icon(Icons.add, color: AppColors.primary),
+          icon: Icon(Icons.add, color: AppColors.primary),
         ),
       ],
     );

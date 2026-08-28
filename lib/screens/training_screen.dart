@@ -857,7 +857,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           borderColor: AppColors.blue,
                           child: Row(
                             children: <Widget>[
-                              const Icon(
+                              Icon(
                                 Icons.self_improvement,
                                 color: AppColors.blue,
                               ),

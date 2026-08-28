@@ -22,18 +22,18 @@ jobs:
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.0'
+          flutter-version: '3.47.2'
           channel: stable
           cache: true
 
       - name: Instalar dependências
         run: flutter pub get
 
-      - name: Confirmar banco zerado no repositório
+      - name: Confirmar pacote sem dados e chaves privadas
         shell: bash
         run: |
-          if find . -type f \( -name '*.db' -o -name '*.sqlite' -o -name '*.sqlite3' -o -name '*.mra' \) | grep -q .; then
-            echo 'ERRO: arquivo de dados local encontrado no repositório.'
+          if find . -type f \( -name '*.db' -o -name '*.sqlite' -o -name '*.sqlite3' -o -name '*.mra' -o -name '*.mra.gz' -o -name '*.jks' -o -name '*.keystore' -o -name '*.p12' -o -name '*.pem' -o -name '*.key' -o -name 'ASSINATURA_ANDROID_SECRETS.txt' \) | grep -q .; then
+            echo 'ERRO: arquivo local de dados ou chave privada encontrado no repositório.'
             exit 1
           fi
 
@@ -66,7 +66,7 @@ jobs:
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.0'
+          flutter-version: '3.47.2'
           channel: stable
           cache: true
 
@@ -115,7 +115,7 @@ jobs:
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.0'
+          flutter-version: '3.47.2'
           channel: stable
           cache: true
 

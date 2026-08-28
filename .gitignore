@@ -4,6 +4,7 @@
 .flutter-plugins-dependencies
 .packages
 .pub-cache/
+.config/
 build/
 coverage/
 ENTREGAS/
@@ -18,8 +19,12 @@ ENTREGAS/
 *.sqlite
 *.sqlite3
 *.mra
+*.mra.gz
 *.keystore
 *.jks
+*.p12
+*.pem
+*.key
 key.properties
 ASSINATURA_ANDROID_SECRETS.txt
 android/local.properties

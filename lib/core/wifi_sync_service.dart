@@ -8,6 +8,15 @@ import 'app_store.dart';
 import 'backup_service.dart';
 import 'sync_entity.dart';
 
+class LanAddress {
+  const LanAddress({required this.address, required this.interfaceName});
+
+  final String address;
+  final String interfaceName;
+
+  String get label => '$address — $interfaceName';
+}
+
 class WifiSyncService extends ChangeNotifier {
   WifiSyncService(this.store);
 
@@ -16,6 +25,7 @@ class WifiSyncService extends ChangeNotifier {
   StreamSubscription<HttpRequest>? _subscription;
   String _pairingCode = '';
   String _localIp = '';
+  List<LanAddress> _lanAddresses = const <LanAddress>[];
   String _status = 'Parado';
   int _successfulSyncs = 0;
   bool _disposed = false;
@@ -23,6 +33,7 @@ class WifiSyncService extends ChangeNotifier {
   bool get isServing => _server != null;
   String get pairingCode => _pairingCode;
   String get localIp => _localIp;
+  List<LanAddress> get lanAddresses => _lanAddresses;
   int get port => _server?.port ?? 0;
   String get status => _status;
   int get successfulSyncs => _successfulSyncs;
@@ -32,7 +43,9 @@ class WifiSyncService extends ChangeNotifier {
   Future<void> startServer() async {
     if (_server != null) return;
     _pairingCode = (100000 + Random.secure().nextInt(900000)).toString();
-    _localIp = await _discoverLanIp();
+    _lanAddresses = await _discoverLanAddresses();
+    _localIp =
+        _lanAddresses.isEmpty ? '127.0.0.1' : _lanAddresses.first.address;
     _server = await HttpServer.bind(InternetAddress.anyIPv4, 8765);
     _server!.idleTimeout = const Duration(minutes: 5);
     _subscription = _server!.listen(
@@ -52,6 +65,7 @@ class WifiSyncService extends ChangeNotifier {
     await _server?.close(force: true);
     _server = null;
     _pairingCode = '';
+    _lanAddresses = const <LanAddress>[];
     _status = 'Parado';
     _notifySafely();
   }
@@ -165,31 +179,76 @@ class WifiSyncService extends ChangeNotifier {
     }
   }
 
-  Future<String> _discoverLanIp() async {
+  void selectDisplayedIp(String address) {
+    if (!_lanAddresses.any((item) => item.address == address)) return;
+    _localIp = address;
+    _notifySafely();
+  }
+
+  Future<List<LanAddress>> _discoverLanAddresses() async {
     final interfaces = await NetworkInterface.list(
       type: InternetAddressType.IPv4,
       includeLoopback: false,
     );
-    final addresses = interfaces
-        .expand((item) => item.addresses)
-        .map((item) => item.address)
+    final candidates = <({LanAddress item, int score})>[];
+    for (final interface in interfaces) {
+      for (final address in interface.addresses) {
+        final ip = address.address;
+        if (!_isPrivateIpv4(ip)) continue;
+        candidates.add((
+          item: LanAddress(address: ip, interfaceName: interface.name),
+          score: _addressScore(interface.name, ip),
+        ));
+      }
+    }
+    candidates.sort((a, b) {
+      final score = b.score.compareTo(a.score);
+      return score != 0 ? score : a.item.address.compareTo(b.item.address);
+    });
+    return candidates
+        .map((candidate) => candidate.item)
         .toList(growable: false);
-    for (final prefix in const <String>['192.168.', '10.']) {
-      for (final ip in addresses) {
-        if (ip.startsWith(prefix)) return ip;
-      }
+  }
+
+  bool _isPrivateIpv4(String ip) {
+    if (ip.startsWith('192.168.') || ip.startsWith('10.')) return true;
+    final parts = ip.split('.');
+    final second = parts.length == 4 ? int.tryParse(parts[1]) : null;
+    return parts.first == '172' &&
+        second != null &&
+        second >= 16 &&
+        second <= 31;
+  }
+
+  int _addressScore(String interfaceName, String ip) {
+    final name = interfaceName.toLowerCase();
+    var score = ip.startsWith('192.168.')
+        ? 40
+        : ip.startsWith('172.')
+            ? 25
+            : 10;
+    if (name.contains('wi-fi') ||
+        name.contains('wifi') ||
+        name.contains('wlan') ||
+        name.contains('wireless')) {
+      score += 80;
+    } else if (name.contains('ethernet')) {
+      score += 60;
     }
-    for (final ip in addresses) {
-      final parts = ip.split('.');
-      final second = parts.length == 4 ? int.tryParse(parts[1]) : null;
-      if (parts.first == '172' &&
-          second != null &&
-          second >= 16 &&
-          second <= 31) {
-        return ip;
-      }
-    }
-    return addresses.isEmpty ? '127.0.0.1' : addresses.first;
+    const virtualNames = <String>[
+      'vethernet',
+      'virtual',
+      'vmware',
+      'virtualbox',
+      'hyper-v',
+      'wsl',
+      'docker',
+      'vpn',
+      'tailscale',
+      'zerotier',
+    ];
+    if (virtualNames.any(name.contains)) score -= 150;
+    return score;
   }
 
   @override

@@ -179,7 +179,7 @@ class AccountsTab extends StatelessWidget {
                         ...transfers.take(8).map(
                               (item) => ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.compare_arrows,
                                   color: AppColors.primary,
                                 ),

@@ -12,20 +12,27 @@ class BackupBundle {
     required this.entities,
     required this.deviceId,
     required this.exportedAt,
+    this.ownerId,
+    this.ownerName,
   });
 
   final List<SyncEntity> entities;
   final String deviceId;
   final DateTime exportedAt;
+  final String? ownerId;
+  final String? ownerName;
 }
 
 class BackupService {
   static const format = 'my-routine-active';
   static const version = 1;
+  static Directory? snapshotRootOverrideForTesting;
 
   static List<int> createBundle({
     required List<SyncEntity> entities,
     required String deviceId,
+    String? ownerId,
+    String? ownerName,
   }) {
     final entityJson = entities.map((item) => item.toJson()).toList();
     final canonical = jsonEncode(entityJson);
@@ -37,6 +44,8 @@ class BackupService {
         'deviceId': deviceId,
         'entityCount': entities.length,
         'sha256': sha256.convert(utf8.encode(canonical)).toString(),
+        if (ownerId != null && ownerId.isNotEmpty) 'ownerId': ownerId,
+        if (ownerName != null && ownerName.isNotEmpty) 'ownerName': ownerName,
       },
       'entities': entityJson,
     };
@@ -68,6 +77,8 @@ class BackupService {
         entities: entities,
         deviceId: manifest['deviceId'] as String,
         exportedAt: DateTime.parse(manifest['exportedAt'] as String),
+        ownerId: manifest['ownerId'] as String?,
+        ownerName: manifest['ownerName'] as String?,
       );
     } on FormatException {
       rethrow;
@@ -80,7 +91,8 @@ class BackupService {
     List<int> bytes, {
     required String reason,
   }) async {
-    final support = await getApplicationSupportDirectory();
+    final support = snapshotRootOverrideForTesting ??
+        await getApplicationSupportDirectory();
     final directory = Directory(
       p.join(support.path, 'MyRoutineActive', 'backups'),
     );
