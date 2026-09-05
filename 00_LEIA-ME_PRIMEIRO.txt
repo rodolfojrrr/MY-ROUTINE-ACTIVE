@@ -4,6 +4,13 @@ SMART ROUTINE SI — V5.5.0 PRO PERSONALIZÁVEL
 Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
 Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
 
+CORREÇÃO DO BUILD WINDOWS
+- A falha "Process completed with exit code 35" na etapa Configurar Flutter
+  foi corrigida no workflow desta revisão.
+- O GitHub agora baixa o Flutter Windows pelo arquivo oficial, repete a
+  tentativa automaticamente em falhas de conexão e verifica o SHA-256.
+- Nenhum dado ou banco do aplicativo é alterado por essa correção.
+
 PRINCIPAIS NOVIDADES
 - Editor avançado de temas: personalize cor principal, secundária, fundo,
   cartões, campos, bordas e menu lateral usando seletor visual ou HEX.
@@ -79,6 +86,7 @@ REPOSITÓRIO CONFIGURADO
 https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
 LEIA TAMBÉM
+- 00_CORRECAO_BUILD_WINDOWS_GITHUB.txt
 - 00_ATUALIZACAO_V5.5_PRO_SEM_PERDER_DADOS.txt
 - 00_MIGRACAO_PARA_V5.txt
 - README.md

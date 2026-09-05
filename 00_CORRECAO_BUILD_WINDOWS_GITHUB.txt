@@ -1,0 +1,25 @@
+SMART ROUTINE SI V5.5 PRO — CORREÇÃO DO BUILD WINDOWS
+=====================================================
+
+O QUE ACONTECEU
+O executor Windows do GitHub encerrou a etapa Configurar Flutter com o
+código 35. Esse código veio da conexão TLS usada pelo instalador automático
+para consultar/baixar o SDK. A compilação do aplicativo ainda não havia
+começado, portanto não foi um erro no código nem no banco local.
+
+O QUE FOI CORRIGIDO
+- O workflow não depende mais daquele instalador na etapa Windows.
+- O Flutter 3.47.2 é baixado do arquivo oficial do projeto Flutter.
+- Se houver uma falha temporária, são feitas até cinco tentativas.
+- O SHA-256 oficial é conferido antes de extrair e executar o SDK.
+- O SDK validado entra no cache do GitHub para as próximas compilações.
+
+COMO APLICAR
+1. Extraia este ZIP corrigido em uma pasta nova no notebook.
+2. Execute 07_SUBIR_GITHUB.bat.
+3. Na mensagem do commit, aperte Enter.
+4. Abra a aba Actions do GitHub e acompanhe a nova execução.
+5. Quando concluir, baixe Smart-Routine-SI-Windows.
+
+Não é necessário alterar, desinstalar ou apagar o Smart Routine SI já
+instalado. Esta correção modifica somente a automação de compilação.

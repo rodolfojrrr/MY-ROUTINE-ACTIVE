@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.5.0 PRO — revisão do workflow Windows
+
+- Corrigida a etapa `Configurar Flutter` que podia encerrar com o código 35 no executor Windows do GitHub.
+- O SDK do Windows agora é obtido diretamente do arquivo oficial do Flutter, com cinco tentativas automáticas.
+- O pacote baixado é validado pelo SHA-256 oficial antes da compilação.
+- Um cache próprio evita baixar novamente o SDK nas próximas execuções.
+- A versão do aplicativo e o formato do banco permanecem inalterados.
+
 ## 5.5.0 PRO
 
 - Editor avançado de temas com seleção visual e HEX para cor principal, secundária, fundo, cartões, campos, bordas e menu lateral.

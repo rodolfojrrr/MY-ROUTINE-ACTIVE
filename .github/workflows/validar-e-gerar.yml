@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configurar Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v2.23.0
         with:
           flutter-version: '3.47.2'
           channel: stable
@@ -64,7 +64,7 @@ jobs:
           java-version: '17'
 
       - name: Configurar Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v2.23.0
         with:
           flutter-version: '3.47.2'
           channel: stable
@@ -107,17 +107,70 @@ jobs:
     name: Gerar aplicativo Windows
     needs: validar
     runs-on: windows-latest
-    timeout-minutes: 40
+    timeout-minutes: 55
+    env:
+      FLUTTER_VERSION: '3.47.2'
+      FLUTTER_WINDOWS_SHA256: '37934f2128a55d77a38baba12fd611157ed23a47bf7d2b7d17e9e84da118409d'
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
 
-      - name: Configurar Flutter
-        uses: subosito/flutter-action@v2
+      - name: Restaurar cache do Flutter Windows
+        id: flutter_windows_cache
+        uses: actions/cache@v4
         with:
-          flutter-version: '3.47.2'
-          channel: stable
-          cache: true
+          path: ${{ runner.tool_cache }}\flutter-windows-3.47.2
+          key: flutter-windows-x64-3.47.2-37934f2128a55d77a38baba12fd611157ed23a47bf7d2b7d17e9e84da118409d
+
+      - name: Configurar Flutter
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $flutterRoot = Join-Path $env:RUNNER_TOOL_CACHE "flutter-windows-$env:FLUTTER_VERSION"
+          $flutterBin = Join-Path $flutterRoot 'flutter\bin'
+          $flutterExe = Join-Path $flutterBin 'flutter.bat'
+
+          if (-not (Test-Path $flutterExe)) {
+            $archive = Join-Path $env:RUNNER_TEMP "flutter_windows_$env:FLUTTER_VERSION-stable.zip"
+            $url = "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_$env:FLUTTER_VERSION-stable.zip"
+
+            for ($attempt = 1; $attempt -le 5; $attempt++) {
+              try {
+                if (Test-Path $archive) {
+                  Remove-Item $archive -Force
+                }
+                Write-Host "Baixando Flutter oficial, tentativa $attempt de 5..."
+                Invoke-WebRequest -Uri $url -OutFile $archive -UseBasicParsing -TimeoutSec 900
+                break
+              } catch {
+                if ($attempt -eq 5) {
+                  throw
+                }
+                Write-Warning "Tentativa $attempt falhou. Uma nova tentativa será feita automaticamente."
+                Start-Sleep -Seconds (10 * $attempt)
+              }
+            }
+
+            $downloadHash = (Get-FileHash -Path $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($downloadHash -ne $env:FLUTTER_WINDOWS_SHA256) {
+              throw "O SDK do Flutter baixado não passou na verificação SHA-256."
+            }
+
+            if (Test-Path $flutterRoot) {
+              Remove-Item $flutterRoot -Recurse -Force
+            }
+            New-Item -ItemType Directory -Path $flutterRoot -Force | Out-Null
+            Expand-Archive -Path $archive -DestinationPath $flutterRoot -Force
+            Remove-Item $archive -Force
+          }
+
+          if (-not (Test-Path $flutterExe)) {
+            throw 'A configuração do Flutter não foi concluída.'
+          }
+
+          $flutterBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "FLUTTER_ROOT=$(Join-Path $flutterRoot 'flutter')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $flutterExe --version
 
       - name: Habilitar Windows e instalar dependências
         shell: pwsh
