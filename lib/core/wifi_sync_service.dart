@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -158,7 +159,7 @@ class WifiSyncService extends ChangeNotifier {
         responseBytes.addAll(chunk);
       }
       if (response.statusCode != HttpStatus.ok) {
-        throw HttpException(String.fromCharCodes(responseBytes));
+        throw HttpException(utf8.decode(responseBytes, allowMalformed: true));
       }
       await BackupService.createAutomaticSnapshot(
         localBytes,

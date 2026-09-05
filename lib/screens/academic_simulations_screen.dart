@@ -1160,8 +1160,8 @@ class _AcademicMockRunnerScreenState extends State<AcademicMockRunnerScreen> {
                                                     BorderRadius.circular(
                                                   14,
                                                 ),
-                                                side: const BorderSide(
-                                                  color: AppColors.border,
+                                                side: BorderSide(
+                                                  color: AppColors.appBorder,
                                                 ),
                                               ),
                                             ),
@@ -1396,14 +1396,14 @@ class _QuestionNavigator extends StatelessWidget {
                   ? AppColors.primary
                   : complete
                       ? AppColors.green.withValues(alpha: .18)
-                      : AppColors.surfaceRaised,
+                      : AppColors.appSurfaceRaised,
               borderRadius: BorderRadius.circular(11),
               border: Border.all(
                 color: selected
                     ? AppColors.primary
                     : complete
                         ? AppColors.green
-                        : AppColors.border,
+                        : AppColors.appBorder,
               ),
             ),
             child: Text(

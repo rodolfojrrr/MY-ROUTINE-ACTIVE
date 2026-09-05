@@ -10,11 +10,11 @@ class PremiumBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: RadialGradient(
           center: Alignment.topLeft,
           radius: 1.45,
-          colors: <Color>[Color(0xFF0B3262), AppColors.background],
+          colors: <Color>[AppColors.appGlow, AppColors.appBackground],
           stops: <double>[0, .58],
         ),
       ),
@@ -43,10 +43,10 @@ class PremiumCard extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       padding: padding,
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: .94),
+        color: AppColors.appSurface.withValues(alpha: .94),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: borderColor ?? AppColors.border.withValues(alpha: .85),
+          color: borderColor ?? AppColors.appBorder.withValues(alpha: .85),
         ),
         boxShadow: <BoxShadow>[
           BoxShadow(
@@ -245,16 +245,16 @@ class ConfirmDeleteButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: 'Excluir',
+      tooltip: 'Mover para a lixeira',
       color: AppColors.red,
       icon: const Icon(Icons.delete_outline),
       onPressed: () async {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
-            title: const Text('Excluir registro?'),
+            title: const Text('Mover para a lixeira?'),
             content: const Text(
-              'A exclusão será sincronizada com o outro aparelho.',
+              'Você poderá restaurar este item pela Lixeira. A decisão será sincronizada com seus outros aparelhos.',
             ),
             actions: <Widget>[
               TextButton(
@@ -263,7 +263,7 @@ class ConfirmDeleteButton extends StatelessWidget {
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Excluir'),
+                child: const Text('Mover para a lixeira'),
               ),
             ],
           ),

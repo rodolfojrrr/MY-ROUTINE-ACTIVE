@@ -692,7 +692,7 @@ class _ExamDialogState extends State<_ExamDialog> {
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
-                  side: const BorderSide(color: AppColors.border),
+                  side: BorderSide(color: AppColors.appBorder),
                 ),
                 title: Text(DateFormat('dd/MM/yyyy').format(date)),
                 leading: const Icon(Icons.calendar_month),
@@ -1063,15 +1063,15 @@ class _FlashcardsTab extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: ExpansionTile(
                 tilePadding: const EdgeInsets.symmetric(horizontal: 18),
-                collapsedBackgroundColor: AppColors.surface,
-                backgroundColor: AppColors.surface,
+                collapsedBackgroundColor: AppColors.appSurface,
+                backgroundColor: AppColors.appSurface,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
-                  side: const BorderSide(color: AppColors.border),
+                  side: BorderSide(color: AppColors.appBorder),
                 ),
                 collapsedShape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
-                  side: const BorderSide(color: AppColors.border),
+                  side: BorderSide(color: AppColors.appBorder),
                 ),
                 title: Text(card.payload['front'] as String? ?? ''),
                 subtitle: Column(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../core/academic_data.dart';
+import '../core/academic_folder_style.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
 import '../core/sync_entity.dart';
@@ -83,50 +84,12 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
         .records(EntityTypes.kanbanTask)
         .where((item) => item.payload['status'] != 'done')
         .toList();
-    final academicSummaryCount = widget.store
-        .records(EntityTypes.studyNote)
-        .where((item) => academicSubjectIds.contains(item.payload['subjectId']))
-        .length;
-    final academicQuestionCount = widget.store
-        .records(EntityTypes.studyQuestion)
-        .where((item) => academicSubjectIds.contains(item.payload['subjectId']))
-        .length;
-
     return AcademicPageBody(
       children: <Widget>[
         _AcademicHero(
           now: now,
           semester: currentSemester?.payload['name'] as String?,
           displayName: widget.store.activeAccount?.displayName,
-        ),
-        const SizedBox(height: 18),
-        _AcademicInfoStrip(
-          items: <_InfoStripItem>[
-            _InfoStripItem(
-              label: 'Matérias atuais',
-              value: '${currentSubjects.length}',
-              icon: Icons.menu_book_outlined,
-              color: AppColors.primary,
-            ),
-            _InfoStripItem(
-              label: 'Resumos',
-              value: '$academicSummaryCount',
-              icon: Icons.summarize_outlined,
-              color: AppColors.cyan,
-            ),
-            _InfoStripItem(
-              label: 'Avaliações próximas',
-              value: '${upcoming.length}',
-              icon: Icons.event_available_outlined,
-              color: AppColors.orange,
-            ),
-            _InfoStripItem(
-              label: 'Questões',
-              value: '$academicQuestionCount',
-              icon: Icons.quiz_outlined,
-              color: AppColors.green,
-            ),
-          ],
         ),
         const SizedBox(height: 24),
         const AcademicSectionTitle(
@@ -343,105 +306,6 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           },
         ),
       ],
-    );
-  }
-}
-
-class _InfoStripItem {
-  const _InfoStripItem({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-}
-
-class _AcademicInfoStrip extends StatelessWidget {
-  const _AcademicInfoStrip({required this.items});
-
-  final List<_InfoStripItem> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return PremiumCard(
-      padding: const EdgeInsets.all(10),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final count = constraints.maxWidth >= 900
-              ? 4
-              : constraints.maxWidth >= 520
-                  ? 2
-                  : 1;
-          final width = (constraints.maxWidth - ((count - 1) * 8)) / count;
-          return Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: items.map((item) {
-              return SizedBox(
-                width: width,
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 76),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 13,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: item.color.withValues(alpha: .08),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: item.color.withValues(alpha: .28),
-                    ),
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: item.color.withValues(alpha: .14),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(item.icon, color: item.color, size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              item.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.textMuted,
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(
-                              item.value,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          );
-        },
-      ),
     );
   }
 }
@@ -704,7 +568,7 @@ class _ScheduleViewer extends StatelessWidget {
   Widget build(BuildContext context) {
     return PremiumCard(
       borderColor: sessions.isEmpty
-          ? AppColors.border
+          ? AppColors.appBorder
           : AppColors.primary.withValues(alpha: .5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -727,42 +591,70 @@ class _ScheduleViewer extends StatelessWidget {
               ),
             )
           else
-            ...sessions.map(
-              (item) => ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  width: 92,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 8,
-                  ),
+            ...sessions.map((item) {
+              final subject = store.byId(
+                item.payload['subjectId'] as String? ?? '',
+              );
+              final color = subject == null
+                  ? AppColors.primary
+                  : AcademicFolderStyle.colorFor(subject);
+              return Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: .14),
-                    borderRadius: BorderRadius.circular(12),
+                    color: color.withValues(alpha: .07),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: color.withValues(alpha: .38)),
                   ),
-                  child: Text(
-                    '${item.payload['start']}\n${item.payload['end']}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w900,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    leading: Container(
+                      width: 92,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: .18),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: color.withValues(alpha: .35),
+                        ),
+                      ),
+                      child: Text(
+                        '${item.payload['start']}\n${item.payload['end']}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      AcademicData.subjectName(
+                        store,
+                        item.payload['subjectId'] as String?,
+                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    subtitle: Text(
+                      (item.payload['room'] as String? ?? '').isEmpty
+                          ? 'Sala não informada'
+                          : item.payload['room'] as String,
+                    ),
+                    trailing: Icon(
+                      subject == null
+                          ? Icons.school_outlined
+                          : AcademicFolderStyle.iconFor(subject),
+                      color: color,
                     ),
                   ),
                 ),
-                title: Text(
-                  AcademicData.subjectName(
-                    store,
-                    item.payload['subjectId'] as String?,
-                  ),
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-                subtitle: Text(
-                  (item.payload['room'] as String? ?? '').isEmpty
-                      ? 'Sala não informada'
-                      : item.payload['room'] as String,
-                ),
-              ),
-            ),
+              );
+            }),
         ],
       ),
     );
@@ -781,8 +673,9 @@ class _SemesterViewer extends StatelessWidget {
     final subjects = AcademicData.subjectsForSemester(store, semester.id);
     final current = semester.payload['status'] == 'current';
     return PremiumCard(
-      borderColor:
-          current ? AppColors.primary.withValues(alpha: .65) : AppColors.border,
+      borderColor: current
+          ? AppColors.primary.withValues(alpha: .65)
+          : AppColors.appBorder,
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -922,9 +815,9 @@ class _SubjectViewerCard extends StatelessWidget {
       child: Ink(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: AppColors.surfaceRaised.withValues(alpha: .82),
+          color: AppColors.appSurfaceRaised.withValues(alpha: .82),
           borderRadius: BorderRadius.circular(17),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.appBorder),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

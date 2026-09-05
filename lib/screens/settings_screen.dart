@@ -6,6 +6,7 @@ import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/wifi_sync_service.dart';
 import '../widgets/premium_widgets.dart';
+import '../widgets/pro_color_picker.dart';
 import 'conflicts_screen.dart';
 import 'recycle_bin_screen.dart';
 import 'wifi_sync_screen.dart';
@@ -231,7 +232,7 @@ class _AppearanceSettings extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'A organização não muda; escolha a identidade que deixa o estudo mais agradável para você.',
+              'Use uma identidade pronta ou monte cada camada do aplicativo do seu jeito.',
               style: TextStyle(color: AppColors.textMuted),
             ),
             const SizedBox(height: 14),
@@ -239,7 +240,8 @@ class _AppearanceSettings extends StatelessWidget {
               spacing: 10,
               runSpacing: 10,
               children: AppAccentPalette.values.map((palette) {
-                final selected = controller.palette == palette;
+                final selected =
+                    !controller.isCustom && controller.palette == palette;
                 return Semantics(
                   selected: selected,
                   button: true,
@@ -255,7 +257,8 @@ class _AppearanceSettings extends StatelessWidget {
                         color: palette.primary.withValues(alpha: .13),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: selected ? palette.primary : AppColors.border,
+                          color:
+                              selected ? palette.primary : AppColors.appBorder,
                           width: selected ? 2 : 1,
                         ),
                       ),
@@ -289,8 +292,249 @@ class _AppearanceSettings extends StatelessWidget {
                 );
               }).toList(),
             ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: const Key('open-advanced-color-editor'),
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => _AdvancedAppearanceDialog(
+                    controller: controller,
+                  ),
+                ),
+                icon: const Icon(Icons.tune_rounded),
+                label: Text(
+                  controller.isCustom
+                      ? 'Editar meu tema personalizado'
+                      : 'Abrir editor avançado de cores',
+                ),
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AdvancedAppearanceDialog extends StatefulWidget {
+  const _AdvancedAppearanceDialog({required this.controller});
+
+  final AppAppearanceController controller;
+
+  @override
+  State<_AdvancedAppearanceDialog> createState() =>
+      _AdvancedAppearanceDialogState();
+}
+
+class _AdvancedAppearanceDialogState extends State<_AdvancedAppearanceDialog> {
+  late AppVisualProfile profile;
+
+  @override
+  void initState() {
+    super.initState();
+    profile = widget.controller.profile;
+  }
+
+  void _change(AppVisualProfile value) => setState(() => profile = value);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Editor avançado de cores'),
+      content: SizedBox(
+        width: 680,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              _ThemePreview(profile: profile),
+              const SizedBox(height: 16),
+              const Text(
+                'Toque em qualquer item para usar seletor visual ou informar uma cor HEX.',
+                style: TextStyle(color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 13),
+              ProColorTile(
+                title: 'Cor principal',
+                subtitle: 'Botões, seleção, destaques e links',
+                color: profile.primary,
+                onChanged: (color) => _change(profile.copyWith(primary: color)),
+              ),
+              const SizedBox(height: 9),
+              ProColorTile(
+                title: 'Cor secundária',
+                subtitle: 'Ações complementares e indicadores positivos',
+                color: profile.secondary,
+                onChanged: (color) =>
+                    _change(profile.copyWith(secondary: color)),
+              ),
+              const SizedBox(height: 9),
+              ProColorTile(
+                title: 'Fundo geral',
+                subtitle: 'Área principal de todas as páginas',
+                color: profile.background,
+                onChanged: (color) =>
+                    _change(profile.copyWith(background: color)),
+              ),
+              const SizedBox(height: 9),
+              ProColorTile(
+                title: 'Cartões e pastas',
+                subtitle: 'Painéis, cartões e janelas do aplicativo',
+                color: profile.surface,
+                onChanged: (color) => _change(profile.copyWith(surface: color)),
+              ),
+              const SizedBox(height: 9),
+              ProColorTile(
+                title: 'Campos e barras',
+                subtitle: 'Campos de texto, ferramentas e superfícies elevadas',
+                color: profile.surfaceRaised,
+                onChanged: (color) =>
+                    _change(profile.copyWith(surfaceRaised: color)),
+              ),
+              const SizedBox(height: 9),
+              ProColorTile(
+                title: 'Bordas',
+                subtitle: 'Contornos que organizam as áreas da interface',
+                color: profile.border,
+                onChanged: (color) => _change(profile.copyWith(border: color)),
+              ),
+              const SizedBox(height: 9),
+              ProColorTile(
+                title: 'Menu lateral',
+                subtitle: 'Fundo exclusivo da navegação principal',
+                color: profile.sidebar,
+                onChanged: (color) => _change(profile.copyWith(sidebar: color)),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        OutlinedButton(
+          onPressed: () async {
+            await widget.controller.select(AppAccentPalette.blue);
+            if (context.mounted) Navigator.pop(context);
+          },
+          child: const Text('Restaurar azul'),
+        ),
+        FilledButton.icon(
+          key: const Key('save-custom-theme'),
+          onPressed: () async {
+            await widget.controller.customize(profile);
+            if (context.mounted) Navigator.pop(context);
+          },
+          icon: const Icon(Icons.check_rounded),
+          label: const Text('Aplicar tema'),
+        ),
+      ],
+    );
+  }
+}
+
+class _ThemePreview extends StatelessWidget {
+  const _ThemePreview({required this.profile});
+
+  final AppVisualProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 150,
+      decoration: BoxDecoration(
+        color: profile.background,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: profile.border),
+      ),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 74,
+            decoration: BoxDecoration(
+              color: profile.sidebar,
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(19),
+              ),
+              border: Border(right: BorderSide(color: profile.border)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Icon(Icons.school_rounded, color: profile.primary),
+                const SizedBox(height: 15),
+                Icon(Icons.home_rounded, color: profile.primaryLight),
+                const SizedBox(height: 15),
+                const Icon(Icons.folder_rounded, color: Colors.white54),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    height: 24,
+                    width: 160,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: <Color>[
+                          profile.primaryLight,
+                          profile.primaryDark,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: profile.surface,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: profile.border),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.folder_rounded,
+                              color: profile.primary,
+                              size: 34,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: profile.surfaceRaised,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: profile.secondary),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.auto_awesome_rounded,
+                              color: profile.secondary,
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

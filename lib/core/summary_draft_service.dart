@@ -13,6 +13,10 @@ class SummaryDraft {
     required this.attachments,
     required this.savedAtMs,
     required this.sourceUpdatedAtMs,
+    this.folderColor,
+    this.folderIcon = 'notes',
+    this.coverImageBase64 = '',
+    this.coverImageName = '',
   });
 
   final String title;
@@ -24,6 +28,10 @@ class SummaryDraft {
   final List<Map<String, dynamic>> attachments;
   final int savedAtMs;
   final int sourceUpdatedAtMs;
+  final int? folderColor;
+  final String folderIcon;
+  final String coverImageBase64;
+  final String coverImageName;
 
   bool get hasContent =>
       title.trim().isNotEmpty ||
@@ -41,6 +49,10 @@ class SummaryDraft {
         'attachments': attachments,
         'savedAtMs': savedAtMs,
         'sourceUpdatedAtMs': sourceUpdatedAtMs,
+        'folderColor': folderColor,
+        'folderIcon': folderIcon,
+        'coverImageBase64': coverImageBase64,
+        'coverImageName': coverImageName,
       };
 
   factory SummaryDraft.fromJson(Map<String, dynamic> json) => SummaryDraft(
@@ -60,6 +72,10 @@ class SummaryDraft {
             .toList(growable: false),
         savedAtMs: (json['savedAtMs'] as num? ?? 0).toInt(),
         sourceUpdatedAtMs: (json['sourceUpdatedAtMs'] as num? ?? 0).toInt(),
+        folderColor: (json['folderColor'] as num?)?.toInt(),
+        folderIcon: json['folderIcon'] as String? ?? 'notes',
+        coverImageBase64: json['coverImageBase64'] as String? ?? '',
+        coverImageName: json['coverImageName'] as String? ?? '',
       );
 }
 

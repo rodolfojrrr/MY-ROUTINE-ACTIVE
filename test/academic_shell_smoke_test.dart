@@ -59,6 +59,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Cursos'), findsOneWidget);
+    expect(find.text('Lixeira'), findsOneWidget);
   });
 
   testWidgets('menu acadêmico pode ser recolhido no desktop', (tester) async {

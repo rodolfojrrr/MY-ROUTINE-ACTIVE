@@ -117,9 +117,9 @@ class _CodeWorkspaceScreenState extends State<CodeWorkspaceScreen> {
               Expanded(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: AppColors.surface.withValues(alpha: .96),
+                    color: AppColors.appSurface.withValues(alpha: .96),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppColors.appBorder),
                   ),
                   child: Row(
                     children: <Widget>[
@@ -1417,7 +1417,7 @@ class _CodeProjectWorkspaceState extends State<_CodeProjectWorkspace> {
               cursorLineColor: AppColors.primary.withValues(alpha: .08),
               selectionColor: AppColors.primary.withValues(alpha: .30),
               highlightColor: AppColors.orange.withValues(alpha: .30),
-              chunkIndicatorColor: AppColors.border,
+              chunkIndicatorColor: AppColors.appBorder,
               codeTheme: CodeHighlightTheme(
                 languages: <String, CodeHighlightThemeMode>{
                   language.id: CodeHighlightThemeMode(
@@ -1447,7 +1447,7 @@ class _CodeProjectWorkspaceState extends State<_CodeProjectWorkspace> {
               controller: controller,
               readOnly: readOnly,
             ),
-            leadingDivider: Container(width: 1, color: AppColors.border),
+            leadingDivider: Container(width: 1, color: AppColors.appBorder),
           ),
         ),
         _OutputPanel(
@@ -1728,7 +1728,7 @@ class _HorizontalFileRail extends StatelessWidget {
               return Material(
                 color: selected
                     ? AppColors.primary.withValues(alpha: .15)
-                    : AppColors.surfaceRaised,
+                    : AppColors.appSurfaceRaised,
                 borderRadius: BorderRadius.circular(10),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
@@ -1940,9 +1940,9 @@ class _OutputPanel extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       height: visible ? 190 : 39,
-      decoration: const BoxDecoration(
-        color: Color(0xFF050E19),
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF050E19),
+        border: Border(top: BorderSide(color: AppColors.appBorder)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2090,11 +2090,11 @@ class _CodeFindPanel extends StatelessWidget implements PreferredSizeWidget {
             width: 390,
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.surfaceRaised,
+              color: AppColors.appSurfaceRaised,
               borderRadius: const BorderRadius.vertical(
                 bottom: Radius.circular(11),
               ),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.appBorder),
               boxShadow: <BoxShadow>[
                 BoxShadow(
                   color: Colors.black.withValues(alpha: .24),

@@ -10,6 +10,7 @@ import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
+import '../widgets/pro_color_picker.dart';
 import 'academic_assessments_screen.dart';
 import 'academic_management_screen.dart';
 import 'academic_shared.dart';
@@ -100,20 +101,27 @@ class AcademicFacultyScreen extends StatelessWidget {
                     final status =
                         semester.payload['status'] as String? ?? 'planned';
                     final currentSemester = status == 'current';
-                    final color = currentSemester
+                    final statusColor = currentSemester
                         ? AppColors.primary
                         : status == 'completed'
                             ? AppColors.green
                             : AppColors.cyan;
+                    final color = AcademicFolderStyle.colorFor(
+                      semester,
+                      fallback: statusColor,
+                    );
                     return AcademicFolderCard(
                       key: ValueKey<String>('semester-folder-${semester.id}'),
                       title: semester.payload['name'] as String? ?? 'Semestre',
                       subtitle: _semesterStatusLabel(status),
                       countLabel: '${subjects.length} matéria(s)',
                       color: color,
-                      icon: currentSemester
-                          ? Icons.folder_special_rounded
-                          : Icons.folder_rounded,
+                      icon: semester.payload['folderIcon'] == null
+                          ? (currentSemester
+                              ? Icons.folder_special_rounded
+                              : Icons.folder_rounded)
+                          : AcademicFolderStyle.iconFor(semester),
+                      coverBytes: AcademicFolderStyle.coverBytes(semester),
                       badge: currentSemester ? 'CURSANDO AGORA' : null,
                       onTap: () => _openSemester(context, semester.id),
                       onEdit: () => showAcademicSemesterEditor(
@@ -259,6 +267,11 @@ class _CurrentSemesterBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subjects = AcademicData.subjectsForSemester(store, semester.id);
+    final color = AcademicFolderStyle.colorFor(
+      semester,
+      fallback: AppColors.primary,
+    );
+    final cover = AcademicFolderStyle.coverBytes(semester);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -268,20 +281,32 @@ class _CurrentSemesterBanner extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: <Color>[
-                AppColors.primary.withValues(alpha: .34),
-                AppColors.surface.withValues(alpha: .98),
-              ],
-            ),
+            image: cover == null
+                ? null
+                : DecorationImage(
+                    image: MemoryImage(cover),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withValues(alpha: .5),
+                      BlendMode.darken,
+                    ),
+                  ),
+            gradient: cover == null
+                ? LinearGradient(
+                    colors: <Color>[
+                      color.withValues(alpha: .34),
+                      AppColors.appSurface.withValues(alpha: .98),
+                    ],
+                  )
+                : null,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: .72),
+              color: color.withValues(alpha: .72),
               width: 1.4,
             ),
             boxShadow: <BoxShadow>[
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: .13),
+                color: color.withValues(alpha: .13),
                 blurRadius: 28,
                 offset: const Offset(0, 10),
               ),
@@ -293,12 +318,12 @@ class _CurrentSemesterBanner extends StatelessWidget {
                 width: 58,
                 height: 58,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: .2),
+                  color: color.withValues(alpha: .2),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Icon(
-                  Icons.school_rounded,
-                  color: AppColors.primaryLight,
+                  AcademicFolderStyle.iconFor(semester),
+                  color: Colors.white,
                   size: 30,
                 ),
               ),
@@ -310,7 +335,7 @@ class _CurrentSemesterBanner extends StatelessWidget {
                     Text(
                       'CURSANDO AGORA',
                       style: TextStyle(
-                        color: AppColors.primaryLight,
+                        color: color,
                         fontSize: 11,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.6,
@@ -335,7 +360,7 @@ class _CurrentSemesterBanner extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_rounded, color: AppColors.primaryLight),
+              Icon(Icons.arrow_forward_rounded, color: color),
             ],
           ),
         ),
@@ -383,9 +408,12 @@ class AcademicSemesterPage extends StatelessWidget {
                 title: semester.payload['name'] as String? ?? 'Semestre',
                 subtitle:
                     'Abra uma matéria para encontrar somente os conteúdos e materiais dela.',
-                color: semester.payload['status'] == 'current'
-                    ? AppColors.primary
-                    : AppColors.cyan,
+                color: AcademicFolderStyle.colorFor(
+                  semester,
+                  fallback: semester.payload['status'] == 'current'
+                      ? AppColors.primary
+                      : AppColors.cyan,
+                ),
               ),
               const SizedBox(height: 18),
               Wrap(
@@ -580,16 +608,23 @@ class AcademicSubjectFolderPage extends StatelessWidget {
               else
                 _AcademicFolderGrid(
                   children: contents.map((content) {
+                    final contentColor = AcademicFolderStyle.colorFor(
+                      content,
+                      fallback: color,
+                    );
                     return AcademicFolderCard(
                       key: ValueKey<String>('content-folder-${content.id}'),
                       title: content.payload['title'] as String? ?? 'Conteúdo',
                       subtitle: content.payload['description'] as String? ?? '',
                       countLabel:
                           '${_contentItemCount(store, content.id)} item(ns)',
-                      color: color,
-                      icon: content.payload['completed'] == true
+                      color: contentColor,
+                      icon: content.payload['completed'] == true &&
+                              content.payload['folderIcon'] == null
                           ? Icons.task_alt_rounded
-                          : Icons.folder_open_rounded,
+                          : AcademicFolderStyle.iconFor(content),
+                      coverBytes: AcademicFolderStyle.coverBytes(content),
+                      builtInArt: 'content',
                       badge: content.payload['completed'] == true
                           ? 'CONCLUÍDO'
                           : null,
@@ -655,7 +690,10 @@ class AcademicContentHubPage extends StatelessWidget {
           if (subject == null || content == null) {
             return const _MissingAcademicItem(message: 'Conteúdo removido.');
           }
-          final color = AcademicFolderStyle.colorFor(subject);
+          final color = AcademicFolderStyle.colorFor(
+            content,
+            fallback: AcademicFolderStyle.colorFor(subject),
+          );
           final folders = _contentTools(context, subject, content, color);
           return AcademicPageBody(
             maxWidth: 1240,
@@ -717,15 +755,29 @@ class AcademicContentHubPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    IconButton(
-                      tooltip: 'Editar conteúdo',
-                      onPressed: () => showAcademicContentEditor(
-                        context,
-                        store,
-                        entity: content,
-                        initialSubjectId: subjectId,
-                      ),
-                      icon: const Icon(Icons.edit_outlined),
+                    Wrap(
+                      spacing: 2,
+                      children: <Widget>[
+                        IconButton(
+                          tooltip: 'Cores das pastas internas',
+                          onPressed: () => _showContentFolderColors(
+                            context,
+                            store,
+                            content,
+                          ),
+                          icon: const Icon(Icons.palette_outlined),
+                        ),
+                        IconButton(
+                          tooltip: 'Editar conteúdo',
+                          onPressed: () => showAcademicContentEditor(
+                            context,
+                            store,
+                            entity: content,
+                            initialSubjectId: subjectId,
+                          ),
+                          icon: const Icon(Icons.edit_outlined),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -768,8 +820,13 @@ class AcademicContentHubPage extends StatelessWidget {
         title: 'Resumos',
         subtitle: 'Editor completo, imagens, anexos e PDF',
         countLabel: '${notes.length} resumo(s)',
-        color: subjectColor,
+        color: AcademicFolderStyle.toolColorFor(
+          content,
+          'summaries',
+          subjectColor,
+        ),
         icon: Icons.description_rounded,
+        builtInArt: 'summaries',
         onTap: () => _openTool(
           context,
           'Resumos • ${content.payload['title']}',
@@ -784,8 +841,13 @@ class AcademicContentHubPage extends StatelessWidget {
         title: 'Códigos',
         subtitle: 'Projetos e arquivos ligados à matéria',
         countLabel: '${projects.length} projeto(s)',
-        color: AppColors.cyan,
+        color: AcademicFolderStyle.toolColorFor(
+          content,
+          'code',
+          AppColors.cyan,
+        ),
         icon: Icons.terminal_rounded,
+        builtInArt: 'code',
         onTap: () => _openTool(
           context,
           'Códigos • ${content.payload['title']}',
@@ -801,8 +863,13 @@ class AcademicContentHubPage extends StatelessWidget {
         title: 'Imagens',
         subtitle: 'Diagramas, quadros e referências visuais',
         countLabel: '${images.length} imagem(ns)',
-        color: const Color(0xFFE5488C),
+        color: AcademicFolderStyle.toolColorFor(
+          content,
+          'images',
+          const Color(0xFFE5488C),
+        ),
         icon: Icons.photo_library_rounded,
+        builtInArt: 'images',
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => AcademicContentAssetsPage(
@@ -818,8 +885,13 @@ class AcademicContentHubPage extends StatelessWidget {
         title: 'Anexos',
         subtitle: 'PDFs, documentos, planilhas e outros arquivos',
         countLabel: '${attachments.length} arquivo(s)',
-        color: AppColors.orange,
+        color: AcademicFolderStyle.toolColorFor(
+          content,
+          'attachments',
+          AppColors.orange,
+        ),
         icon: Icons.attach_file_rounded,
+        builtInArt: 'attachments',
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => AcademicContentAssetsPage(
@@ -835,8 +907,13 @@ class AcademicContentHubPage extends StatelessWidget {
         title: 'Simulados',
         subtitle: 'Questões e resultados deste conteúdo',
         countLabel: '${questions.length} questão(ões)',
-        color: AppColors.green,
+        color: AcademicFolderStyle.toolColorFor(
+          content,
+          'simulations',
+          AppColors.green,
+        ),
         icon: Icons.quiz_rounded,
+        builtInArt: 'simulations',
         onTap: () => _openTool(
           context,
           'Simulados • ${content.payload['title']}',
@@ -851,8 +928,13 @@ class AcademicContentHubPage extends StatelessWidget {
         title: 'Flashcards',
         subtitle: 'Revisão rápida e repetição espaçada',
         countLabel: '${flashcards.length} card(s)',
-        color: const Color(0xFF7B61FF),
+        color: AcademicFolderStyle.toolColorFor(
+          content,
+          'flashcards',
+          const Color(0xFF7B61FF),
+        ),
         icon: Icons.style_rounded,
+        builtInArt: 'flashcards',
         onTap: () => _openTool(
           context,
           'Flashcards • ${content.payload['title']}',
@@ -867,8 +949,13 @@ class AcademicContentHubPage extends StatelessWidget {
         title: 'Provas e notas',
         subtitle: 'Datas, avaliações, pesos e desempenho',
         countLabel: '${exams.length} avaliação(ões)',
-        color: const Color(0xFFFFB020),
+        color: AcademicFolderStyle.toolColorFor(
+          content,
+          'exams',
+          const Color(0xFFFFB020),
+        ),
         icon: Icons.fact_check_rounded,
+        builtInArt: 'exams',
         onTap: () => _openTool(
           context,
           'Provas • ${content.payload['title']}',
@@ -892,6 +979,104 @@ class AcademicContentHubPage extends StatelessWidget {
       ),
     );
   }
+}
+
+Map<String, Color> get _contentToolColorDefaults => <String, Color>{
+      'summaries': AppColors.primary,
+      'code': AppColors.cyan,
+      'images': Color(0xFFE5488C),
+      'attachments': AppColors.orange,
+      'simulations': AppColors.green,
+      'flashcards': Color(0xFF7B61FF),
+      'exams': Color(0xFFFFB020),
+    };
+
+const _contentToolLabels = <String, String>{
+  'summaries': 'Resumos',
+  'code': 'Códigos',
+  'images': 'Imagens',
+  'attachments': 'Anexos',
+  'simulations': 'Simulados',
+  'flashcards': 'Flashcards',
+  'exams': 'Provas e notas',
+};
+
+Future<void> _showContentFolderColors(
+  BuildContext context,
+  AppStore store,
+  SyncEntity content,
+) async {
+  final raw = content.payload['toolFolderColors'];
+  final colors = <String, int>{};
+  if (raw is Map) {
+    for (final entry in raw.entries) {
+      final value = entry.value;
+      if (value is num) colors[entry.key.toString()] = value.toInt();
+    }
+  }
+  final saved = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => StatefulBuilder(
+      builder: (context, setDialogState) => AlertDialog(
+        title: const Text('Cores das pastas internas'),
+        content: SizedBox(
+          width: 560,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                const Text(
+                  'A arte de fundo identifica cada ferramenta. Você escolhe livremente a cor de cada pasta.',
+                  style: TextStyle(color: AppColors.textMuted, height: 1.4),
+                ),
+                const SizedBox(height: 14),
+                ..._contentToolColorDefaults.entries.map((entry) {
+                  final color =
+                      Color(colors[entry.key] ?? entry.value.toARGB32());
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 9),
+                    child: ProColorTile(
+                      title: _contentToolLabels[entry.key]!,
+                      subtitle: 'Toque para personalizar',
+                      color: color,
+                      onChanged: (value) => setDialogState(
+                        () => colors[entry.key] = value.toARGB32(),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => setDialogState(colors.clear),
+            child: const Text('Restaurar cores'),
+          ),
+          FilledButton.icon(
+            key: const Key('save-content-tool-colors'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.check_rounded),
+            label: const Text('Aplicar'),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (saved != true) return;
+  await store.save(
+    content.type,
+    <String, dynamic>{
+      ...content.payload,
+      'toolFolderColors': colors,
+    },
+    id: content.id,
+  );
 }
 
 enum ContentAssetKind { image, attachment }
@@ -1388,7 +1573,7 @@ class _SubjectHero extends StatelessWidget {
                   colors: cover == null
                       ? <Color>[
                           color.withValues(alpha: .42),
-                          AppColors.surface,
+                          AppColors.appSurface,
                         ]
                       : <Color>[
                           Colors.black.withValues(alpha: .32),
@@ -1506,6 +1691,7 @@ class AcademicFolderCard extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.coverBytes,
+    this.builtInArt,
     this.badge,
     this.onEdit,
     this.onDelete,
@@ -1519,6 +1705,7 @@ class AcademicFolderCard extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final Uint8List? coverBytes;
+  final String? builtInArt;
   final String? badge;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -1533,7 +1720,7 @@ class AcademicFolderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColors.appSurface,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: color.withValues(alpha: .55)),
             boxShadow: <BoxShadow>[
@@ -1569,12 +1756,23 @@ class AcademicFolderCard extends StatelessWidget {
                               ]
                             : <Color>[
                                 color.withValues(alpha: .24),
-                                AppColors.surface.withValues(alpha: .98),
+                                AppColors.appSurface.withValues(alpha: .98),
                               ],
                       ),
                     ),
                   ),
                 ),
+                if (!hasImage && builtInArt != null)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _AcademicFolderArtPainter(
+                          type: builtInArt!,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ),
                 Positioned(
                   left: 15,
                   top: 0,
@@ -1720,6 +1918,141 @@ class AcademicFolderCard extends StatelessWidget {
   }
 }
 
+class _AcademicFolderArtPainter extends CustomPainter {
+  const _AcademicFolderArtPainter({required this.type, required this.color});
+
+  final String type;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = color.withValues(alpha: .18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    final fill = Paint()
+      ..color = color.withValues(alpha: .07)
+      ..style = PaintingStyle.fill;
+    final area = Rect.fromLTWH(0, 0, size.width, size.height);
+    canvas.drawRect(area, fill);
+
+    switch (type) {
+      case 'code':
+        for (var y = 35.0; y < size.height; y += 28) {
+          final indent = ((y ~/ 28) % 3) * 16.0;
+          canvas.drawLine(
+            Offset(32 + indent, y),
+            Offset(size.width - 26, y),
+            line,
+          );
+        }
+        canvas.drawCircle(
+          Offset(size.width * .78, size.height * .32),
+          34,
+          line,
+        );
+        break;
+      case 'summaries':
+        final page = RRect.fromRectAndRadius(
+          Rect.fromLTWH(
+              size.width * .48, 26, size.width * .38, size.height * .7),
+          const Radius.circular(10),
+        );
+        canvas.drawRRect(page, line);
+        for (var y = 58.0; y < size.height * .67; y += 24) {
+          canvas.drawLine(
+            Offset(size.width * .53, y),
+            Offset(size.width * .81, y),
+            line,
+          );
+        }
+        break;
+      case 'images':
+        final path = Path()
+          ..moveTo(size.width * .34, size.height * .7)
+          ..lineTo(size.width * .56, size.height * .38)
+          ..lineTo(size.width * .7, size.height * .58)
+          ..lineTo(size.width * .82, size.height * .43)
+          ..lineTo(size.width * .94, size.height * .7);
+        canvas.drawPath(path, line);
+        canvas.drawCircle(
+            Offset(size.width * .78, size.height * .25), 14, line);
+        break;
+      case 'attachments':
+        for (var index = 0; index < 3; index++) {
+          final offset = index * 18.0;
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromLTWH(
+                size.width * .52 - offset,
+                32 + offset,
+                size.width * .34,
+                size.height * .58,
+              ),
+              const Radius.circular(10),
+            ),
+            line,
+          );
+        }
+        break;
+      case 'simulations':
+        for (var index = 0; index < 4; index++) {
+          final y = 42.0 + (index * 32);
+          canvas.drawCircle(Offset(size.width * .55, y), 8, line);
+          canvas.drawLine(
+            Offset(size.width * .62, y),
+            Offset(size.width * .9, y),
+            line,
+          );
+        }
+        break;
+      case 'flashcards':
+        for (var index = 0; index < 3; index++) {
+          final offset = index * 13.0;
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromLTWH(
+                size.width * .5 + offset,
+                34 + offset,
+                size.width * .32,
+                size.height * .48,
+              ),
+              const Radius.circular(12),
+            ),
+            line,
+          );
+        }
+        break;
+      case 'exams':
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(
+                size.width * .5, 32, size.width * .38, size.height * .58),
+            const Radius.circular(13),
+          ),
+          line,
+        );
+        canvas.drawLine(
+          Offset(size.width * .5, 70),
+          Offset(size.width * .88, 70),
+          line,
+        );
+        canvas.drawCircle(Offset(size.width * .61, 104), 8, line);
+        canvas.drawCircle(Offset(size.width * .76, 104), 8, line);
+        break;
+      default:
+        for (var x = 24.0; x < size.width; x += 38) {
+          canvas.drawCircle(Offset(x, size.height * .35), 8, line);
+        }
+        break;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AcademicFolderArtPainter oldDelegate) =>
+      oldDelegate.type != type || oldDelegate.color != color;
+}
+
 class _ContentImageCard extends StatelessWidget {
   const _ContentImageCard({
     required this.asset,
@@ -1745,7 +2078,7 @@ class _ContentImageCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColors.appSurface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: const Color(0xFFE5488C).withValues(alpha: .5),

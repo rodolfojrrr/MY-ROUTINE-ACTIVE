@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/academic_data.dart';
+import '../core/academic_folder_style.dart';
 import '../core/academic_pdf_service.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
@@ -13,6 +14,8 @@ import '../core/rich_summary_document.dart';
 import '../core/summary_draft_service.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
+import '../widgets/pro_color_picker.dart';
+import '../widgets/study_folder_card.dart';
 import 'academic_shared.dart';
 
 class AcademicSummariesScreen extends StatefulWidget {
@@ -273,15 +276,16 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
                 'Crie seu primeiro resumo ou ajuste os filtros da biblioteca.',
           )
         else
-          ...summaries.map(
-            (summary) => Padding(
-              padding: const EdgeInsets.only(bottom: 13),
-              child: _SummaryCard(
-                store: widget.store,
-                summary: summary,
-                onEdit: () => _openEditor(summary),
-              ),
-            ),
+          _SummaryFolderGrid(
+            children: summaries
+                .map(
+                  (summary) => _SummaryCard(
+                    store: widget.store,
+                    summary: summary,
+                    onEdit: () => _openEditor(summary),
+                  ),
+                )
+                .toList(),
           ),
       ],
     );
@@ -301,7 +305,7 @@ class _SummaryFocusBanner extends StatelessWidget {
         gradient: LinearGradient(
           colors: <Color>[
             AppColors.primary.withValues(alpha: .26),
-            AppColors.surface.withValues(alpha: .96),
+            AppColors.appSurface.withValues(alpha: .96),
           ],
         ),
         borderRadius: BorderRadius.circular(22),
@@ -408,158 +412,124 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final images = AcademicData.summaryImages(summary);
     final attachments = AcademicData.summaryAttachments(summary);
-    final preview = AcademicData.summaryPlainText(summary)
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-    return PremiumCard(
-      borderColor: AppColors.primary.withValues(alpha: .35),
+    final subject = store.byId(summary.payload['subjectId'] as String? ?? '');
+    final color = AcademicFolderStyle.colorFor(
+      summary,
+      fallback: subject == null
+          ? AppColors.primary
+          : AcademicFolderStyle.colorFor(subject),
+    );
+    final count = <String>[
+      if (images.isNotEmpty) '${images.length} imagem(ns)',
+      if (attachments.isNotEmpty) '${attachments.length} anexo(s)',
+      if (images.isEmpty && attachments.isEmpty) 'texto e PDF',
+    ].join(' • ');
+    return StudyFolderCard(
+      title: summary.payload['title'] as String? ?? 'Resumo',
+      subtitle: AcademicData.contentName(
+        store,
+        summary.payload['contentId'] as String?,
+      ),
+      countLabel: count,
+      color: color,
+      icon: AcademicFolderStyle.iconFor(summary),
+      artIcon: Icons.auto_stories_rounded,
+      coverBytes: AcademicFolderStyle.coverBytes(summary),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) =>
               AcademicSummaryDetailScreen(store: store, summaryId: summary.id),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: .15),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Icon(Icons.description_outlined, color: AppColors.primary),
+      menuItems: const <StudyFolderMenuItem>[
+        StudyFolderMenuItem(
+          value: 'edit',
+          label: 'Editar e personalizar',
+          icon: Icons.edit_outlined,
+        ),
+        StudyFolderMenuItem(
+          value: 'pdf',
+          label: 'Gerar PDF',
+          icon: Icons.picture_as_pdf_outlined,
+        ),
+        StudyFolderMenuItem(
+          value: 'delete',
+          label: 'Mover para a lixeira',
+          icon: Icons.delete_outline,
+          danger: true,
+        ),
+      ],
+      onMenuSelected: (value) => _handleAction(context, value),
+    );
+  }
+
+  Future<void> _handleAction(BuildContext context, String value) async {
+    if (value == 'edit') {
+      onEdit();
+      return;
+    }
+    if (value == 'pdf') {
+      final path = await AcademicPdfService.exportSummary(
+        store: store,
+        summary: summary,
+      );
+      if (context.mounted && path != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('PDF salvo com sucesso.')),
+        );
+      }
+      return;
+    }
+    if (value != 'delete') return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Mover resumo para a lixeira?'),
+        content: const Text(
+          'O texto, as imagens e os anexos poderão ser restaurados pela Lixeira.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  summary.payload['title'] as String? ?? '',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w900,
-                    decoration: TextDecoration.none,
-                  ),
-                ),
-                const SizedBox(height: 7),
-                Wrap(
-                  spacing: 7,
-                  runSpacing: 7,
-                  children: <Widget>[
-                    AcademicBadge(
-                      label: AcademicData.subjectName(
-                        store,
-                        summary.payload['subjectId'] as String?,
-                      ),
-                    ),
-                    AcademicBadge(
-                      label: AcademicData.contentName(
-                        store,
-                        summary.payload['contentId'] as String?,
-                      ),
-                      color: AppColors.cyan,
-                    ),
-                    if (images.isNotEmpty)
-                      AcademicBadge(
-                        label: '${images.length} imagem(ns)',
-                        color: AppColors.green,
-                        icon: Icons.image_outlined,
-                      ),
-                    if (attachments.isNotEmpty)
-                      AcademicBadge(
-                        label: '${attachments.length} anexo(s)',
-                        color: AppColors.orange,
-                        icon: Icons.attach_file,
-                      ),
-                  ],
-                ),
-                if (preview.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: 10),
-                  Text(
-                    preview,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 14,
-                      height: 1.45,
-                      decoration: TextDecoration.none,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          PopupMenuButton<String>(
-            tooltip: 'Ações do resumo',
-            onSelected: (value) async {
-              if (value == 'edit') {
-                onEdit();
-              } else if (value == 'pdf') {
-                final path = await AcademicPdfService.exportSummary(
-                  store: store,
-                  summary: summary,
-                );
-                if (context.mounted && path != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('PDF salvo com sucesso.')),
-                  );
-                }
-              } else if (value == 'delete') {
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (dialogContext) => AlertDialog(
-                    title: const Text('Excluir resumo?'),
-                    content: const Text(
-                      'O texto, as imagens e os anexos serão enviados para a lixeira e a exclusão será sincronizada.',
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogContext, false),
-                        child: const Text('Cancelar'),
-                      ),
-                      FilledButton(
-                        onPressed: () => Navigator.pop(dialogContext, true),
-                        child: const Text('Excluir'),
-                      ),
-                    ],
-                  ),
-                );
-                if (confirmed == true) await store.remove(summary.id);
-              }
-            },
-            itemBuilder: (_) => const <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(
-                value: 'edit',
-                child: ListTile(
-                  leading: Icon(Icons.edit_outlined),
-                  title: Text('Editar'),
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'pdf',
-                child: ListTile(
-                  leading: Icon(Icons.picture_as_pdf_outlined),
-                  title: Text('Gerar PDF'),
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'delete',
-                child: ListTile(
-                  leading: Icon(Icons.delete_outline, color: AppColors.red),
-                  title: Text('Mover para a lixeira'),
-                ),
-              ),
-            ],
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Mover para a lixeira'),
           ),
         ],
       ),
+    );
+    if (confirmed == true) await store.remove(summary.id);
+  }
+}
+
+class _SummaryFolderGrid extends StatelessWidget {
+  const _SummaryFolderGrid({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 1040
+            ? 4
+            : constraints.maxWidth >= 700
+                ? 3
+                : constraints.maxWidth >= 380
+                    ? 2
+                    : 1;
+        return GridView.count(
+          crossAxisCount: columns,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 14,
+          crossAxisSpacing: 14,
+          childAspectRatio: constraints.maxWidth < 470 ? .75 : 1.08,
+          children: children,
+        );
+      },
     );
   }
 }
@@ -595,6 +565,10 @@ class _AcademicSummaryEditorDialogState
   late String? contentId;
   late List<Map<String, dynamic>> images;
   late List<Map<String, dynamic>> attachments;
+  late int folderColor;
+  late String folderIcon;
+  late String coverImageBase64;
+  late String coverImageName;
   final ValueNotifier<String> draftStatus = ValueNotifier<String>('');
   Timer? draftDebounce;
   bool pickingImages = false;
@@ -604,6 +578,8 @@ class _AcademicSummaryEditorDialogState
   bool sidePanelsVisible = true;
   bool metadataExpanded = true;
   bool assetsExpanded = false;
+  bool appearanceExpanded = false;
+  bool pickingCover = false;
 
   @override
   void initState() {
@@ -642,6 +618,15 @@ class _AcademicSummaryEditorDialogState
         : AcademicData.summaryAttachments(widget.entity!)
             .map((item) => Map<String, dynamic>.from(item))
             .toList();
+    final subject = subjectId == null ? null : widget.store.byId(subjectId!);
+    folderColor = (widget.entity?.payload['folderColor'] as num?)?.toInt() ??
+        (subject == null
+            ? AppColors.primary.toARGB32()
+            : AcademicFolderStyle.colorFor(subject).toARGB32());
+    folderIcon = widget.entity?.payload['folderIcon'] as String? ?? 'notes';
+    coverImageBase64 =
+        widget.entity?.payload['coverImageBase64'] as String? ?? '';
+    coverImageName = widget.entity?.payload['coverImageName'] as String? ?? '';
     title.addListener(_scheduleDraft);
     body.addListener(_scheduleDraft);
     WidgetsBinding.instance.addPostFrameCallback((_) => _restoreDraft());
@@ -697,6 +682,10 @@ class _AcademicSummaryEditorDialogState
       attachments = draft.attachments
           .map((item) => Map<String, dynamic>.from(item))
           .toList();
+      if (draft.folderColor != null) folderColor = draft.folderColor!;
+      folderIcon = draft.folderIcon;
+      coverImageBase64 = draft.coverImageBase64;
+      coverImageName = draft.coverImageName;
     });
     draftStatus.value = 'Rascunho restaurado automaticamente';
     draftPersisted = true;
@@ -726,6 +715,10 @@ class _AcademicSummaryEditorDialogState
           attachments.map((item) => Map<String, dynamic>.from(item)).toList(),
       savedAtMs: DateTime.now().millisecondsSinceEpoch,
       sourceUpdatedAtMs: widget.entity?.updatedAtMs ?? 0,
+      folderColor: folderColor,
+      folderIcon: folderIcon,
+      coverImageBase64: coverImageBase64,
+      coverImageName: coverImageName,
     );
     if (draft.hasContent) {
       await draftService.save(widget.entity?.id, draft);
@@ -783,6 +776,26 @@ class _AcademicSummaryEditorDialogState
     }
   }
 
+  Future<void> _pickCover() async {
+    if (pickingCover) return;
+    setState(() => pickingCover = true);
+    try {
+      final picked = await FileTransferService.pickImagePayload();
+      final bytes = picked?['imageBytes'];
+      if (picked != null && bytes is List<int> && mounted) {
+        setState(() {
+          coverImageBase64 = base64Encode(bytes);
+          coverImageName = picked['imageName'] as String? ?? 'capa.jpg';
+        });
+        _scheduleDraft();
+      }
+    } catch (error) {
+      _showError('Não foi possível usar a capa: $error');
+    } finally {
+      if (mounted) setState(() => pickingCover = false);
+    }
+  }
+
   void _showError(String value) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -817,6 +830,10 @@ class _AcademicSummaryEditorDialogState
         'contentId': contentId,
         'images': images,
         'attachments': attachments,
+        'folderColor': folderColor,
+        'folderIcon': folderIcon,
+        'coverImageBase64': coverImageBase64,
+        'coverImageName': coverImageName,
         'createdAt': previous['createdAt'] ?? DateTime.now().toIso8601String(),
         'editedAt': DateTime.now().toIso8601String(),
       },
@@ -951,6 +968,32 @@ class _AcademicSummaryEditorDialogState
                     () => assetsExpanded = !assetsExpanded,
                   ),
                 );
+                final appearance = _SummaryAppearancePanel(
+                  color: Color(folderColor),
+                  iconId: folderIcon,
+                  coverName: coverImageName,
+                  pickingCover: pickingCover,
+                  expanded: appearanceExpanded,
+                  onToggle: () => setState(
+                    () => appearanceExpanded = !appearanceExpanded,
+                  ),
+                  onColorChanged: (value) {
+                    setState(() => folderColor = value.toARGB32());
+                    _scheduleDraft();
+                  },
+                  onIconChanged: (value) {
+                    setState(() => folderIcon = value);
+                    _scheduleDraft();
+                  },
+                  onPickCover: _pickCover,
+                  onRemoveCover: () {
+                    setState(() {
+                      coverImageBase64 = '';
+                      coverImageName = '';
+                    });
+                    _scheduleDraft();
+                  },
+                );
                 if (desktop) {
                   return Center(
                     child: ConstrainedBox(
@@ -970,6 +1013,8 @@ class _AcademicSummaryEditorDialogState
                                   children: <Widget>[
                                     metadata,
                                     const SizedBox(height: 10),
+                                    appearance,
+                                    const SizedBox(height: 10),
                                     assets,
                                   ],
                                 ),
@@ -987,6 +1032,8 @@ class _AcademicSummaryEditorDialogState
                   padding: const EdgeInsets.fromLTRB(12, 10, 12, 28),
                   children: <Widget>[
                     metadata,
+                    const SizedBox(height: 12),
+                    appearance,
                     const SizedBox(height: 12),
                     SizedBox(height: 570, child: editor),
                     const SizedBox(height: 12),
@@ -1151,7 +1198,7 @@ class _SummaryEditorCanvas extends StatelessWidget {
     return Container(
       key: const Key('summary-editor-canvas'),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: .98),
+        color: AppColors.appSurface.withValues(alpha: .98),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: .48),
@@ -1172,8 +1219,10 @@ class _SummaryEditorCanvas extends StatelessWidget {
           Container(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
             decoration: BoxDecoration(
-              color: AppColors.surfaceRaised.withValues(alpha: .95),
-              border: const Border(bottom: BorderSide(color: AppColors.border)),
+              color: AppColors.appSurfaceRaised.withValues(alpha: .95),
+              border: Border(
+                bottom: BorderSide(color: AppColors.appBorder),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1316,6 +1365,17 @@ class _SummaryEditorCanvas extends StatelessWidget {
                                     control: true,
                                     shift: true,
                                   ): controller.toggleCodeBlock,
+                                  const SingleActivator(
+                                    LogicalKeyboardKey.tab,
+                                  ): () => controller.indentParagraphs(
+                                        outdent: false,
+                                      ),
+                                  const SingleActivator(
+                                    LogicalKeyboardKey.tab,
+                                    shift: true,
+                                  ): () => controller.indentParagraphs(
+                                        outdent: true,
+                                      ),
                                 },
                                 child: TextField(
                                   key: const ValueKey<String>(
@@ -1377,7 +1437,7 @@ class _SummaryEditorCanvas extends StatelessWidget {
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-            color: AppColors.surfaceRaised.withValues(alpha: .8),
+            color: AppColors.appSurfaceRaised.withValues(alpha: .8),
             child: LayoutBuilder(
               builder: (context, constraints) => Row(
                 children: <Widget>[
@@ -1490,9 +1550,9 @@ class _RichTextToolbar extends StatelessWidget {
               height: 40,
               padding: const EdgeInsets.symmetric(horizontal: 11),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColors.appSurface,
                 borderRadius: BorderRadius.circular(11),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.appBorder),
               ),
               child: const Row(
                 children: <Widget>[
@@ -1797,9 +1857,9 @@ class _ToolbarMenuButton extends StatelessWidget {
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 9),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.appSurface,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.appBorder),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1828,7 +1888,137 @@ class _ToolbarDivider extends StatelessWidget {
       width: 1,
       height: 27,
       margin: const EdgeInsets.symmetric(horizontal: 7),
-      color: AppColors.border,
+      color: AppColors.appBorder,
+    );
+  }
+}
+
+class _SummaryAppearancePanel extends StatelessWidget {
+  const _SummaryAppearancePanel({
+    required this.color,
+    required this.iconId,
+    required this.coverName,
+    required this.pickingCover,
+    required this.expanded,
+    required this.onToggle,
+    required this.onColorChanged,
+    required this.onIconChanged,
+    required this.onPickCover,
+    required this.onRemoveCover,
+  });
+
+  final Color color;
+  final String iconId;
+  final String coverName;
+  final bool pickingCover;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final ValueChanged<Color> onColorChanged;
+  final ValueChanged<String> onIconChanged;
+  final VoidCallback onPickCover;
+  final VoidCallback onRemoveCover;
+
+  @override
+  Widget build(BuildContext context) {
+    return PremiumCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(Icons.palette_outlined, color: color),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Aparência da pasta',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+              IconButton(
+                key: const Key('summary-toggle-appearance'),
+                tooltip: expanded ? 'Recolher aparência' : 'Abrir aparência',
+                visualDensity: VisualDensity.compact,
+                onPressed: onToggle,
+                icon: Icon(
+                  expanded
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
+                ),
+              ),
+            ],
+          ),
+          if (expanded) ...<Widget>[
+            const SizedBox(height: 11),
+            ProColorTile(
+              title: 'Cor livre',
+              subtitle: 'Paleta visual e código HEX',
+              color: color,
+              onChanged: onColorChanged,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 7,
+              runSpacing: 7,
+              children: AcademicFolderStyle.icons
+                  .map(
+                    (option) => IconButton.filledTonal(
+                      tooltip: option.label,
+                      style: IconButton.styleFrom(
+                        backgroundColor: iconId == option.id
+                            ? color.withValues(alpha: .28)
+                            : null,
+                        side: iconId == option.id
+                            ? BorderSide(color: color)
+                            : null,
+                      ),
+                      onPressed: () => onIconChanged(option.id),
+                      icon: Icon(option.icon, size: 19),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: pickingCover ? null : onPickCover,
+              icon: pickingCover
+                  ? const SizedBox.square(
+                      dimension: 17,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.add_photo_alternate_outlined),
+              label: Text(
+                coverName.isEmpty ? 'Adicionar capa' : 'Trocar capa',
+              ),
+            ),
+            if (coverName.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 7),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      coverName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Remover capa',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onRemoveCover,
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ],
+      ),
     );
   }
 }
@@ -1960,9 +2150,9 @@ class _SummaryAssetsPanel extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 7),
                   padding: const EdgeInsets.fromLTRB(10, 7, 4, 7),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceRaised.withValues(alpha: .78),
+                    color: AppColors.appSurfaceRaised.withValues(alpha: .78),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppColors.appBorder),
                   ),
                   child: Row(
                     children: <Widget>[
@@ -2286,7 +2476,7 @@ class _MemoryThumbnail extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => Container(
           width: width,
-          color: AppColors.surfaceRaised,
+          color: AppColors.appSurfaceRaised,
           alignment: Alignment.center,
           child: const Icon(Icons.broken_image_outlined),
         ),

@@ -16,6 +16,7 @@ import 'academic_summaries_screen.dart';
 import 'code_workspace_screen.dart';
 import 'daily_goals_screen.dart';
 import 'pdf_tools_screen.dart';
+import 'recycle_bin_screen.dart';
 import 'settings_screen.dart';
 import 'studies_screen.dart';
 import 'study_kanban_screen.dart';
@@ -111,6 +112,12 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       selectedIcon: Icons.workspace_premium,
     ),
     _AcademicDestination(
+      label: 'Lixeira',
+      title: 'Lixeira',
+      icon: Icons.delete_outline_rounded,
+      selectedIcon: Icons.delete_rounded,
+    ),
+    _AcademicDestination(
       label: 'Ferramentas PDF',
       title: 'Ferramentas PDF',
       icon: Icons.picture_as_pdf_outlined,
@@ -185,6 +192,7 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       CodeWorkspaceScreen(store: widget.store),
       StudyFlashcardsPage(store: widget.store),
       AcademicCoursesScreen(store: widget.store),
+      RecycleBinScreen(store: widget.store, embedded: true),
       PdfToolsScreen(store: widget.store),
     ];
     return AnimatedBuilder(
@@ -339,7 +347,7 @@ class _FloatingStudyTimer extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: width < 520 ? width - 32 : 360),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
-            color: AppColors.surfaceRaised,
+            color: AppColors.appSurfaceRaised,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppColors.primary),
           ),
@@ -405,10 +413,10 @@ class _AcademicSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final account = store.activeAccount;
     return Material(
-      color: const Color(0xFF091326),
+      color: AppColors.appSidebar,
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          border: Border(right: BorderSide(color: AppColors.border)),
+        decoration: BoxDecoration(
+          border: Border(right: BorderSide(color: AppColors.appBorder)),
         ),
         child: SafeArea(
           child: Column(
@@ -646,10 +654,10 @@ class _AcademicSidebarCompact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFF091326),
+      color: AppColors.appSidebar,
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          border: Border(right: BorderSide(color: AppColors.border)),
+        decoration: BoxDecoration(
+          border: Border(right: BorderSide(color: AppColors.appBorder)),
         ),
         child: SafeArea(
           child: Column(

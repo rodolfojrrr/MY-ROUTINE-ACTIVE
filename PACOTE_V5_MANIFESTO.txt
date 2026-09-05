@@ -1,4 +1,4 @@
-SMART ROUTINE SI 5.3.0+54 — MANIFESTO DO PACOTE
+SMART ROUTINE SI 5.5.0+55 PRO — MANIFESTO DO PACOTE
 ================================================
 
 ESCOPO
@@ -10,7 +10,11 @@ ESCOPO
   flashcards e IDE acadêmica.
 - Faculdade e cursos em áreas separadas; certificados locais nos cursos.
 - Faculdade em pastas com semestre atual destacado, matérias personalizadas
-  e ferramentas separadas dentro de cada conteúdo.
+  e ferramentas ilustradas e personalizáveis dentro de cada conteúdo.
+- Editor avançado de cores para as camadas completas do aplicativo.
+- Semestres, conteúdos, cursos e resumos também aceitam cor, símbolo e capa.
+- Lixeira no menu lateral com restauração e exclusão definitiva confirmada.
+- Horários coloridos por matéria e exibidos primeiro no painel inicial.
 - Backup .mra/.mra.gz, lixeira e sincronização Wi-Fi bidirecional.
 
 COMPATIBILIDADE
@@ -21,7 +25,7 @@ COMPATIBILIDADE
 
 VALIDAÇÃO DA ENTREGA
 - dart analyze: nenhum problema.
-- flutter test: 49 testes aprovados.
+- Suite automatizada: 52 testes executados pelo GitHub Actions.
 - Migração v1 → v2 com dados preservados.
 - Contas isoladas e recuperação de senha testadas.
 - Rascunho e digitação contínua testados.
@@ -32,4 +36,5 @@ VALIDAÇÃO DA ENTREGA
 - Editor rico e separação entre faculdade/cursos cobertos por testes.
 - Hierarquia de pastas e atualização imediata cobertas por testes responsivos.
 - Folha A4, textos grandes, painéis recolhíveis e formatação v2 cobertos por testes.
+- Tema completo, recuo por Tab e tombstone de exclusão definitiva cobertos.
 - Repositório auditado sem banco, backup, chave privada ou credencial pessoal.

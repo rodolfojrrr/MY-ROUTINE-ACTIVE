@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../core/academic_data.dart';
+import '../core/academic_folder_style.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
+import '../widgets/pro_color_picker.dart';
 import 'academic_shared.dart';
 import 'academic_summaries_screen.dart';
 
@@ -104,7 +106,7 @@ class _CourseOverview extends StatelessWidget {
         gradient: LinearGradient(
           colors: <Color>[
             AppColors.green.withValues(alpha: .22),
-            AppColors.surface.withValues(alpha: .97),
+            AppColors.appSurface.withValues(alpha: .97),
           ],
         ),
         borderRadius: BorderRadius.circular(23),
@@ -212,16 +214,49 @@ class _CourseCard extends StatelessWidget {
     final status = course.payload['status'] as String? ?? 'current';
     final certificates = AcademicData.courseCertificates(course);
     final legacySubjects = AcademicData.subjectsForSemester(store, course.id);
-    final statusColor = switch (status) {
+    final defaultStatusColor = switch (status) {
       'completed' => AppColors.green,
       'planned' => AppColors.cyan,
       _ => AppColors.orange,
     };
+    final statusColor = AcademicFolderStyle.colorFor(
+      course,
+      fallback: defaultStatusColor,
+    );
+    final cover = AcademicFolderStyle.coverBytes(course);
     return PremiumCard(
       borderColor: statusColor.withValues(alpha: .45),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          if (cover != null) ...<Widget>[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: SizedBox(
+                height: 150,
+                width: double.infinity,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    Image.memory(cover, fit: BoxFit.cover),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: <Color>[
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: .72),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 13),
+          ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -232,7 +267,10 @@ class _CourseCard extends StatelessWidget {
                   color: statusColor.withValues(alpha: .14),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(Icons.school_outlined, color: statusColor),
+                child: Icon(
+                  AcademicFolderStyle.iconFor(course),
+                  color: statusColor,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -355,9 +393,9 @@ class _CourseCard extends StatelessWidget {
                         child: Image.memory(
                           _decode(item['base64'] as String? ?? ''),
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const ColoredBox(
-                            color: AppColors.surfaceRaised,
-                            child: Center(
+                          errorBuilder: (_, __, ___) => ColoredBox(
+                            color: AppColors.appSurfaceRaised,
+                            child: const Center(
                               child: Icon(Icons.broken_image_outlined),
                             ),
                           ),
@@ -564,6 +602,11 @@ class _CourseEditorDialogState extends State<_CourseEditorDialog> {
   DateTime? completedAt;
   late List<Map<String, dynamic>> certificates;
   bool picking = false;
+  late int folderColor;
+  late String folderIcon;
+  late String coverImageBase64;
+  late String coverImageName;
+  bool pickingCover = false;
 
   @override
   void initState() {
@@ -583,6 +626,11 @@ class _CourseEditorDialogState extends State<_CourseEditorDialog> {
         : AcademicData.courseCertificates(widget.entity!)
             .map((item) => Map<String, dynamic>.from(item))
             .toList();
+    folderColor =
+        (payload['folderColor'] as num?)?.toInt() ?? AppColors.green.toARGB32();
+    folderIcon = payload['folderIcon'] as String? ?? 'school';
+    coverImageBase64 = payload['coverImageBase64'] as String? ?? '';
+    coverImageName = payload['coverImageName'] as String? ?? '';
   }
 
   @override
@@ -621,6 +669,23 @@ class _CourseEditorDialogState extends State<_CourseEditorDialog> {
       }
     } finally {
       if (mounted) setState(() => picking = false);
+    }
+  }
+
+  Future<void> _pickCover() async {
+    if (pickingCover) return;
+    setState(() => pickingCover = true);
+    try {
+      final picked = await FileTransferService.pickImagePayload();
+      final bytes = picked?['imageBytes'];
+      if (picked != null && bytes is List<int> && mounted) {
+        setState(() {
+          coverImageBase64 = base64Encode(bytes);
+          coverImageName = picked['imageName'] as String? ?? 'capa.jpg';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => pickingCover = false);
     }
   }
 
@@ -750,6 +815,58 @@ class _CourseEditorDialogState extends State<_CourseEditorDialog> {
                   alignLabelWithHint: true,
                 ),
               ),
+              const SizedBox(height: 14),
+              ProColorTile(
+                title: 'Cor da pasta do curso',
+                subtitle: 'Toque para escolher livremente ou usar HEX',
+                color: Color(folderColor),
+                onChanged: (value) =>
+                    setState(() => folderColor = value.toARGB32()),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 7,
+                runSpacing: 7,
+                children: AcademicFolderStyle.icons
+                    .map(
+                      (option) => IconButton.filledTonal(
+                        tooltip: option.label,
+                        onPressed: () => setState(() => folderIcon = option.id),
+                        style: IconButton.styleFrom(
+                          side: folderIcon == option.id
+                              ? BorderSide(color: Color(folderColor))
+                              : null,
+                        ),
+                        icon: Icon(option.icon, size: 19),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: pickingCover ? null : _pickCover,
+                      icon: const Icon(Icons.add_photo_alternate_outlined),
+                      label: Text(
+                        coverImageName.isEmpty
+                            ? 'Adicionar capa do curso'
+                            : 'Trocar capa do curso',
+                      ),
+                    ),
+                  ),
+                  if (coverImageName.isNotEmpty)
+                    IconButton(
+                      tooltip: 'Remover capa',
+                      onPressed: () => setState(() {
+                        coverImageBase64 = '';
+                        coverImageName = '';
+                      }),
+                      icon: const Icon(Icons.delete_outline),
+                    ),
+                ],
+              ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: picking || certificates.length >= 8
@@ -836,6 +953,10 @@ class _CourseEditorDialogState extends State<_CourseEditorDialog> {
                 'completedAt': completedAt?.toIso8601String(),
                 'notes': notes.text.trim(),
                 'certificateImages': certificates,
+                'folderColor': folderColor,
+                'folderIcon': folderIcon,
+                'coverImageBase64': coverImageBase64,
+                'coverImageName': coverImageName,
                 'year': previous['year'] ?? DateTime.now().year,
                 'term': previous['term'] ?? 1,
               },
@@ -854,7 +975,7 @@ void _previewCertificate(BuildContext context, Map<String, dynamic> item) {
   showDialog<void>(
     context: context,
     builder: (dialogContext) => Dialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.appSurface,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1000, maxHeight: 720),
         child: Stack(

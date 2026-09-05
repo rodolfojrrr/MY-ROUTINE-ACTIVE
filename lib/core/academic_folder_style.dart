@@ -28,6 +28,16 @@ class AcademicFolderStyle {
     Color(0xFFE5488C),
     Color(0xFF7B61FF),
     Color(0xFF607D9B),
+    Color(0xFFEF5350),
+    Color(0xFFFFC107),
+    Color(0xFF8BC34A),
+    Color(0xFF26A69A),
+    Color(0xFF26C6DA),
+    Color(0xFF5C6BC0),
+    Color(0xFFAB47BC),
+    Color(0xFFEC407A),
+    Color(0xFF8D6E63),
+    Color(0xFF78909C),
   ];
 
   static const icons = <AcademicFolderIconOption>[
@@ -91,11 +101,32 @@ class AcademicFolderStyle {
       label: 'Acadêmico',
       icon: Icons.school_rounded,
     ),
+    AcademicFolderIconOption(
+      id: 'folder',
+      label: 'Pasta',
+      icon: Icons.folder_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'notes',
+      label: 'Resumos',
+      icon: Icons.sticky_note_2_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'quiz',
+      label: 'Exercícios',
+      icon: Icons.quiz_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'design',
+      label: 'Design',
+      icon: Icons.palette_rounded,
+    ),
   ];
 
-  static Color colorFor(SyncEntity entity) {
+  static Color colorFor(SyncEntity entity, {Color? fallback}) {
     final stored = entity.payload['folderColor'];
     if (stored is num) return Color(stored.toInt());
+    if (fallback != null) return fallback;
     var seed = 0;
     for (final unit in entity.id.codeUnits) {
       seed = ((seed * 31) + unit) & 0x7FFFFFFF;
@@ -111,7 +142,20 @@ class AcademicFolderStyle {
     for (final option in icons) {
       if (option.id == id) return option.icon;
     }
-    return Icons.code_rounded;
+    return Icons.folder_rounded;
+  }
+
+  static Color toolColorFor(
+    SyncEntity content,
+    String toolId,
+    Color fallback,
+  ) {
+    final raw = content.payload['toolFolderColors'];
+    if (raw is Map) {
+      final stored = raw[toolId];
+      if (stored is num) return Color(stored.toInt());
+    }
+    return fallback;
   }
 
   static Uint8List? coverBytes(SyncEntity entity) {

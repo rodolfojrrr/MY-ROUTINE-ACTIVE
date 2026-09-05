@@ -1,6 +1,6 @@
 # Smart Routine SI
 
-**Versão 5.3.0 — Editor A4 profissional e ambiente acadêmico 100% local**
+**Versão 5.5.0 PRO — personalização completa e ambiente acadêmico 100% local**
 
 Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação em **Sistemas de Informação**, mas também organiza cursos livres, trilhas, certificações e estudos pessoais. Não há WebView, nuvem, analytics ou login externo: banco, imagens, projetos e credenciais ficam somente nos aparelhos do usuário.
 
@@ -11,8 +11,8 @@ Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação
 - Faculdade logo abaixo do Menu principal, separada de cursos e das demais ferramentas;
 - navegação visual por pastas: semestres → matérias → conteúdos → materiais;
 - semestre atual destacado e semestres mais recentes sempre primeiro;
-- matérias com cor, símbolo e imagem de fundo personalizados;
-- cada conteúdo reúne Resumos, Códigos, Imagens, Anexos, Simulados, Flashcards e Provas/Notas;
+- semestres, matérias, conteúdos, cursos e resumos com cor, símbolo e imagem de fundo personalizados;
+- cada conteúdo reúne pastas ilustradas de Resumos, Códigos, Imagens, Anexos, Simulados, Flashcards e Provas/Notas, cada uma com sua própria cor;
 - cadastros aparecem imediatamente na pasta aberta, sem sair e entrar novamente;
 - metas diárias flexíveis e cronograma semanal opcional;
 - cronômetro global que continua ao trocar de tela e volta **pausado** após fechar ou ocultar o aplicativo;
@@ -24,10 +24,10 @@ Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação
 - resumos com várias imagens, anexos de arquivos, rascunho automático e PDF individual;
 - cursos livres separados, com instituição, carga horária, progresso e imagens de certificados;
 - conversor local de arquivos para PDF;
-- temas azul, roxo, cinza, verde, amarelo e colorido;
+- temas azul, roxo, cinza, verde, amarelo e colorido, além de editor avançado para fundo, superfícies, campos, bordas, menu, cor principal e secundária;
 - simulados, avaliações, flashcards e IDE acadêmica local;
-- backup `.mra`, importação de `.mra.gz` do WhatsApp e sincronização Wi‑Fi PC ↔ celular;
-- lixeira de segurança para restaurar registros excluídos;
+- backup `.mra`, importação de `.mra.gz` do WhatsApp e sincronização Wi‑Fi bidirecional entre celular, notebook e PC;
+- lixeira no menu principal para restaurar, excluir definitivamente ou esvaziar, sempre com confirmação;
 - interface responsiva para celular compacto e desktop.
 - menu lateral do PC expansível/recolhível, com a escolha salva por usuário.
 
@@ -37,7 +37,7 @@ Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação
 Faculdade
 └── Semestre (mais atual primeiro)
     └── Matéria (cor, símbolo e capa)
-        └── Conteúdo
+        └── Conteúdo (cor, símbolo e capa)
             ├── Resumos
             ├── Códigos
             ├── Imagens
@@ -46,12 +46,15 @@ Faculdade
             ├── Flashcards
             └── Provas, datas e notas
 
+Resumos
+└── Pasta personalizada (cor, símbolo e capa)
+
 Cursos
 └── Curso livre
     └── Progresso, observações e certificados
 ```
 
-O painel inicial é de consulta. Cadastros e edições ficam no menu lateral, que aparece pelos três traços no celular e permanentemente no desktop. O horário semanal aceita segunda a domingo.
+O painel inicial é de consulta. Logo depois da saudação aparece o horário semanal, com borda e cor da matéria selecionada. Os antigos contadores soltos de matérias/resumos/avaliações/questões foram removidos. Cadastros e edições ficam no menu lateral, que aparece pelos três traços no celular e pode ser expandido ou recolhido no desktop.
 
 ## Metas, cronômetro e Kanban
 
@@ -68,6 +71,8 @@ Se o aplicativo for ocultado ou fechado, o estado é salvo e a sessão volta pau
 - formatação persistente por trecho e por parágrafo;
 - várias imagens JPG/PNG e até 20 anexos diversos por resumo;
 - filtros por semestre, matéria e conteúdo;
+- biblioteca exibida como pastas personalizáveis, com capa, cor e símbolo próprios;
+- `Tab` e `Shift+Tab` aplicam e removem recuo como em uma IDE;
 - PDF individual com navegação de volta, identificação acadêmica, texto formatado, imagens e relação dos anexos;
 - conversor geral para imagens, texto, código, HTML e PDF;
 - no Windows, DOCX/XLSX/PPTX tentam usar LibreOffice ou Microsoft Office; sem esses programas, o aplicativo cria um PDF de leitura com o texto extraído.
@@ -99,7 +104,7 @@ O banco passa da versão 1 para a versão 2 adicionando a tabela de contas; a ta
 - exportação da conta aberta em `.mra`;
 - importação de `.mra` e `.mra.gz` sem renomear o arquivo recebido pelo WhatsApp;
 - snapshot automático antes de importar, sincronizar ou migrar dados legados;
-- sincronização bidirecional na mesma rede Wi‑Fi, sem internet;
+- sincronização bidirecional na mesma rede Wi‑Fi entre quaisquer dois aparelhos compatíveis, sem internet;
 - seleção entre os IPs do PC, priorizando Wi‑Fi/Ethernet e rebaixando VPN, WSL, Hyper‑V e adaptadores virtuais;
 - conflitos e exclusões preservados para evitar perda silenciosa.
 
@@ -117,7 +122,7 @@ No Android, os projetos podem ser criados, editados e sincronizados. No Windows,
 4. No GitHub, abra **Actions → Validar e gerar aplicativos**.
 5. Baixe `Smart-Routine-SI-Android` e `Smart-Routine-SI-Windows`.
 
-O workflow executa análise estática, 49 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
+O workflow executa análise estática, 52 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
 
 ## BATs incluídos
 

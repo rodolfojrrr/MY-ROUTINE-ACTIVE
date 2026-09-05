@@ -1,5 +1,22 @@
 # Changelog
 
+## 5.5.0 PRO
+
+- Editor avançado de temas com seleção visual e HEX para cor principal, secundária, fundo, cartões, campos, bordas e menu lateral.
+- Perfis completos azul, roxo, cinza, verde, amarelo e colorido agora alteram toda a identidade, não apenas os botões.
+- Semestres, matérias, conteúdos, cursos e resumos recebem cor, símbolo e imagem de fundo próprios, sem alterar registros antigos.
+- Biblioteca de resumos redesenhada como grade de pastas e personalização incluída no rascunho automático, backup e sincronização.
+- Pastas internas de cada conteúdo ganharam artes acadêmicas próprias para Resumos, Códigos, Imagens, Anexos, Simulados, Flashcards e Provas.
+- Cor de cada pasta interna pode ser editada livremente; a arte correspondente permanece consistente para facilitar o reconhecimento.
+- Nova Lixeira no menu lateral, com restauração individual/total, exclusão definitiva, esvaziamento e confirmações de segurança.
+- Exclusão definitiva remove texto, imagens e anexos, preservando apenas o tombstone mínimo que impede ressurreição na sincronização.
+- Horário de aulas movido para imediatamente depois da saudação e redesenhado com a cor e a borda de cada matéria.
+- Indicadores soltos de matérias, resumos, avaliações e questões foram removidos da página inicial.
+- `Tab` e `Shift+Tab` no editor de resumos agora aplicam e removem recuo, como em uma IDE.
+- Pareamento Wi‑Fi documentado para celular, notebook e PC, e mensagens UTF-8 corrigidas.
+- Três novos testes cobrem o tema completo, o tombstone seguro e os atalhos de recuo.
+- Versão elevada para `5.5.0+55`.
+
 ## 5.3.0
 
 - Editor de resumos redesenhado como folha A4 escura, centralizada e responsiva.

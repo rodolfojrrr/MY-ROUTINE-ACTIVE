@@ -117,7 +117,10 @@ class AppStore extends ChangeNotifier {
   List<SyncEntity> deletedRecords() {
     final result = _entities
         .where(
-          (item) => item.isDeleted && _belongsToActiveAccount(item),
+          (item) =>
+              item.isDeleted &&
+              item.payload['purged'] != true &&
+              _belongsToActiveAccount(item),
         )
         .toList(growable: false);
     result.sort(
@@ -191,6 +194,37 @@ class AppStore extends ChangeNotifier {
     );
     await _database.upsert(restored);
     _replaceInMemory(restored);
+    notifyListeners();
+  }
+
+  /// Removes all recoverable user content while keeping a minimal tombstone.
+  ///
+  /// The tombstone is intentionally retained so that a later Wi-Fi merge does
+  /// not resurrect a record that was permanently removed on another device.
+  Future<void> purge(String id) async {
+    final existing = _findAny(id);
+    if (existing == null ||
+        !existing.isDeleted ||
+        existing.payload['purged'] == true ||
+        !_belongsToActiveAccount(existing)) {
+      return;
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final ownerId = existing.payload['ownerId']?.toString();
+    final tombstone = SyncEntity(
+      id: existing.id,
+      type: existing.type,
+      payload: <String, dynamic>{
+        if (ownerId != null && ownerId.isNotEmpty) 'ownerId': ownerId,
+        'purged': true,
+      },
+      updatedAtMs: now,
+      deletedAtMs: now,
+      deviceId: _deviceId,
+      revision: existing.revision + 1,
+    );
+    await _database.upsert(tombstone);
+    _replaceInMemory(tombstone);
     notifyListeners();
   }
 

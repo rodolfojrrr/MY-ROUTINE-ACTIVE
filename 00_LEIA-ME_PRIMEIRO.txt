@@ -1,10 +1,23 @@
-SMART ROUTINE SI — V5.3.0 EDITOR A4 PROFISSIONAL
+SMART ROUTINE SI — V5.5.0 PRO PERSONALIZÁVEL
 =================================================
 
 Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
 Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
 
 PRINCIPAIS NOVIDADES
+- Editor avançado de temas: personalize cor principal, secundária, fundo,
+  cartões, campos, bordas e menu lateral usando seletor visual ou HEX.
+- Semestres, matérias, conteúdos, cursos e resumos agora podem ter cor,
+  símbolo e imagem de fundo próprios.
+- A biblioteca de resumos usa o mesmo visual de pastas da Faculdade.
+- Pastas internas de Resumos, Códigos, Imagens, Anexos, Simulados,
+  Flashcards e Provas têm artes prontas e cores editáveis.
+- Nova Lixeira no menu lateral: restaurar, excluir definitivamente ou
+  esvaziar, sempre com confirmação.
+- Horário é o primeiro bloco após a saudação, usando cor e borda da matéria.
+- Indicadores soltos de matérias/resumos/avaliações/questões foram removidos.
+- Tab e Shift+Tab recuam o texto do resumo como em uma IDE.
+- Sincronização funciona entre celular, notebook e PC na mesma rede.
 - Editor de resumos centralizado em uma folha A4 escura e responsiva.
 - Margens internas seguras: textos grandes não atravessam mais a borda.
 - Organização e Materiais mais estreitos, recolhíveis e com modo foco no PC.
@@ -18,7 +31,7 @@ PRINCIPAIS NOVIDADES
 - Cada conteúdo possui pastas de Resumos, Códigos, Imagens, Anexos,
   Simulados, Flashcards e Provas/Notas.
 - Novos registros aparecem imediatamente sem precisar voltar à tela anterior.
-- Cards de indicadores mais compactos no PC.
+- Página inicial mais limpa, sem a antiga faixa de indicadores.
 - Editor grande de resumos com títulos, tamanhos, estilos, listas e código.
 - Visual escuro e responsivo, usando a cor escolhida no aplicativo.
 - Imagens e anexos diversos em cada resumo, com rascunho automático.
@@ -35,7 +48,8 @@ PRINCIPAIS NOVIDADES
 - Resumos antigos continuam abrindo normalmente e recebem o novo editor ao editar.
 - Conversor local de arquivos para PDF.
 - Kanban: Pendentes, Fazendo e Concluídas, com limpeza configurável.
-- Temas azul, roxo, cinza, verde, amarelo e colorido.
+- Temas completos azul, roxo, cinza, verde, amarelo e colorido, além do
+  editor avançado para criar qualquer combinação.
 - Faculdade e cursos agora aparecem em áreas realmente separadas.
 - Importação direta de .mra e .mra.gz recebido pelo WhatsApp.
 - Lixeira de segurança e sincronização Wi-Fi preservada e melhorada.
@@ -65,7 +79,7 @@ REPOSITÓRIO CONFIGURADO
 https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
 LEIA TAMBÉM
-- 00_ATUALIZACAO_V5.3_SEM_PERDER_DADOS.txt
+- 00_ATUALIZACAO_V5.5_PRO_SEM_PERDER_DADOS.txt
 - 00_MIGRACAO_PARA_V5.txt
 - README.md
 - docs/CONTAS_E_RECUPERACAO.md

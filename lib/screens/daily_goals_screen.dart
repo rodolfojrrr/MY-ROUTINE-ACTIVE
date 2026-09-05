@@ -378,7 +378,7 @@ class _TimerPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PremiumCard(
-      borderColor: timer.isActive ? AppColors.primary : AppColors.border,
+      borderColor: timer.isActive ? AppColors.primary : AppColors.appBorder,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 760;
@@ -479,6 +479,28 @@ class _TimerPanel extends StatelessWidget {
   }
 }
 
+Future<bool> _confirmDailyGoalDelete(BuildContext context) async =>
+    await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Mover meta para a lixeira?'),
+        content: const Text(
+          'A meta poderá ser restaurada depois pela Lixeira.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Mover para a lixeira'),
+          ),
+        ],
+      ),
+    ) ??
+    false;
+
 class _GoalCard extends StatelessWidget {
   const _GoalCard({
     required this.store,
@@ -498,7 +520,7 @@ class _GoalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final completed = goal.payload['completed'] == true;
     return PremiumCard(
-      borderColor: completed ? AppColors.green : AppColors.border,
+      borderColor: completed ? AppColors.green : AppColors.appBorder,
       child: Row(
         children: <Widget>[
           Checkbox(value: completed, onChanged: (_) => onToggle()),
@@ -542,9 +564,11 @@ class _GoalCard extends StatelessWidget {
               icon: Icon(Icons.play_circle_fill, color: AppColors.primary),
             ),
           PopupMenuButton<String>(
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'edit') onEdit();
-              if (value == 'delete') store.remove(goal.id);
+              if (value == 'delete' && await _confirmDailyGoalDelete(context)) {
+                await store.remove(goal.id);
+              }
             },
             itemBuilder: (_) => const <PopupMenuEntry<String>>[
               PopupMenuItem(value: 'edit', child: Text('Editar')),
@@ -613,7 +637,7 @@ class _WeeklyBoard extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 8),
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: AppColors.surfaceRaised,
+                              color: AppColors.appSurfaceRaised,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Padding(
@@ -654,13 +678,8 @@ class _WeeklyBoard extends StatelessWidget {
                                         ),
                                         icon: const Icon(Icons.edit_outlined),
                                       ),
-                                      IconButton(
-                                        tooltip: 'Excluir',
-                                        onPressed: () => store.remove(plan.id),
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          color: AppColors.red,
-                                        ),
+                                      ConfirmDeleteButton(
+                                        onDelete: () => store.remove(plan.id),
                                       ),
                                     ],
                                   ),

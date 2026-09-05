@@ -1,0 +1,39 @@
+SMART ROUTINE SI 5.5 PRO — ATUALIZAR SEM PERDER DADOS
+=====================================================
+
+Esta versão foi preparada para ser instalada diretamente sobre qualquer
+versão anterior do Smart Routine SI. Não é necessário instalar a 5.3 antes.
+
+ANTES DE ATUALIZAR
+1. Abra Configurações no aplicativo atual.
+2. Exporte um backup .mra por segurança.
+3. Guarde o arquivo fora da pasta do aplicativo.
+
+NO ANDROID
+1. NÃO desinstale o Smart Routine SI e NÃO limpe os dados.
+2. Gere o APK usando a mesma chave de assinatura da versão já instalada.
+3. Instale o APK 5.5 PRO por cima do aplicativo atual.
+
+NO WINDOWS
+1. Feche o aplicativo no PC ou notebook.
+2. Execute o novo Smart-Routine-SI-Setup.exe.
+3. Instale no mesmo local da versão anterior.
+4. Não apague a pasta de dados do usuário.
+
+O QUE A ATUALIZAÇÃO PRESERVA
+- contas, senhas locais e códigos de recuperação;
+- semestres, matérias, conteúdos, cursos e horários;
+- resumos, formatações, imagens, anexos e PDFs;
+- metas, cronômetro, Kanban, avaliações, simulados e flashcards;
+- projetos e arquivos da IDE;
+- histórico de conflitos e registros recuperáveis da Lixeira.
+
+As novas preferências de aparência são opcionais. Registros antigos recebem
+um visual compatível automaticamente e só ganham cor/capa própria quando você
+os personalizar. Nenhuma tabela acadêmica é zerada ou recriada.
+
+SINCRONIZAÇÃO
+- Atualize os dois aparelhos para a 5.5 PRO antes de sincronizar, para que
+  ambos exibam capas, cores, artes de pastas e a Lixeira do mesmo modo.
+- A sincronização continua bidirecional e local entre celular, notebook ou PC.
+- Credenciais permanecem locais e não são copiadas entre aparelhos.

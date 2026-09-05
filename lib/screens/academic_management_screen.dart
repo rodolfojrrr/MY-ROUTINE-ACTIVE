@@ -9,6 +9,7 @@ import '../core/app_theme.dart';
 import '../core/file_transfer_service.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
+import '../widgets/pro_color_picker.dart';
 import 'academic_shared.dart';
 
 Future<void> showAcademicSemesterEditor(
@@ -184,8 +185,9 @@ class _SemestersTab extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: PremiumCard(
-                borderColor:
-                    status == 'current' ? AppColors.primary : AppColors.border,
+                borderColor: status == 'current'
+                    ? AppColors.primary
+                    : AppColors.appBorder,
                 child: Row(
                   children: <Widget>[
                     _EntityIcon(
@@ -647,6 +649,11 @@ class _SemesterDialogState extends State<_SemesterDialog> {
   late final TextEditingController year;
   late final TextEditingController term;
   late String status;
+  late int folderColor;
+  late String folderIcon;
+  late String coverImageBase64;
+  late String coverImageName;
+  bool pickingCover = false;
 
   @override
   void initState() {
@@ -662,6 +669,29 @@ class _SemesterDialogState extends State<_SemesterDialog> {
       text: '${widget.entity?.payload['term'] ?? (now.month <= 6 ? 1 : 2)}',
     );
     status = widget.entity?.payload['status'] as String? ?? 'current';
+    folderColor = (widget.entity?.payload['folderColor'] as num?)?.toInt() ??
+        AcademicFolderStyle.colors.first.toARGB32();
+    folderIcon = widget.entity?.payload['folderIcon'] as String? ?? 'school';
+    coverImageBase64 =
+        widget.entity?.payload['coverImageBase64'] as String? ?? '';
+    coverImageName = widget.entity?.payload['coverImageName'] as String? ?? '';
+  }
+
+  Future<void> _pickCover() async {
+    if (pickingCover) return;
+    setState(() => pickingCover = true);
+    try {
+      final picked = await FileTransferService.pickImagePayload();
+      final bytes = picked?['imageBytes'];
+      if (picked != null && bytes is List<int> && mounted) {
+        setState(() {
+          coverImageBase64 = base64Encode(bytes);
+          coverImageName = picked['imageName'] as String? ?? 'capa.jpg';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => pickingCover = false);
+    }
   }
 
   @override
@@ -730,6 +760,20 @@ class _SemesterDialogState extends State<_SemesterDialog> {
                 ],
                 onChanged: (value) => setState(() => status = value ?? status),
               ),
+              const SizedBox(height: 20),
+              _FolderAppearanceEditor(
+                colorValue: folderColor,
+                iconId: folderIcon,
+                coverName: coverImageName,
+                pickingCover: pickingCover,
+                onColorChanged: (value) => setState(() => folderColor = value),
+                onIconChanged: (value) => setState(() => folderIcon = value),
+                onPickCover: _pickCover,
+                onRemoveCover: () => setState(() {
+                  coverImageBase64 = '';
+                  coverImageName = '';
+                }),
+              ),
             ],
           ),
         ),
@@ -774,6 +818,10 @@ class _SemesterDialogState extends State<_SemesterDialog> {
                   'term': parsedTerm,
                   'status': status,
                   'kind': 'semester',
+                  'folderColor': folderColor,
+                  'folderIcon': folderIcon,
+                  'coverImageBase64': coverImageBase64,
+                  'coverImageName': coverImageName,
                 },
                 id: widget.entity?.id);
             if (context.mounted) Navigator.pop(context);
@@ -984,33 +1032,72 @@ class _SubjectDialogState extends State<_SubjectDialog> {
                 child: Wrap(
                   spacing: 9,
                   runSpacing: 9,
-                  children: AcademicFolderStyle.colors.map((color) {
-                    final selected = color.toARGB32() == folderColor;
-                    return Tooltip(
-                      message: 'Cor da pasta',
+                  children: <Widget>[
+                    ...AcademicFolderStyle.colors.map((color) {
+                      final selected = color.toARGB32() == folderColor;
+                      return Tooltip(
+                        message: 'Cor da pasta',
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(13),
+                          onTap: () =>
+                              setState(() => folderColor = color.toARGB32()),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 160),
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.circular(13),
+                              border: Border.all(
+                                color: selected ? Colors.white : Colors.white24,
+                                width: selected ? 3 : 1,
+                              ),
+                            ),
+                            child: selected
+                                ? const Icon(Icons.check, color: Colors.white)
+                                : null,
+                          ),
+                        ),
+                      );
+                    }),
+                    Tooltip(
+                      message: 'Criar uma cor personalizada',
                       child: InkWell(
                         borderRadius: BorderRadius.circular(13),
-                        onTap: () =>
-                            setState(() => folderColor = color.toARGB32()),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 160),
+                        onTap: () async {
+                          final color = await showProColorPicker(
+                            context,
+                            title: 'Cor personalizada da matéria',
+                            initialColor: Color(folderColor),
+                          );
+                          if (color != null && mounted) {
+                            setState(() => folderColor = color.toARGB32());
+                          }
+                        },
+                        child: Container(
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: color,
-                            borderRadius: BorderRadius.circular(13),
-                            border: Border.all(
-                              color: selected ? Colors.white : Colors.white24,
-                              width: selected ? 3 : 1,
+                            gradient: const SweepGradient(
+                              colors: <Color>[
+                                Colors.red,
+                                Colors.yellow,
+                                Colors.green,
+                                Colors.cyan,
+                                Colors.blue,
+                                Colors.purple,
+                                Colors.red,
+                              ],
                             ),
+                            borderRadius: BorderRadius.circular(13),
+                            border: Border.all(color: Colors.white54),
                           ),
-                          child: selected
-                              ? const Icon(Icons.check, color: Colors.white)
-                              : null,
+                          child:
+                              const Icon(Icons.colorize, color: Colors.white),
                         ),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
@@ -1135,6 +1222,11 @@ class _ContentDialogState extends State<_ContentDialog> {
   late final TextEditingController order;
   String? subjectId;
   late bool completed;
+  late int folderColor;
+  late String folderIcon;
+  late String coverImageBase64;
+  late String coverImageName;
+  bool pickingCover = false;
 
   @override
   void initState() {
@@ -1155,6 +1247,32 @@ class _ContentDialogState extends State<_ContentDialog> {
         ? existing
         : (subjects.isEmpty ? null : subjects.first.id);
     completed = widget.entity?.payload['completed'] == true;
+    final subject = subjectId == null ? null : widget.store.byId(subjectId!);
+    folderColor = (widget.entity?.payload['folderColor'] as num?)?.toInt() ??
+        (subject == null
+            ? AcademicFolderStyle.colors.first.toARGB32()
+            : AcademicFolderStyle.colorFor(subject).toARGB32());
+    folderIcon = widget.entity?.payload['folderIcon'] as String? ?? 'folder';
+    coverImageBase64 =
+        widget.entity?.payload['coverImageBase64'] as String? ?? '';
+    coverImageName = widget.entity?.payload['coverImageName'] as String? ?? '';
+  }
+
+  Future<void> _pickCover() async {
+    if (pickingCover) return;
+    setState(() => pickingCover = true);
+    try {
+      final picked = await FileTransferService.pickImagePayload();
+      final bytes = picked?['imageBytes'];
+      if (picked != null && bytes is List<int> && mounted) {
+        setState(() {
+          coverImageBase64 = base64Encode(bytes);
+          coverImageName = picked['imageName'] as String? ?? 'capa.jpg';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => pickingCover = false);
+    }
   }
 
   @override
@@ -1233,6 +1351,20 @@ class _ContentDialogState extends State<_ContentDialog> {
                   labelText: 'Ordem dentro da cadeira',
                 ),
               ),
+              const SizedBox(height: 20),
+              _FolderAppearanceEditor(
+                colorValue: folderColor,
+                iconId: folderIcon,
+                coverName: coverImageName,
+                pickingCover: pickingCover,
+                onColorChanged: (value) => setState(() => folderColor = value),
+                onIconChanged: (value) => setState(() => folderIcon = value),
+                onPickCover: _pickCover,
+                onRemoveCover: () => setState(() {
+                  coverImageBase64 = '';
+                  coverImageName = '';
+                }),
+              ),
             ],
           ),
         ),
@@ -1254,12 +1386,164 @@ class _ContentDialogState extends State<_ContentDialog> {
                   'description': description.text.trim(),
                   'order': int.tryParse(order.text.trim()) ?? 999,
                   'completed': completed,
+                  'folderColor': folderColor,
+                  'folderIcon': folderIcon,
+                  'coverImageBase64': coverImageBase64,
+                  'coverImageName': coverImageName,
                 },
                 id: widget.entity?.id);
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Salvar'),
         ),
+      ],
+    );
+  }
+}
+
+class _FolderAppearanceEditor extends StatelessWidget {
+  const _FolderAppearanceEditor({
+    required this.colorValue,
+    required this.iconId,
+    required this.coverName,
+    required this.pickingCover,
+    required this.onColorChanged,
+    required this.onIconChanged,
+    required this.onPickCover,
+    required this.onRemoveCover,
+  });
+
+  final int colorValue;
+  final String iconId;
+  final String coverName;
+  final bool pickingCover;
+  final ValueChanged<int> onColorChanged;
+  final ValueChanged<String> onIconChanged;
+  final VoidCallback onPickCover;
+  final VoidCallback onRemoveCover;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'APARÊNCIA DA PASTA',
+          style: TextStyle(
+            color: AppColors.primaryLight,
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: <Widget>[
+            ...AcademicFolderStyle.colors.map((color) {
+              final selected = color.toARGB32() == colorValue;
+              return InkWell(
+                onTap: () => onColorChanged(color.toARGB32()),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: selected ? Colors.white : Colors.white24,
+                      width: selected ? 3 : 1,
+                    ),
+                  ),
+                ),
+              );
+            }),
+            InkWell(
+              key: const Key('academic-folder-custom-color'),
+              onTap: () async {
+                final color = await showProColorPicker(
+                  context,
+                  title: 'Cor personalizada da pasta',
+                  initialColor: Color(colorValue),
+                );
+                if (color != null) onColorChanged(color.toARGB32());
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  gradient: const SweepGradient(
+                    colors: <Color>[
+                      Colors.red,
+                      Colors.yellow,
+                      Colors.green,
+                      Colors.cyan,
+                      Colors.blue,
+                      Colors.purple,
+                      Colors.red,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.colorize, size: 19),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 7,
+          runSpacing: 7,
+          children: AcademicFolderStyle.icons
+              .map(
+                (option) => ChoiceChip(
+                  selected: iconId == option.id,
+                  onSelected: (_) => onIconChanged(option.id),
+                  avatar: Icon(option.icon, size: 17),
+                  label: Text(option.label),
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: pickingCover ? null : onPickCover,
+                icon: pickingCover
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.add_photo_alternate_outlined),
+                label: Text(
+                  coverName.isEmpty
+                      ? 'Adicionar imagem de fundo'
+                      : 'Trocar imagem de fundo',
+                ),
+              ),
+            ),
+            if (coverName.isNotEmpty) ...<Widget>[
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Remover imagem',
+                onPressed: onRemoveCover,
+                icon: const Icon(Icons.delete_outline),
+              ),
+            ],
+          ],
+        ),
+        if (coverName.isNotEmpty)
+          Text(
+            coverName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          ),
       ],
     );
   }

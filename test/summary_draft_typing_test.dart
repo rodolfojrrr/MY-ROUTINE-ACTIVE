@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_routine_active/core/app_store.dart';
 import 'package:my_routine_active/core/app_theme.dart';
@@ -80,6 +81,41 @@ void main() {
     expect(find.text('EDITOR DO RESUMO'), findsOneWidget);
     expect(find.byIcon(Icons.save_outlined), findsWidgets);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Tab e Shift Tab recuam parágrafos como numa IDE',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final store = _MemorySummaryStore();
+    addTearDown(store.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark(),
+        home: AcademicSummaryEditorDialog(store: store),
+      ),
+    );
+    await tester.pump();
+    final bodyFinder = find.byKey(
+      const ValueKey<String>('summary-body-field'),
+    );
+    await tester.enterText(bodyFinder, 'linha de código');
+    await tester.tap(bodyFinder);
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(bodyFinder).controller!.text,
+      '    linha de código',
+    );
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pump();
+    expect(tester.widget<TextField>(bodyFinder).controller!.text,
+        'linha de código');
   });
 
   testWidgets('folha A4 limita texto grande e painéis recolhem no desktop',

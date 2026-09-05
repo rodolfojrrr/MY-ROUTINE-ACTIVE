@@ -345,11 +345,11 @@ class _KanbanColumn extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: candidates.isEmpty
-              ? AppColors.surface.withValues(alpha: .82)
+              ? AppColors.appSurface.withValues(alpha: .82)
               : info.color.withValues(alpha: .12),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: candidates.isEmpty ? AppColors.border : info.color,
+            color: candidates.isEmpty ? AppColors.appBorder : info.color,
           ),
         ),
         child: Column(
@@ -481,7 +481,7 @@ class _KanbanTaskCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceRaised,
+        color: AppColors.appSurfaceRaised,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: color.withValues(alpha: .28)),
       ),

@@ -79,9 +79,9 @@ class _WifiSyncScreenState extends State<WifiSyncScreen> {
                     children: <Widget>[
                       const PageIntro(
                         eyebrow: 'Sem internet e sem nuvem',
-                        title: 'PC e celular na mesma rede',
+                        title: 'Sincronize quaisquer dois aparelhos',
                         subtitle:
-                            'No PC, abra uma sessão temporária. No celular, informe IP e código. Os dois aparelhos terminam com a versão mesclada.',
+                            'Em um aparelho, abra uma sessão temporária. No outro, informe IP e código. Celular, notebook e PC terminam com os mesmos dados mesclados.',
                       ),
                       const SizedBox(height: 18),
                       Container(
@@ -149,16 +149,16 @@ class _WifiSyncScreenState extends State<WifiSyncScreen> {
                             ),
                             const SizedBox(height: 10),
                             const Text(
-                              '1. Conecte PC e celular ao mesmo roteador Wi‑Fi.',
+                              '1. Conecte os dois aparelhos ao mesmo roteador Wi‑Fi.',
                             ),
                             const Text(
-                              '2. No PC, clique em “Abrir sessão no PC”.',
+                              '2. Em um deles, clique em “Abrir sessão neste aparelho”.',
                             ),
                             const Text(
                               '3. Se o Windows perguntar, permita o app em redes privadas.',
                             ),
                             const Text(
-                              '4. Digite no celular o IP e o código mostrados no PC.',
+                              '4. No outro, digite o IP e o código exibidos.',
                             ),
                             const Text(
                               '5. Clique em “Sincronizar agora” e aguarde a confirmação.',
@@ -282,7 +282,7 @@ class _ServerCard extends StatelessWidget {
                 }
               },
               icon: const Icon(Icons.wifi_tethering),
-              label: const Text('Abrir sessão no PC'),
+              label: const Text('Abrir sessão neste aparelho'),
             ),
         ],
       ),
@@ -315,7 +315,7 @@ class _ClientCard extends StatelessWidget {
           const Icon(Icons.phone_android, color: AppColors.green, size: 42),
           const SizedBox(height: 12),
           const Text(
-            '2. No celular',
+            '2. No outro aparelho',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
           ),
@@ -324,7 +324,7 @@ class _ClientCard extends StatelessWidget {
             controller: host,
             keyboardType: TextInputType.url,
             decoration: const InputDecoration(
-              labelText: 'IP do PC',
+              labelText: 'IP do aparelho com a sessão aberta',
               hintText: '192.168.0.10',
             ),
           ),
