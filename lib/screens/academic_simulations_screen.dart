@@ -231,6 +231,7 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
             SizedBox(
               width: 250,
               child: DropdownButtonFormField<String?>(
+                isExpanded: true,
                 key: ValueKey<String?>('simulation-subject-$subjectId'),
                 initialValue:
                     academicSubjectIds.contains(subjectId) ? subjectId : null,
@@ -238,12 +239,18 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
                 items: <DropdownMenuItem<String?>>[
                   const DropdownMenuItem<String?>(
                     value: null,
-                    child: Text('Todas as matérias'),
+                    child: Text(
+                      'Todas as matérias',
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   ...subjects.map(
                     (item) => DropdownMenuItem<String?>(
                       value: item.id,
-                      child: Text(item.payload['name'] as String? ?? ''),
+                      child: Text(
+                        item.payload['name'] as String? ?? '',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                 ],
@@ -256,6 +263,7 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
             SizedBox(
               width: 270,
               child: DropdownButtonFormField<String?>(
+                isExpanded: true,
                 key: ValueKey<String?>('simulation-content-$subjectId'),
                 initialValue: contents.any((item) => item.id == contentId)
                     ? contentId
@@ -264,12 +272,18 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
                 items: <DropdownMenuItem<String?>>[
                   const DropdownMenuItem<String?>(
                     value: null,
-                    child: Text('Todos os conteúdos'),
+                    child: Text(
+                      'Todos os conteúdos',
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   ...contents.map(
                     (item) => DropdownMenuItem<String?>(
                       value: item.id,
-                      child: Text(item.payload['title'] as String? ?? ''),
+                      child: Text(
+                        item.payload['title'] as String? ?? '',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                 ],

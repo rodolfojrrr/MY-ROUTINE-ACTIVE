@@ -1,16 +1,30 @@
-SMART ROUTINE SI — V5.1.0 AMBIENTE ACADÊMICO E RESUMOS AVANÇADOS
-============================================================
+SMART ROUTINE SI — V5.3.0 EDITOR A4 PROFISSIONAL
+=================================================
 
 Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
 Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
 
 PRINCIPAIS NOVIDADES
+- Editor de resumos centralizado em uma folha A4 escura e responsiva.
+- Margens internas seguras: textos grandes não atravessam mais a borda.
+- Organização e Materiais mais estreitos, recolhíveis e com modo foco no PC.
+- Desfazer/refazer, alinhamento, entrelinhas, marca-texto, checklist, citação,
+  recuo, divisória e seleção total no editor.
+- Código em linha e bloco de código com estilos próprios e suporte no PDF.
+- Nova aba Faculdade logo abaixo do Menu principal.
+- Navegação por pastas: semestre -> matéria -> conteúdo -> ferramentas.
+- Semestre cursado atualmente sempre destacado.
+- Matérias personalizáveis com cor, símbolo e imagem de fundo.
+- Cada conteúdo possui pastas de Resumos, Códigos, Imagens, Anexos,
+  Simulados, Flashcards e Provas/Notas.
+- Novos registros aparecem imediatamente sem precisar voltar à tela anterior.
+- Cards de indicadores mais compactos no PC.
 - Editor grande de resumos com títulos, tamanhos, estilos, listas e código.
 - Visual escuro e responsivo, usando a cor escolhida no aplicativo.
 - Imagens e anexos diversos em cada resumo, com rascunho automático.
 - PDF formatado, com botão de voltar e relação dos anexos.
-- Faculdade: semestre -> cadeira -> conteúdo -> resumo.
-- Flashcards, provas/notas e simulados dentro de cada cadeira.
+- A estrutura acadêmica antiga em abas foi removida da navegação.
+- Flashcards, provas/notas e simulados ficam dentro de cada conteúdo.
 - Nova aba Cursos, separada da faculdade, com imagens dos certificados.
 - Início reorganizado: horário, metas/atividades e graduação em cards compactos.
 - Vários usuários locais com login, senha e recuperação.
@@ -51,6 +65,7 @@ REPOSITÓRIO CONFIGURADO
 https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
 LEIA TAMBÉM
+- 00_ATUALIZACAO_V5.3_SEM_PERDER_DADOS.txt
 - 00_MIGRACAO_PARA_V5.txt
 - README.md
 - docs/CONTAS_E_RECUPERACAO.md

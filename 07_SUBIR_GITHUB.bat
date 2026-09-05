@@ -49,11 +49,11 @@ if errorlevel 1 goto :erro
 git diff --cached --quiet
 if not errorlevel 1 goto :sem_alteracoes
 
-set /p "COMMIT_MSG=Mensagem do commit [Smart Routine SI v5]: "
-if not defined COMMIT_MSG set "COMMIT_MSG=Smart Routine SI v5"
+set /p "COMMIT_MSG=Mensagem do commit [Smart Routine SI v5.3]: "
+if not defined COMMIT_MSG set "COMMIT_MSG=Smart Routine SI v5.3"
 if /I "%COMMIT_MSG:~0,4%"=="http" (
   echo A URL do repositorio ja esta configurada. Usando a mensagem padrao.
-  set "COMMIT_MSG=Smart Routine SI v5"
+  set "COMMIT_MSG=Smart Routine SI v5.3"
 )
 git commit -m "%COMMIT_MSG%"
 if errorlevel 1 goto :erro

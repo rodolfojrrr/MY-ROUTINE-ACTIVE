@@ -1,0 +1,39 @@
+SMART ROUTINE SI 5.2 — ATUALIZAR SEM PERDER DADOS
+=================================================
+
+Esta atualização NÃO zera nem recria o banco acadêmico.
+
+ANTES DE ATUALIZAR
+1. Abra Configurações no aplicativo atual.
+2. Exporte um backup .mra por segurança.
+3. Guarde esse arquivo fora da pasta do aplicativo.
+
+NO ANDROID
+1. Não desinstale o Smart Routine SI.
+2. Gere/baixe o novo APK usando a mesma chave de assinatura das versões anteriores.
+3. Instale o APK por cima da versão atual.
+
+NO WINDOWS
+1. Feche o aplicativo.
+2. Execute o novo Smart-Routine-SI-Setup.exe por cima da instalação atual.
+3. Não marque nem execute nenhuma opção de apagar dados.
+
+O QUE ACONTECE COM OS REGISTROS ANTIGOS
+- Semestres, matérias, conteúdos e horários continuam no mesmo banco.
+- O semestre em andamento ganha destaque automático.
+- Matérias antigas recebem uma cor e um símbolo visual sem alterar seus dados.
+- Registros sem semestre aparecem na pasta “Matérias sem semestre” para revisão.
+- Resumos, imagens, anexos, provas, flashcards, simulados e projetos continuam vinculados.
+- Cursos livres permanecem na aba Cursos, separados da Faculdade.
+- Contas, senhas locais, metas, Kanban, IDE, backups e sincronização são preservados.
+
+NOVOS DADOS DA VERSÃO 5.2
+- Cor, símbolo e capa da matéria são campos opcionais no registro existente.
+- Imagens e anexos próprios do conteúdo usam o mesmo banco local genérico.
+- Esses dados entram automaticamente no backup .mra e na sincronização Wi-Fi.
+- Nenhuma tabela acadêmica antiga é apagada ou recriada.
+
+IMPORTANTE
+- Não é necessário instalar versões intermediárias: pode atualizar diretamente para 5.2.
+- PC e celular devem usar a 5.2 para exibir e editar todas as novas pastas.
+- A sincronização continua local pela mesma rede Wi-Fi.

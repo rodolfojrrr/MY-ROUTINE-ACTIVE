@@ -132,12 +132,14 @@ String _typeLabel(String type) => switch (type) {
       EntityTypes.kanbanTask => 'Atividade do Kanban',
       EntityTypes.codeProject => 'Projeto da IDE',
       EntityTypes.codeFile => 'Arquivo de código',
+      EntityTypes.contentAsset => 'Imagem ou anexo de conteúdo',
       _ => 'Registro acadêmico',
     };
 
 IconData _iconFor(String type) => switch (type) {
       EntityTypes.studyNote => Icons.description_outlined,
       EntityTypes.codeProject || EntityTypes.codeFile => Icons.code,
+      EntityTypes.contentAsset => Icons.attach_file_rounded,
       EntityTypes.kanbanTask => Icons.view_kanban_outlined,
       EntityTypes.dailyStudyGoal => Icons.flag_outlined,
       EntityTypes.exam => Icons.event_outlined,

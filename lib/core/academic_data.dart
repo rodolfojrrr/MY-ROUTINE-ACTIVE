@@ -147,6 +147,19 @@ class AcademicData {
     return items;
   }
 
+  static List<SyncEntity> assetsForContent(
+    AppStore store,
+    String contentId, {
+    String? kind,
+  }) {
+    final items = store.records(EntityTypes.contentAsset).where((item) {
+      if (item.payload['contentId'] != contentId) return false;
+      return kind == null || item.payload['kind'] == kind;
+    }).toList();
+    items.sort((a, b) => b.updatedAtMs.compareTo(a.updatedAtMs));
+    return items;
+  }
+
   static List<Map<String, dynamic>> summaryImages(SyncEntity summary) {
     final raw = summary.payload['images'];
     if (raw is List) {
@@ -233,6 +246,7 @@ class AcademicData {
       EntityTypes.studyNote,
       EntityTypes.studyQuestion,
       EntityTypes.flashcard,
+      EntityTypes.contentAsset,
     ]) {
       final linked = store
           .records(type)

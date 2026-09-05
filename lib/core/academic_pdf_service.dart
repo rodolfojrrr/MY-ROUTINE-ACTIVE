@@ -134,6 +134,7 @@ class AcademicPdfService {
             )
           else
             pw.RichText(
+              textAlign: _pdfTextAlign(richDocument.textAlignment),
               text: pw.TextSpan(
                 style: const pw.TextStyle(
                   fontSize: 11.5,
@@ -222,14 +223,27 @@ class AcademicPdfService {
       if (value.strikeThrough) pw.TextDecoration.lineThrough,
     ];
     return pw.TextStyle(
-      color: value.accent ? PdfColors.blue700 : PdfColors.blueGrey900,
+      color: value.codeBlock
+          ? PdfColors.blue800
+          : value.accent
+              ? PdfColors.blue700
+              : PdfColors.blueGrey900,
       fontSize: (value.fontSize * .72).clamp(9, 22).toDouble(),
       fontWeight: value.bold ? pw.FontWeight.bold : pw.FontWeight.normal,
       fontStyle: value.italic ? pw.FontStyle.italic : pw.FontStyle.normal,
-      fontNormal: value.monospace ? pw.Font.courier() : null,
-      fontBold: value.monospace ? pw.Font.courierBold() : null,
-      fontItalic: value.monospace ? pw.Font.courierOblique() : null,
-      fontBoldItalic: value.monospace ? pw.Font.courierBoldOblique() : null,
+      fontNormal: value.monospace || value.codeBlock ? pw.Font.courier() : null,
+      fontBold:
+          value.monospace || value.codeBlock ? pw.Font.courierBold() : null,
+      fontItalic:
+          value.monospace || value.codeBlock ? pw.Font.courierOblique() : null,
+      fontBoldItalic: value.monospace || value.codeBlock
+          ? pw.Font.courierBoldOblique()
+          : null,
+      background: value.codeBlock
+          ? const pw.BoxDecoration(color: PdfColors.blueGrey50)
+          : value.highlight
+              ? const pw.BoxDecoration(color: PdfColors.yellow100)
+              : null,
       lineSpacing: 4,
       decoration: decorations.isEmpty
           ? pw.TextDecoration.none
@@ -237,6 +251,13 @@ class AcademicPdfService {
       decorationColor: value.accent ? PdfColors.blue700 : PdfColors.blueGrey900,
     );
   }
+
+  static pw.TextAlign _pdfTextAlign(String value) => switch (value) {
+        'center' => pw.TextAlign.center,
+        'right' => pw.TextAlign.right,
+        'justify' => pw.TextAlign.justify,
+        _ => pw.TextAlign.left,
+      };
 
   static String _formatBytes(int bytes) {
     if (bytes <= 0) return 'tamanho não informado';

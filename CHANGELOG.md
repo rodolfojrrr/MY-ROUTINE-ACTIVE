@@ -1,5 +1,34 @@
 # Changelog
 
+## 5.3.0
+
+- Editor de resumos redesenhado como folha A4 escura, centralizada e responsiva.
+- Margens passaram para dentro da área rolável, impedindo que fontes grandes encostem ou sejam cortadas pela borda.
+- Organização e Materiais ficaram mais estreitos, recolhíveis separadamente e ocultáveis no modo foco.
+- Barra profissional ampliada com desfazer/refazer, alinhamento, entrelinhas, marca-texto, checklist, citação, recuos, linha divisória e seleção total.
+- Código em linha e bloco de código agora são recursos distintos, com visual monoespaçado, fundo próprio e atalho `Ctrl+Shift+K`.
+- Novas formatações são preservadas em rascunhos, banco, backup, sincronização, leitura e PDF.
+- Formato rico elevado para a versão 2, mantendo leitura integral dos resumos criados nas versões anteriores.
+- Contadores de palavras, caracteres e tempo estimado de leitura adicionados ao rodapé.
+- Testes cobrem texto longo em fonte máxima, margens A4, painéis recolhíveis e serialização das novas formatações.
+- Versão elevada para `5.3.0+54`.
+
+## 5.2.0
+
+- Área Faculdade reconstruída como navegação por pastas, sem a antiga tela de administração em abas.
+- Faculdade posicionada imediatamente abaixo do Menu principal na barra lateral.
+- Semestre atual destacado e ordenação do mais recente para o mais antigo.
+- Telas independentes para semestres, matérias, conteúdos e ambiente de cada conteúdo.
+- Botões de cadastro contextuais e atualização imediata após salvar, sem recarregar a tela.
+- Matérias personalizáveis com oito cores, doze símbolos acadêmicos e imagem de fundo local.
+- Cada conteúdo passa a reunir Resumos, Códigos, Imagens, Anexos, Simulados, Flashcards e Provas/Notas.
+- Galeria de imagens e gerenciador de anexos próprios por conteúdo, incluídos no backup e na sincronização Wi-Fi.
+- IDE filtrada por conteúdo, criando novos projetos já vinculados à pasta aberta.
+- Horário de aulas preservado em tela própria e registros antigos sem semestre mantidos numa pasta de revisão.
+- Indicadores compactados para aproveitar melhor o espaço no desktop.
+- Testes responsivos cobrem a navegação completa e a atualização em tempo real.
+- Versão elevada para `5.2.0+53`.
+
 ## 5.1.0
 
 - Editor de resumos reconstruído em tela cheia, responsivo e integrado às cores do aplicativo.

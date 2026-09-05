@@ -37,6 +37,7 @@ class EntityTypes {
   static const codeProject = 'code_project';
   static const codeFile = 'code_file';
   static const codeRun = 'code_run';
+  static const contentAsset = 'content_asset';
   static const bodyMetric = 'body_metric';
   static const cardioSession = 'cardio_session';
   static const waterLog = 'water_log';

@@ -1,0 +1,33 @@
+SMART ROUTINE SI 5.3 — ATUALIZAR SEM PERDER DADOS
+=================================================
+
+Esta atualização NÃO apaga nem recria o banco acadêmico.
+
+ANTES DE ATUALIZAR
+1. Abra Configurações no aplicativo atual.
+2. Exporte um backup .mra por segurança.
+3. Guarde o arquivo fora da pasta do aplicativo.
+
+NO ANDROID
+1. Não desinstale o Smart Routine SI.
+2. Gere o APK com a mesma chave de assinatura usada na instalação atual.
+3. Instale o APK 5.3 por cima da versão existente.
+
+NO WINDOWS
+1. Feche o aplicativo.
+2. Execute o novo Smart-Routine-SI-Setup.exe sobre a instalação atual.
+3. Não apague a pasta de dados do usuário.
+
+COMPATIBILIDADE DOS RESUMOS
+- Textos, títulos, imagens, anexos e vínculos acadêmicos permanecem intactos.
+- O formato rico antigo continua sendo lido normalmente.
+- Ao editar e salvar, as novas opções de alinhamento, entrelinhas, marca-texto
+  e bloco de código são acrescentadas sem descartar as formatações anteriores.
+- Rascunhos, backup .mra e sincronização Wi-Fi carregam o documento completo.
+
+IMPORTANTE
+- Não é necessário instalar versões intermediárias: a atualização pode ser
+  feita diretamente para a 5.3.
+- Atualize PC e celular para visualizar as novas formatações nos dois aparelhos.
+- Contas, senhas locais, semestres, matérias, conteúdos e demais ferramentas
+  continuam no mesmo banco.

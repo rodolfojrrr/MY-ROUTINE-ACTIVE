@@ -33,9 +33,18 @@ import '../widgets/premium_widgets.dart';
 import 'academic_shared.dart';
 
 class CodeWorkspaceScreen extends StatefulWidget {
-  const CodeWorkspaceScreen({required this.store, super.key});
+  const CodeWorkspaceScreen({
+    required this.store,
+    this.initialSemesterId,
+    this.initialSubjectId,
+    this.initialContentId,
+    super.key,
+  });
 
   final AppStore store;
+  final String? initialSemesterId;
+  final String? initialSubjectId;
+  final String? initialContentId;
 
   @override
   State<CodeWorkspaceScreen> createState() => _CodeWorkspaceScreenState();
@@ -48,7 +57,13 @@ class _CodeWorkspaceScreenState extends State<CodeWorkspaceScreen> {
   Future<void> _createProject() async {
     final project = await showDialog<SyncEntity>(
       context: context,
-      builder: (_) => _ProjectDialog(store: widget.store),
+      builder: (_) => _ProjectDialog(
+        store: widget.store,
+        initialSemesterId: widget.initialSemesterId,
+        initialSubjectId: widget.initialSubjectId,
+        initialContentId: widget.initialContentId,
+        lockAcademicLink: widget.initialContentId != null,
+      ),
     );
     if (project != null && mounted) {
       setState(() => selectedProjectId = project.id);
@@ -64,7 +79,22 @@ class _CodeWorkspaceScreenState extends State<CodeWorkspaceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = CodeWorkspaceData.sortedProjects(widget.store);
+    final projects =
+        CodeWorkspaceData.sortedProjects(widget.store).where((item) {
+      if (widget.initialSemesterId != null &&
+          item.payload['semesterId'] != widget.initialSemesterId) {
+        return false;
+      }
+      if (widget.initialSubjectId != null &&
+          item.payload['subjectId'] != widget.initialSubjectId) {
+        return false;
+      }
+      if (widget.initialContentId != null &&
+          item.payload['contentId'] != widget.initialContentId) {
+        return false;
+      }
+      return true;
+    }).toList(growable: false);
     final wide = MediaQuery.sizeOf(context).width >= 930;
     final selected = projects.where((item) => item.id == selectedProjectId);
     final active = selected.isNotEmpty
@@ -445,10 +475,21 @@ IconData _languageIcon(String languageId) {
 }
 
 class _ProjectDialog extends StatefulWidget {
-  const _ProjectDialog({required this.store, this.project});
+  const _ProjectDialog({
+    required this.store,
+    this.project,
+    this.initialSemesterId,
+    this.initialSubjectId,
+    this.initialContentId,
+    this.lockAcademicLink = false,
+  });
 
   final AppStore store;
   final SyncEntity? project;
+  final String? initialSemesterId;
+  final String? initialSubjectId;
+  final String? initialContentId;
+  final bool lockAcademicLink;
 
   @override
   State<_ProjectDialog> createState() => _ProjectDialogState();
@@ -474,9 +515,9 @@ class _ProjectDialogState extends State<_ProjectDialog> {
       text: payload?['description'] as String? ?? '',
     );
     languageId = payload?['language'] as String? ?? 'dart';
-    semesterId = payload?['semesterId'] as String?;
-    subjectId = payload?['subjectId'] as String?;
-    contentId = payload?['contentId'] as String?;
+    semesterId = payload?['semesterId'] as String? ?? widget.initialSemesterId;
+    subjectId = payload?['subjectId'] as String? ?? widget.initialSubjectId;
+    contentId = payload?['contentId'] as String? ?? widget.initialContentId;
   }
 
   @override
@@ -624,11 +665,13 @@ class _ProjectDialogState extends State<_ProjectDialog> {
                     ),
                   ),
                 ],
-                onChanged: (value) => setState(() {
-                  semesterId = value;
-                  subjectId = null;
-                  contentId = null;
-                }),
+                onChanged: widget.lockAcademicLink
+                    ? null
+                    : (value) => setState(() {
+                          semesterId = value;
+                          subjectId = null;
+                          contentId = null;
+                        }),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String?>(
@@ -648,10 +691,12 @@ class _ProjectDialogState extends State<_ProjectDialog> {
                     ),
                   ),
                 ],
-                onChanged: (value) => setState(() {
-                  subjectId = value;
-                  contentId = null;
-                }),
+                onChanged: widget.lockAcademicLink
+                    ? null
+                    : (value) => setState(() {
+                          subjectId = value;
+                          contentId = null;
+                        }),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String?>(
@@ -671,7 +716,7 @@ class _ProjectDialogState extends State<_ProjectDialog> {
                     ),
                   ),
                 ],
-                onChanged: subjectId == null
+                onChanged: widget.lockAcademicLink || subjectId == null
                     ? null
                     : (value) => setState(() => contentId = value),
               ),

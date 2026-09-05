@@ -35,4 +35,34 @@ void main() {
       throwsA(isA<FormatException>()),
     );
   });
+
+  test('backup preserva anexos e imagens da pasta de conteúdo', () {
+    const attachment = SyncEntity(
+      id: 'asset-1',
+      type: 'content_asset',
+      payload: <String, dynamic>{
+        'subjectId': 'subject-1',
+        'contentId': 'content-1',
+        'kind': 'attachment',
+        'name': 'modelo-relacional.pdf',
+        'extension': 'pdf',
+        'size': 4,
+        'base64': 'JVBERg==',
+      },
+      updatedAtMs: 987654,
+      deviceId: 'celular-1',
+      revision: 1,
+    );
+
+    final bytes = BackupService.createBundle(
+      entities: const <SyncEntity>[attachment],
+      deviceId: 'celular-1',
+    );
+    final decoded = BackupService.decodeBundle(bytes);
+
+    expect(decoded.entities.single.type, 'content_asset');
+    expect(decoded.entities.single.payload['contentId'], 'content-1');
+    expect(decoded.entities.single.payload['name'], 'modelo-relacional.pdf');
+    expect(decoded.entities.single.payload['base64'], 'JVBERg==');
+  });
 }

@@ -9,9 +9,11 @@ import 'package:my_routine_active/screens/daily_goals_screen.dart';
 import 'package:my_routine_active/screens/academic_courses_screen.dart';
 import 'package:my_routine_active/screens/academic_dashboard_screen.dart';
 import 'package:my_routine_active/screens/academic_summaries_screen.dart';
+import 'package:my_routine_active/screens/academic_simulations_screen.dart';
 import 'package:my_routine_active/screens/pdf_tools_screen.dart';
 import 'package:my_routine_active/screens/recycle_bin_screen.dart';
 import 'package:my_routine_active/screens/study_kanban_screen.dart';
+import 'package:my_routine_active/widgets/premium_widgets.dart';
 
 void main() {
   setUpAll(() => initializeDateFormatting('pt_BR'));
@@ -115,6 +117,28 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     expect(find.text('Ferramentas PDF'), findsOneWidget);
+  });
+
+  testWidgets('indicadores de simulados ficam compactos no desktop',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final store = _DetailedResponsiveStore();
+    addTearDown(store.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark(),
+        home: Scaffold(body: AcademicSimulationsScreen(store: store)),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(MetricCard), findsNWidgets(3));
+    expect(tester.getSize(find.byType(MetricCard).first).height, lessThan(210));
+    expect(tester.takeException(), isNull);
   });
 }
 

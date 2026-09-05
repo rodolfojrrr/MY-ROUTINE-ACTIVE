@@ -42,6 +42,17 @@ void main() {
     expect(find.text('Kanban'), findsOneWidget);
     expect(find.text('Simulados'), findsOneWidget);
     expect(find.text('Faculdade'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Faculdade')).dy,
+      lessThan(tester.getTopLeft(find.text('Metas e foco')).dy),
+    );
+
+    await tester.tap(find.text('Faculdade'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sua faculdade, organizada como pastas'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
     await tester.drag(
       find.byKey(const Key('academic-sidebar-destinations')),
       const Offset(0, -350),

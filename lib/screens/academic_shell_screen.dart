@@ -10,7 +10,7 @@ import '../core/wifi_sync_service.dart';
 import 'academic_assessments_screen.dart';
 import 'academic_courses_screen.dart';
 import 'academic_dashboard_screen.dart';
-import 'academic_management_screen.dart';
+import 'academic_faculty_screen.dart';
 import 'academic_simulations_screen.dart';
 import 'academic_summaries_screen.dart';
 import 'code_workspace_screen.dart';
@@ -57,6 +57,12 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       selectedIcon: Icons.home,
     ),
     _AcademicDestination(
+      label: 'Faculdade',
+      title: 'Faculdade',
+      icon: Icons.school_outlined,
+      selectedIcon: Icons.school,
+    ),
+    _AcademicDestination(
       label: 'Metas e foco',
       title: 'Metas diárias e foco',
       icon: Icons.flag_outlined,
@@ -97,12 +103,6 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       title: 'Flashcards',
       icon: Icons.style_outlined,
       selectedIcon: Icons.style,
-    ),
-    _AcademicDestination(
-      label: 'Faculdade',
-      title: 'Área acadêmica',
-      icon: Icons.account_tree_outlined,
-      selectedIcon: Icons.account_tree,
     ),
     _AcademicDestination(
       label: 'Cursos',
@@ -176,6 +176,7 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
         store: widget.store,
         onOpenSection: (index) => setState(() => selectedIndex = index),
       ),
+      AcademicFacultyScreen(store: widget.store),
       DailyGoalsScreen(store: widget.store, timer: studyTimer),
       AcademicSummariesScreen(store: widget.store),
       StudyKanbanScreen(store: widget.store),
@@ -183,7 +184,6 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       AcademicAssessmentsScreen(store: widget.store),
       CodeWorkspaceScreen(store: widget.store),
       StudyFlashcardsPage(store: widget.store),
-      AcademicManagementScreen(store: widget.store),
       AcademicCoursesScreen(store: widget.store),
       PdfToolsScreen(store: widget.store),
     ];
@@ -303,13 +303,13 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
                 ],
               ),
             ),
-            if (studyTimer.isActive && selectedIndex != 1)
+            if (studyTimer.isActive && selectedIndex != 2)
               Positioned(
                 right: 16,
                 bottom: 16,
                 child: _FloatingStudyTimer(
                   timer: studyTimer,
-                  onTap: () => setState(() => selectedIndex = 1),
+                  onTap: () => setState(() => selectedIndex = 2),
                 ),
               ),
           ],

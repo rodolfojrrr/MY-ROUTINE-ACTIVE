@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/academic_data.dart';
 import '../core/academic_pdf_service.dart';
@@ -64,7 +64,7 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
         .any((item) => academicSubjectIds.contains(item.payload['subjectId']));
     if (!hasAcademicContent) {
       _message(
-          'Cadastre uma cadeira e um conteúdo na área acadêmica primeiro.');
+          'Cadastre uma matéria e um conteúdo na área acadêmica primeiro.');
       return;
     }
     await Navigator.of(context).push(
@@ -192,9 +192,9 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
                       }),
                     ),
                     _FilterBox(
-                      label: 'Cadeira',
+                      label: 'Matéria',
                       value: subjectId,
-                      allLabel: 'Todas as cadeiras',
+                      allLabel: 'Todas as matérias',
                       items: subjects
                           .map(
                             (item) => _FilterItem(
@@ -262,7 +262,7 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
           title: summaries.length == 1
               ? '1 resumo'
               : '${summaries.length} resumos',
-          subtitle: 'Sempre ligados a uma cadeira e a um conteúdo.',
+          subtitle: 'Sempre ligados a uma matéria e a um conteúdo.',
         ),
         const SizedBox(height: 12),
         if (summaries.isEmpty)
@@ -588,6 +588,8 @@ class _AcademicSummaryEditorDialogState
   late final TextEditingController title;
   late final RichSummaryController body;
   late final FocusNode editorFocus;
+  late final UndoHistoryController undoHistory;
+  late final ScrollController editorScroll;
   late final SummaryDraftService draftService;
   late String? subjectId;
   late String? contentId;
@@ -599,6 +601,9 @@ class _AcademicSummaryEditorDialogState
   bool pickingAttachments = false;
   bool saved = false;
   bool draftPersisted = false;
+  bool sidePanelsVisible = true;
+  bool metadataExpanded = true;
+  bool assetsExpanded = false;
 
   @override
   void initState() {
@@ -613,6 +618,8 @@ class _AcademicSummaryEditorDialogState
           : AcademicData.summaryDocument(widget.entity!),
     );
     editorFocus = FocusNode(debugLabel: 'summary-rich-editor');
+    undoHistory = UndoHistoryController();
+    editorScroll = ScrollController(debugLabel: 'summary-editor-scroll');
     draftService = SummaryDraftService(widget.store);
     final preferredSubject = widget.entity?.payload['subjectId'] as String? ??
         widget.initialSubjectId;
@@ -647,6 +654,8 @@ class _AcademicSummaryEditorDialogState
     title.removeListener(_scheduleDraft);
     body.removeListener(_scheduleDraft);
     draftStatus.dispose();
+    undoHistory.dispose();
+    editorScroll.dispose();
     editorFocus.dispose();
     title.dispose();
     body.dispose();
@@ -793,7 +802,7 @@ class _AcademicSummaryEditorDialogState
       return;
     }
     if (subjectId == null || contentId == null) {
-      _showError('Escolha uma cadeira e um conteúdo.');
+      _showError('Escolha uma matéria e um conteúdo.');
       return;
     }
     final previous = widget.entity?.payload ?? const <String, dynamic>{};
@@ -832,6 +841,21 @@ class _AcademicSummaryEditorDialogState
         appBar: AppBar(
           title: Text(widget.entity == null ? 'Novo resumo' : 'Editar resumo'),
           actions: <Widget>[
+            if (!compactAppBar)
+              IconButton(
+                key: const Key('summary-toggle-side-panels'),
+                tooltip: sidePanelsVisible
+                    ? 'Ocultar organização e materiais'
+                    : 'Mostrar organização e materiais',
+                onPressed: () => setState(
+                  () => sidePanelsVisible = !sidePanelsVisible,
+                ),
+                icon: Icon(
+                  sidePanelsVisible
+                      ? Icons.fullscreen_rounded
+                      : Icons.view_sidebar_outlined,
+                ),
+              ),
             if (!compactAppBar)
               ValueListenableBuilder<String>(
                 valueListenable: draftStatus,
@@ -890,10 +914,22 @@ class _AcademicSummaryEditorDialogState
                     setState(() => contentId = value);
                     _scheduleDraft();
                   },
+                  expanded: metadataExpanded,
+                  onToggle: () => setState(
+                    () => metadataExpanded = !metadataExpanded,
+                  ),
                 );
                 final editor = _SummaryEditorCanvas(
                   controller: body,
                   focusNode: editorFocus,
+                  undoController: undoHistory,
+                  scrollController: editorScroll,
+                  panelsVisible: sidePanelsVisible,
+                  onTogglePanels: desktop
+                      ? () => setState(
+                            () => sidePanelsVisible = !sidePanelsVisible,
+                          )
+                      : null,
                 );
                 final assets = _SummaryAssetsPanel(
                   images: images,
@@ -910,6 +946,10 @@ class _AcademicSummaryEditorDialogState
                     setState(() => attachments.removeAt(index));
                     _scheduleDraft();
                   },
+                  expanded: assetsExpanded,
+                  onToggle: () => setState(
+                    () => assetsExpanded = !assetsExpanded,
+                  ),
                 );
                 if (desktop) {
                   return Center(
@@ -921,17 +961,20 @@ class _AcademicSummaryEditorDialogState
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
                             Expanded(child: editor),
-                            const SizedBox(width: 14),
-                            SizedBox(
-                              width: 340,
-                              child: ListView(
-                                children: <Widget>[
-                                  metadata,
-                                  const SizedBox(height: 12),
-                                  assets,
-                                ],
+                            if (sidePanelsVisible) ...<Widget>[
+                              const SizedBox(width: 12),
+                              SizedBox(
+                                key: const Key('summary-side-panels'),
+                                width: 288,
+                                child: ListView(
+                                  children: <Widget>[
+                                    metadata,
+                                    const SizedBox(height: 10),
+                                    assets,
+                                  ],
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),
@@ -974,6 +1017,8 @@ class _SummaryMetadataPanel extends StatelessWidget {
     required this.contentId,
     required this.onSubjectChanged,
     required this.onContentChanged,
+    required this.expanded,
+    required this.onToggle,
   });
 
   final TextEditingController title;
@@ -983,6 +1028,8 @@ class _SummaryMetadataPanel extends StatelessWidget {
   final String? contentId;
   final ValueChanged<String?> onSubjectChanged;
   final ValueChanged<String?> onContentChanged;
+  final bool expanded;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -1002,63 +1049,79 @@ class _SummaryMetadataPanel extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
+              IconButton(
+                key: const Key('summary-toggle-metadata'),
+                tooltip:
+                    expanded ? 'Recolher organização' : 'Abrir organização',
+                visualDensity: VisualDensity.compact,
+                onPressed: onToggle,
+                icon: Icon(
+                  expanded
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 14),
-          TextField(
-            key: const ValueKey<String>('summary-title-field'),
-            controller: title,
-            decoration: const InputDecoration(
-              labelText: 'Título do resumo',
-              prefixIcon: Icon(Icons.title),
+          if (expanded) ...<Widget>[
+            const SizedBox(height: 12),
+            TextField(
+              key: const ValueKey<String>('summary-title-field'),
+              controller: title,
+              decoration: const InputDecoration(
+                labelText: 'Título do resumo',
+                prefixIcon: Icon(Icons.title),
+              ),
             ),
-          ),
-          const SizedBox(height: 11),
-          DropdownButtonFormField<String>(
-            key: ValueKey<String?>('summary-subject-$subjectId'),
-            initialValue:
-                subjects.any((item) => item.id == subjectId) ? subjectId : null,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Cadeira'),
-            items: subjects
-                .map(
-                  (item) => DropdownMenuItem<String>(
-                    value: item.id,
-                    child: Text(
-                      item.payload['name'] as String? ?? '',
-                      overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              key: ValueKey<String?>('summary-subject-$subjectId'),
+              initialValue: subjects.any((item) => item.id == subjectId)
+                  ? subjectId
+                  : null,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Matéria'),
+              items: subjects
+                  .map(
+                    (item) => DropdownMenuItem<String>(
+                      value: item.id,
+                      child: Text(
+                        item.payload['name'] as String? ?? '',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                )
-                .toList(),
-            onChanged: onSubjectChanged,
-          ),
-          const SizedBox(height: 11),
-          DropdownButtonFormField<String>(
-            key: ValueKey<String?>('summary-content-$contentId'),
-            initialValue:
-                contents.any((item) => item.id == contentId) ? contentId : null,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Conteúdo'),
-            items: contents
-                .map(
-                  (item) => DropdownMenuItem<String>(
-                    value: item.id,
-                    child: Text(
-                      item.payload['title'] as String? ?? '',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: contents.isEmpty ? null : onContentChanged,
-          ),
-          if (contents.isEmpty) ...<Widget>[
-            const SizedBox(height: 8),
-            const Text(
-              'Cadastre um conteúdo nessa cadeira antes de salvar.',
-              style: TextStyle(color: AppColors.orange, fontSize: 12),
+                  )
+                  .toList(),
+              onChanged: onSubjectChanged,
             ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              key: ValueKey<String?>('summary-content-$contentId'),
+              initialValue: contents.any((item) => item.id == contentId)
+                  ? contentId
+                  : null,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Conteúdo'),
+              items: contents
+                  .map(
+                    (item) => DropdownMenuItem<String>(
+                      value: item.id,
+                      child: Text(
+                        item.payload['title'] as String? ?? '',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: contents.isEmpty ? null : onContentChanged,
+            ),
+            if (contents.isEmpty) ...<Widget>[
+              const SizedBox(height: 8),
+              const Text(
+                'Cadastre um conteúdo nessa matéria antes de salvar.',
+                style: TextStyle(color: AppColors.orange, fontSize: 12),
+              ),
+            ],
           ],
         ],
       ),
@@ -1070,14 +1133,23 @@ class _SummaryEditorCanvas extends StatelessWidget {
   const _SummaryEditorCanvas({
     required this.controller,
     required this.focusNode,
+    required this.undoController,
+    required this.scrollController,
+    required this.panelsVisible,
+    this.onTogglePanels,
   });
 
   final RichSummaryController controller;
   final FocusNode focusNode;
+  final UndoHistoryController undoController;
+  final ScrollController scrollController;
+  final bool panelsVisible;
+  final VoidCallback? onTogglePanels;
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: const Key('summary-editor-canvas'),
       decoration: BoxDecoration(
         color: AppColors.surface.withValues(alpha: .98),
         borderRadius: BorderRadius.circular(22),
@@ -1106,78 +1178,244 @@ class _SummaryEditorCanvas extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Text(
-                  'EDITOR DO RESUMO',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                    letterSpacing: 1.5,
-                    fontWeight: FontWeight.w900,
-                  ),
+                Row(
+                  children: <Widget>[
+                    const Expanded(
+                      child: Text(
+                        'EDITOR DO RESUMO',
+                        style: TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 11,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: .12),
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: .35),
+                        ),
+                      ),
+                      child: Text(
+                        'PÁGINA A4',
+                        style: TextStyle(
+                          color: AppColors.primaryLight,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: .8,
+                        ),
+                      ),
+                    ),
+                    if (onTogglePanels != null) ...<Widget>[
+                      const SizedBox(width: 5),
+                      IconButton(
+                        key: const Key('summary-focus-mode'),
+                        tooltip: panelsVisible
+                            ? 'Modo foco: ocultar painéis'
+                            : 'Mostrar organização e materiais',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: onTogglePanels,
+                        icon: Icon(
+                          panelsVisible
+                              ? Icons.center_focus_strong_outlined
+                              : Icons.view_sidebar_outlined,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 9),
-                _RichTextToolbar(controller: controller, focusNode: focusNode),
+                _RichTextToolbar(
+                  controller: controller,
+                  focusNode: focusNode,
+                  undoController: undoController,
+                ),
               ],
             ),
           ),
           Expanded(
-            child: Material(
-              color: const Color(0xFF07182D),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: TextField(
-                  key: const ValueKey<String>('summary-body-field'),
-                  controller: controller,
-                  focusNode: focusNode,
-                  expands: true,
-                  minLines: null,
-                  maxLines: null,
-                  keyboardType: TextInputType.multiline,
-                  textAlignVertical: TextAlignVertical.top,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    height: 1.55,
-                    decoration: TextDecoration.none,
-                  ),
-                  cursorColor: AppColors.primaryLight,
-                  decoration: const InputDecoration.collapsed(
-                    hintText:
-                        'Comece pelo conceito principal. Use títulos, listas, destaques, exemplos e observações…',
-                    hintStyle: TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 16,
-                      height: 1.5,
+            child: ColoredBox(
+              key: const Key('summary-a4-workspace'),
+              color: const Color(0xFF030D19),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 620;
+                  final outerMargin = compact ? 8.0 : 22.0;
+                  final availableWidth = constraints.maxWidth - outerMargin * 2;
+                  final pageWidth = availableWidth > 820
+                      ? 820.0
+                      : availableWidth.clamp(1.0, 820.0).toDouble();
+                  final pageHeight = (constraints.maxHeight - 24)
+                      .clamp(1.0, constraints.maxHeight)
+                      .toDouble();
+                  final horizontalMargin = compact ? 22.0 : 52.0;
+                  final verticalMargin = compact ? 28.0 : 46.0;
+                  return Center(
+                    child: SizedBox(
+                      key: const Key('summary-a4-page'),
+                      width: pageWidth,
+                      height: pageHeight,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0A1D32),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: .6),
+                          ),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: .48),
+                              blurRadius: 34,
+                              offset: const Offset(0, 15),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(7),
+                          child: Scrollbar(
+                            controller: scrollController,
+                            thumbVisibility: !compact,
+                            child: AnimatedBuilder(
+                              animation: controller,
+                              builder: (context, _) => CallbackShortcuts(
+                                bindings: <ShortcutActivator, VoidCallback>{
+                                  const SingleActivator(
+                                    LogicalKeyboardKey.keyB,
+                                    control: true,
+                                  ): () => controller.applyToSelection(
+                                        (style) => style.copyWith(
+                                          bold: !style.bold,
+                                        ),
+                                      ),
+                                  const SingleActivator(
+                                    LogicalKeyboardKey.keyI,
+                                    control: true,
+                                  ): () => controller.applyToSelection(
+                                        (style) => style.copyWith(
+                                          italic: !style.italic,
+                                        ),
+                                      ),
+                                  const SingleActivator(
+                                    LogicalKeyboardKey.keyU,
+                                    control: true,
+                                  ): () => controller.applyToSelection(
+                                        (style) => style.copyWith(
+                                          underline: !style.underline,
+                                        ),
+                                      ),
+                                  const SingleActivator(
+                                    LogicalKeyboardKey.keyK,
+                                    control: true,
+                                    shift: true,
+                                  ): controller.toggleCodeBlock,
+                                },
+                                child: TextField(
+                                  key: const ValueKey<String>(
+                                    'summary-body-field',
+                                  ),
+                                  controller: controller,
+                                  focusNode: focusNode,
+                                  undoController: undoController,
+                                  scrollController: scrollController,
+                                  expands: true,
+                                  minLines: null,
+                                  maxLines: null,
+                                  keyboardType: TextInputType.multiline,
+                                  textAlign: controller.flutterTextAlign,
+                                  textAlignVertical: TextAlignVertical.top,
+                                  strutStyle: StrutStyle(
+                                    fontSize: 16,
+                                    height: controller.lineHeight,
+                                    forceStrutHeight: false,
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    height: controller.lineHeight,
+                                    decoration: TextDecoration.none,
+                                  ),
+                                  cursorColor: AppColors.primaryLight,
+                                  scrollPadding: const EdgeInsets.all(88),
+                                  clipBehavior: Clip.hardEdge,
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'Comece pelo conceito principal. Use títulos, listas, destaques, exemplos e observações…',
+                                    hintStyle: TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 16,
+                                      height: controller.lineHeight,
+                                    ),
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    contentPadding: EdgeInsets.fromLTRB(
+                                      horizontalMargin,
+                                      verticalMargin,
+                                      horizontalMargin,
+                                      verticalMargin + 42,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
             color: AppColors.surfaceRaised.withValues(alpha: .8),
-            child: Row(
-              children: <Widget>[
-                Icon(Icons.lock_outline, size: 15, color: AppColors.green),
-                const SizedBox(width: 6),
-                const Expanded(
-                  child: Text(
-                    'Rascunho local automático • nada é enviado para a nuvem',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 11),
-                  ),
-                ),
-                AnimatedBuilder(
-                  animation: controller,
-                  builder: (_, __) => Text(
-                    '${controller.text.trim().isEmpty ? 0 : controller.text.trim().split(RegExp(r'\s+')).length} palavras',
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 11,
+            child: LayoutBuilder(
+              builder: (context, constraints) => Row(
+                children: <Widget>[
+                  Icon(Icons.lock_outline, size: 15, color: AppColors.green),
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      'Rascunho local automático • nada vai para a nuvem',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  AnimatedBuilder(
+                    animation: controller,
+                    builder: (_, __) {
+                      final trimmed = controller.text.trim();
+                      final words = trimmed.isEmpty
+                          ? 0
+                          : trimmed.split(RegExp(r'\s+')).length;
+                      final readingMinutes =
+                          words == 0 ? 0 : (words / 220).ceil();
+                      return Text(
+                        constraints.maxWidth < 660
+                            ? '$words palavras'
+                            : '$words palavras • ${controller.text.length} caracteres • $readingMinutes min',
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 11,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -1187,10 +1425,15 @@ class _SummaryEditorCanvas extends StatelessWidget {
 }
 
 class _RichTextToolbar extends StatelessWidget {
-  const _RichTextToolbar({required this.controller, required this.focusNode});
+  const _RichTextToolbar({
+    required this.controller,
+    required this.focusNode,
+    required this.undoController,
+  });
 
   final RichSummaryController controller;
   final FocusNode focusNode;
+  final UndoHistoryController undoController;
 
   void _run(VoidCallback action) {
     action();
@@ -1200,179 +1443,300 @@ class _RichTextToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: controller,
+      animation: Listenable.merge(<Listenable>[controller, undoController]),
       builder: (context, _) {
         final style = controller.activeStyle;
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: <Widget>[
-              PopupMenuButton<String>(
-                tooltip: 'Estilo do parágrafo',
-                onSelected: (value) => _run(() {
-                  switch (value) {
-                    case 'title':
-                      controller.applyHeading(30, bold: true);
-                      break;
-                    case 'subtitle':
-                      controller.applyHeading(23, bold: true);
-                      break;
-                    case 'heading':
-                      controller.applyHeading(19, bold: true);
-                      break;
-                    default:
-                      controller.applyHeading(16, bold: false);
-                      break;
-                  }
-                }),
-                itemBuilder: (_) => const <PopupMenuEntry<String>>[
-                  PopupMenuItem(value: 'body', child: Text('Texto normal')),
-                  PopupMenuItem(value: 'title', child: Text('Título grande')),
-                  PopupMenuItem(value: 'subtitle', child: Text('Subtítulo')),
-                  PopupMenuItem(value: 'heading', child: Text('Cabeçalho')),
-                ],
-                child: Container(
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 11),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(11),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: const Row(
-                    children: <Widget>[
-                      Icon(Icons.text_fields, size: 19),
-                      SizedBox(width: 7),
-                      Text('Estilo'),
-                      SizedBox(width: 3),
-                      Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 7),
-              _FormatButton(
-                tooltip: 'Diminuir fonte',
-                icon: Icons.text_decrease,
-                onPressed: () => _run(
-                  () => controller.applyToSelection(
-                    (current) => current.copyWith(
-                      fontSize: current.fontSize - 2,
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                width: 42,
-                alignment: Alignment.center,
-                child: Text(
-                  '${style.fontSize.round()}',
-                  style: TextStyle(
-                    color: AppColors.primaryLight,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              _FormatButton(
-                tooltip: 'Aumentar fonte',
-                icon: Icons.text_increase,
-                onPressed: () => _run(
-                  () => controller.applyToSelection(
-                    (current) => current.copyWith(
-                      fontSize: current.fontSize + 2,
-                    ),
-                  ),
-                ),
-              ),
-              const _ToolbarDivider(),
-              _FormatButton(
-                tooltip: 'Negrito',
-                icon: Icons.format_bold,
-                selected: style.bold,
-                onPressed: () => _run(
-                  () => controller.applyToSelection(
-                    (current) => current.copyWith(bold: !current.bold),
-                  ),
-                ),
-              ),
-              _FormatButton(
-                tooltip: 'Itálico',
-                icon: Icons.format_italic,
-                selected: style.italic,
-                onPressed: () => _run(
-                  () => controller.applyToSelection(
-                    (current) => current.copyWith(italic: !current.italic),
-                  ),
-                ),
-              ),
-              _FormatButton(
-                tooltip: 'Sublinhado',
-                icon: Icons.format_underlined,
-                selected: style.underline,
-                onPressed: () => _run(
-                  () => controller.applyToSelection(
-                    (current) => current.copyWith(
-                      underline: !current.underline,
-                    ),
-                  ),
-                ),
-              ),
-              _FormatButton(
-                tooltip: 'Tachado',
-                icon: Icons.format_strikethrough,
-                selected: style.strikeThrough,
-                onPressed: () => _run(
-                  () => controller.applyToSelection(
-                    (current) => current.copyWith(
-                      strikeThrough: !current.strikeThrough,
-                    ),
-                  ),
-                ),
-              ),
-              _FormatButton(
-                tooltip: 'Cor de destaque do aplicativo',
-                icon: Icons.format_color_text,
-                selected: style.accent,
-                onPressed: () => _run(
-                  () => controller.applyToSelection(
-                    (current) => current.copyWith(accent: !current.accent),
-                  ),
-                ),
-              ),
-              _FormatButton(
-                tooltip: 'Trecho de código',
-                icon: Icons.code,
-                selected: style.monospace,
-                onPressed: () => _run(
-                  () => controller.applyToSelection(
-                    (current) => current.copyWith(
-                      monospace: !current.monospace,
-                    ),
-                  ),
-                ),
-              ),
-              const _ToolbarDivider(),
-              _FormatButton(
-                tooltip: 'Lista com marcadores',
-                icon: Icons.format_list_bulleted,
-                onPressed: () => _run(
-                  () => controller.replaceParagraphsWithList(numbered: false),
-                ),
-              ),
-              _FormatButton(
-                tooltip: 'Lista numerada',
-                icon: Icons.format_list_numbered,
-                onPressed: () => _run(
-                  () => controller.replaceParagraphsWithList(numbered: true),
-                ),
-              ),
-              _FormatButton(
-                tooltip: 'Limpar formatação',
-                icon: Icons.format_clear,
-                onPressed: () => _run(controller.clearFormatting),
-              ),
-            ],
+        final tools = <Widget>[
+          _FormatButton(
+            tooltip: 'Desfazer (Ctrl+Z)',
+            icon: Icons.undo_rounded,
+            onPressed: undoController.value.canUndo
+                ? () => _run(undoController.undo)
+                : null,
           ),
+          _FormatButton(
+            tooltip: 'Refazer (Ctrl+Y)',
+            icon: Icons.redo_rounded,
+            onPressed: undoController.value.canRedo
+                ? () => _run(undoController.redo)
+                : null,
+          ),
+          const _ToolbarDivider(),
+          PopupMenuButton<String>(
+            tooltip: 'Estilo do parágrafo',
+            onSelected: (value) => _run(() {
+              switch (value) {
+                case 'title':
+                  controller.applyHeading(30, bold: true);
+                  break;
+                case 'subtitle':
+                  controller.applyHeading(23, bold: true);
+                  break;
+                case 'heading':
+                  controller.applyHeading(19, bold: true);
+                  break;
+                default:
+                  controller.applyHeading(16, bold: false);
+                  break;
+              }
+            }),
+            itemBuilder: (_) => const <PopupMenuEntry<String>>[
+              PopupMenuItem(value: 'body', child: Text('Texto normal')),
+              PopupMenuItem(value: 'title', child: Text('Título grande')),
+              PopupMenuItem(value: 'subtitle', child: Text('Subtítulo')),
+              PopupMenuItem(value: 'heading', child: Text('Cabeçalho')),
+            ],
+            child: Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 11),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Row(
+                children: <Widget>[
+                  Icon(Icons.text_fields, size: 19),
+                  SizedBox(width: 7),
+                  Text('Estilo'),
+                  SizedBox(width: 3),
+                  Icon(Icons.arrow_drop_down),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 7),
+          _FormatButton(
+            tooltip: 'Diminuir fonte',
+            icon: Icons.text_decrease,
+            onPressed: () => _run(
+              () => controller.applyToSelection(
+                (current) => current.copyWith(
+                  fontSize: current.fontSize - 2,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            width: 42,
+            alignment: Alignment.center,
+            child: Text(
+              '${style.fontSize.round()}',
+              style: TextStyle(
+                color: AppColors.primaryLight,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Aumentar fonte',
+            icon: Icons.text_increase,
+            onPressed: () => _run(
+              () => controller.applyToSelection(
+                (current) => current.copyWith(
+                  fontSize: current.fontSize + 2,
+                ),
+              ),
+            ),
+          ),
+          const _ToolbarDivider(),
+          _FormatButton(
+            tooltip: 'Negrito',
+            icon: Icons.format_bold,
+            selected: style.bold,
+            onPressed: () => _run(
+              () => controller.applyToSelection(
+                (current) => current.copyWith(bold: !current.bold),
+              ),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Itálico',
+            icon: Icons.format_italic,
+            selected: style.italic,
+            onPressed: () => _run(
+              () => controller.applyToSelection(
+                (current) => current.copyWith(italic: !current.italic),
+              ),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Sublinhado',
+            icon: Icons.format_underlined,
+            selected: style.underline,
+            onPressed: () => _run(
+              () => controller.applyToSelection(
+                (current) => current.copyWith(
+                  underline: !current.underline,
+                ),
+              ),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Tachado',
+            icon: Icons.format_strikethrough,
+            selected: style.strikeThrough,
+            onPressed: () => _run(
+              () => controller.applyToSelection(
+                (current) => current.copyWith(
+                  strikeThrough: !current.strikeThrough,
+                ),
+              ),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Cor de destaque do aplicativo',
+            icon: Icons.format_color_text,
+            selected: style.accent,
+            onPressed: () => _run(
+              () => controller.applyToSelection(
+                (current) => current.copyWith(accent: !current.accent),
+              ),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Marca-texto',
+            icon: Icons.format_color_fill_rounded,
+            selected: style.highlight,
+            onPressed: () => _run(
+              () => controller.applyToSelection(
+                (current) => current.copyWith(
+                  highlight: !current.highlight,
+                ),
+              ),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Código em linha',
+            icon: Icons.data_object_rounded,
+            selected: style.monospace,
+            onPressed: () => _run(
+              () => controller.applyToSelection(
+                (current) => current.copyWith(
+                  monospace: !current.monospace,
+                ),
+              ),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Bloco de código (Ctrl+Shift+K)',
+            icon: Icons.terminal_rounded,
+            selected: style.codeBlock,
+            onPressed: () => _run(controller.toggleCodeBlock),
+          ),
+          const _ToolbarDivider(),
+          PopupMenuButton<String>(
+            tooltip: 'Alinhamento do documento',
+            onSelected: (value) => _run(
+              () => controller.setTextAlignment(value),
+            ),
+            itemBuilder: (_) => const <PopupMenuEntry<String>>[
+              PopupMenuItem(value: 'left', child: Text('Alinhar à esquerda')),
+              PopupMenuItem(value: 'center', child: Text('Centralizar')),
+              PopupMenuItem(value: 'right', child: Text('Alinhar à direita')),
+              PopupMenuItem(value: 'justify', child: Text('Justificar texto')),
+            ],
+            child: _ToolbarMenuButton(
+              tooltip: 'Alinhamento',
+              icon: switch (controller.textAlignment) {
+                'center' => Icons.format_align_center_rounded,
+                'right' => Icons.format_align_right_rounded,
+                'justify' => Icons.format_align_justify_rounded,
+                _ => Icons.format_align_left_rounded,
+              },
+              label: 'Alinhar',
+            ),
+          ),
+          const SizedBox(width: 4),
+          PopupMenuButton<double>(
+            tooltip: 'Espaçamento entre linhas',
+            onSelected: (value) => _run(
+              () => controller.setLineHeight(value),
+            ),
+            itemBuilder: (_) => const <PopupMenuEntry<double>>[
+              PopupMenuItem(value: 1.15, child: Text('Compacto — 1,15')),
+              PopupMenuItem(value: 1.35, child: Text('Confortável — 1,35')),
+              PopupMenuItem(value: 1.55, child: Text('Padrão — 1,55')),
+              PopupMenuItem(value: 1.8, child: Text('Amplo — 1,80')),
+              PopupMenuItem(value: 2.0, child: Text('Duplo — 2,00')),
+            ],
+            child: _ToolbarMenuButton(
+              tooltip: 'Entrelinhas',
+              icon: Icons.format_line_spacing_rounded,
+              label: controller.lineHeight.toStringAsFixed(2),
+            ),
+          ),
+          const _ToolbarDivider(),
+          _FormatButton(
+            tooltip: 'Lista com marcadores',
+            icon: Icons.format_list_bulleted,
+            onPressed: () => _run(
+              () => controller.replaceParagraphsWithList(numbered: false),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Lista numerada',
+            icon: Icons.format_list_numbered,
+            onPressed: () => _run(
+              () => controller.replaceParagraphsWithList(numbered: true),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Lista de tarefas',
+            icon: Icons.check_box_outlined,
+            onPressed: () => _run(controller.replaceParagraphsWithChecklist),
+          ),
+          _FormatButton(
+            tooltip: 'Citação',
+            icon: Icons.format_quote_rounded,
+            onPressed: () => _run(controller.replaceParagraphsWithQuote),
+          ),
+          _FormatButton(
+            tooltip: 'Diminuir recuo',
+            icon: Icons.format_indent_decrease_rounded,
+            onPressed: () => _run(
+              () => controller.indentParagraphs(outdent: true),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Aumentar recuo',
+            icon: Icons.format_indent_increase_rounded,
+            onPressed: () => _run(
+              () => controller.indentParagraphs(outdent: false),
+            ),
+          ),
+          _FormatButton(
+            tooltip: 'Inserir linha divisória',
+            icon: Icons.horizontal_rule_rounded,
+            onPressed: () => _run(controller.insertDivider),
+          ),
+          const _ToolbarDivider(),
+          _FormatButton(
+            tooltip: 'Selecionar todo o texto',
+            icon: Icons.select_all_rounded,
+            onPressed: () => _run(controller.selectAllText),
+          ),
+          _FormatButton(
+            tooltip: 'Limpar formatação',
+            icon: Icons.format_clear,
+            onPressed: () => _run(controller.clearFormatting),
+          ),
+        ];
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 880) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: tools),
+              );
+            }
+            return Wrap(
+              spacing: 1,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: tools,
+            );
+          },
         );
       },
     );
@@ -1389,7 +1753,7 @@ class _FormatButton extends StatelessWidget {
 
   final String tooltip;
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool selected;
 
   @override
@@ -1409,6 +1773,47 @@ class _FormatButton extends StatelessWidget {
           ),
         ),
         icon: Icon(icon, size: 20),
+      ),
+    );
+  }
+}
+
+class _ToolbarMenuButton extends StatelessWidget {
+  const _ToolbarMenuButton({
+    required this.tooltip,
+    required this.icon,
+    required this.label,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 9),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(icon, size: 18, color: AppColors.primaryLight),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(width: 2),
+            const Icon(Icons.arrow_drop_down_rounded, size: 18),
+          ],
+        ),
       ),
     );
   }
@@ -1438,6 +1843,8 @@ class _SummaryAssetsPanel extends StatelessWidget {
     required this.onAddAttachments,
     required this.onRemoveImage,
     required this.onRemoveAttachment,
+    required this.expanded,
+    required this.onToggle,
   });
 
   final List<Map<String, dynamic>> images;
@@ -1448,6 +1855,8 @@ class _SummaryAssetsPanel extends StatelessWidget {
   final VoidCallback onAddAttachments;
   final ValueChanged<int> onRemoveImage;
   final ValueChanged<int> onRemoveAttachment;
+  final bool expanded;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -1456,138 +1865,154 @@ class _SummaryAssetsPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          const Row(
+          Row(
             children: <Widget>[
-              Icon(Icons.collections_bookmark_outlined, color: AppColors.green),
-              SizedBox(width: 8),
-              Expanded(
+              const Icon(
+                Icons.collections_bookmark_outlined,
+                color: AppColors.green,
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
                 child: Text(
                   'Materiais do resumo',
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
+              IconButton(
+                key: const Key('summary-toggle-assets'),
+                tooltip: expanded ? 'Recolher materiais' : 'Abrir materiais',
+                visualDensity: VisualDensity.compact,
+                onPressed: onToggle,
+                icon: Icon(
+                  expanded
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 13),
-          OutlinedButton.icon(
-            onPressed:
-                pickingImages || images.length >= 12 ? null : onAddImages,
-            icon: pickingImages
-                ? const SizedBox.square(
-                    dimension: 17,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.add_photo_alternate_outlined),
-            label: Text('Imagens (${images.length}/12)'),
-          ),
-          if (images.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 9),
-            SizedBox(
-              height: 94,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: images.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, index) => SizedBox(
-                  width: 108,
-                  child: Stack(
-                    children: <Widget>[
-                      Positioned.fill(
-                        child: _MemoryThumbnail(
-                          base64: images[index]['base64'] as String? ?? '',
-                          width: 108,
+          if (expanded) ...<Widget>[
+            const SizedBox(height: 11),
+            OutlinedButton.icon(
+              onPressed:
+                  pickingImages || images.length >= 12 ? null : onAddImages,
+              icon: pickingImages
+                  ? const SizedBox.square(
+                      dimension: 17,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.add_photo_alternate_outlined),
+              label: Text('Imagens (${images.length}/12)'),
+            ),
+            if (images.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 9),
+              SizedBox(
+                height: 94,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: images.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (_, index) => SizedBox(
+                    width: 108,
+                    child: Stack(
+                      children: <Widget>[
+                        Positioned.fill(
+                          child: _MemoryThumbnail(
+                            base64: images[index]['base64'] as String? ?? '',
+                            width: 108,
+                          ),
                         ),
-                      ),
-                      Positioned(
-                        right: 3,
-                        top: 3,
-                        child: IconButton.filled(
-                          visualDensity: VisualDensity.compact,
-                          tooltip: 'Remover imagem',
-                          onPressed: () => onRemoveImage(index),
-                          icon: const Icon(Icons.close, size: 15),
+                        Positioned(
+                          right: 3,
+                          top: 3,
+                          child: IconButton.filled(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: 'Remover imagem',
+                            onPressed: () => onRemoveImage(index),
+                            icon: const Icon(Icons.close, size: 15),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
+            ],
+            const SizedBox(height: 9),
+            OutlinedButton.icon(
+              onPressed: pickingAttachments || attachments.length >= 20
+                  ? null
+                  : onAddAttachments,
+              icon: pickingAttachments
+                  ? const SizedBox.square(
+                      dimension: 17,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.attach_file),
+              label: Text('Outros anexos (${attachments.length}/20)'),
+            ),
+            if (attachments.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 8),
+              ...List<Widget>.generate(attachments.length, (index) {
+                final attachment = attachments[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 7),
+                  padding: const EdgeInsets.fromLTRB(10, 7, 4, 7),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceRaised.withValues(alpha: .78),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Icon(
+                        _attachmentIcon(attachment['name'] as String? ?? ''),
+                        color: AppColors.orange,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              attachment['name'] as String? ?? 'Anexo',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Text(
+                              _formatBytes(
+                                (attachment['sizeBytes'] as num? ?? 0).toInt(),
+                              ),
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Remover anexo',
+                        onPressed: () => onRemoveAttachment(index),
+                        icon: const Icon(Icons.close, size: 18),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+            const SizedBox(height: 7),
+            const Text(
+              'Imagens e anexos entram no backup e na sincronização Wi‑Fi.',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 11),
             ),
           ],
-          const SizedBox(height: 9),
-          OutlinedButton.icon(
-            onPressed: pickingAttachments || attachments.length >= 20
-                ? null
-                : onAddAttachments,
-            icon: pickingAttachments
-                ? const SizedBox.square(
-                    dimension: 17,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.attach_file),
-            label: Text('Outros anexos (${attachments.length}/20)'),
-          ),
-          if (attachments.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 8),
-            ...List<Widget>.generate(attachments.length, (index) {
-              final attachment = attachments[index];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 7),
-                padding: const EdgeInsets.fromLTRB(10, 7, 4, 7),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceRaised.withValues(alpha: .78),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  children: <Widget>[
-                    Icon(
-                      _attachmentIcon(attachment['name'] as String? ?? ''),
-                      color: AppColors.orange,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            attachment['name'] as String? ?? 'Anexo',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          Text(
-                            _formatBytes(
-                              (attachment['sizeBytes'] as num? ?? 0).toInt(),
-                            ),
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Remover anexo',
-                      onPressed: () => onRemoveAttachment(index),
-                      icon: const Icon(Icons.close, size: 18),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-          const SizedBox(height: 7),
-          const Text(
-            'Imagens e anexos entram no backup e na sincronização Wi‑Fi.',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 11),
-          ),
         ],
       ),
     );
@@ -1713,11 +2138,12 @@ class AcademicSummaryDetailScreen extends StatelessWidget {
                                   )
                                 else
                                   RichText(
+                                    textAlign: document.flutterTextAlign,
                                     text: document.toTextSpan(
-                                      baseStyle: const TextStyle(
+                                      baseStyle: TextStyle(
                                         color: Color(0xFFDCEBFA),
                                         fontSize: 16,
-                                        height: 1.58,
+                                        height: document.lineHeight,
                                         decoration: TextDecoration.none,
                                       ),
                                       accentColor: AppColors.primaryLight,

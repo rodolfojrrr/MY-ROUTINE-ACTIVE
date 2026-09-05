@@ -1,6 +1,6 @@
 # Smart Routine SI
 
-**Versão 5.1.0 — ambiente acadêmico, cursos e resumos avançados 100% local**
+**Versão 5.3.0 — Editor A4 profissional e ambiente acadêmico 100% local**
 
 Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação em **Sistemas de Informação**, mas também organiza cursos livres, trilhas, certificações e estudos pessoais. Não há WebView, nuvem, analytics ou login externo: banco, imagens, projetos e credenciais ficam somente nos aparelhos do usuário.
 
@@ -8,13 +8,19 @@ Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação
 
 - contas locais para vários usuários, com senha, pergunta de segurança e código de recuperação;
 - migração automática dos dados existentes para a primeira conta, sem zerar o banco;
-- faculdade separada de cursos, sem misturar os dois históricos;
-- semestres mais atuais primeiro → cadeiras → conteúdos → resumos;
-- flashcards, provas/notas e simulados acessíveis dentro de cada cadeira;
+- Faculdade logo abaixo do Menu principal, separada de cursos e das demais ferramentas;
+- navegação visual por pastas: semestres → matérias → conteúdos → materiais;
+- semestre atual destacado e semestres mais recentes sempre primeiro;
+- matérias com cor, símbolo e imagem de fundo personalizados;
+- cada conteúdo reúne Resumos, Códigos, Imagens, Anexos, Simulados, Flashcards e Provas/Notas;
+- cadastros aparecem imediatamente na pasta aberta, sem sair e entrar novamente;
 - metas diárias flexíveis e cronograma semanal opcional;
 - cronômetro global que continua ao trocar de tela e volta **pausado** após fechar ou ocultar o aplicativo;
 - Kanban com Pendentes, Fazendo e Concluídas, movimentação livre, prazos e limpeza configurável;
-- editor de resumos em tela cheia, com títulos, tamanhos, negrito, itálico, sublinhado, tachado, listas, destaque e trechos de código;
+- editor de resumos em uma folha A4 escura, centralizada, com margens seguras, rolagem interna e modo foco;
+- painéis de organização e materiais mais estreitos, recolhíveis separadamente ou ocultáveis por completo no PC;
+- formatação profissional com desfazer/refazer, títulos, tamanhos, negrito, itálico, sublinhado, tachado, alinhamento, entrelinhas, marca-texto, listas, checklist, citação, recuo e divisória;
+- código em linha e blocos de código diferenciados, com fonte monoespaçada, fundo próprio, atalho de teclado e exportação formatada no PDF;
 - resumos com várias imagens, anexos de arquivos, rascunho automático e PDF individual;
 - cursos livres separados, com instituição, carga horária, progresso e imagens de certificados;
 - conversor local de arquivos para PDF;
@@ -30,12 +36,15 @@ Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação
 ```text
 Faculdade
 └── Semestre (mais atual primeiro)
-    └── Cadeira
-        ├── Conteúdos
-        │   └── Resumos, imagens e anexos
-        ├── Flashcards
-        ├── Provas, datas e notas
-        └── Simulados
+    └── Matéria (cor, símbolo e capa)
+        └── Conteúdo
+            ├── Resumos
+            ├── Códigos
+            ├── Imagens
+            ├── Anexos
+            ├── Simulados
+            ├── Flashcards
+            └── Provas, datas e notas
 
 Cursos
 └── Curso livre
@@ -54,11 +63,11 @@ Se o aplicativo for ocultado ou fechado, o estado é salvo e a sessão volta pau
 
 - rascunho local salvo durante a digitação;
 - restauração do rascunho ao reabrir o formulário;
-- cadeira e conteúdo relacionados;
+- matéria e conteúdo relacionados;
 - editor escuro integrado à paleta do aplicativo, amplo e responsivo;
 - formatação persistente por trecho e por parágrafo;
 - várias imagens JPG/PNG e até 20 anexos diversos por resumo;
-- filtros por semestre, cadeira e conteúdo;
+- filtros por semestre, matéria e conteúdo;
 - PDF individual com navegação de volta, identificação acadêmica, texto formatado, imagens e relação dos anexos;
 - conversor geral para imagens, texto, código, HTML e PDF;
 - no Windows, DOCX/XLSX/PPTX tentam usar LibreOffice ou Microsoft Office; sem esses programas, o aplicativo cria um PDF de leitura com o texto extraído.
@@ -108,7 +117,7 @@ No Android, os projetos podem ser criados, editados e sincronizados. No Windows,
 4. No GitHub, abra **Actions → Validar e gerar aplicativos**.
 5. Baixe `Smart-Routine-SI-Android` e `Smart-Routine-SI-Windows`.
 
-O workflow executa análise estática, 40 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
+O workflow executa análise estática, 49 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
 
 ## BATs incluídos
 

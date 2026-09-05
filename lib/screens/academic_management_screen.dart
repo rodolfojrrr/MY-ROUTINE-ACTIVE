@@ -1,11 +1,70 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../core/academic_data.dart';
+import '../core/academic_folder_style.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
+import '../core/file_transfer_service.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
 import 'academic_shared.dart';
+
+Future<void> showAcademicSemesterEditor(
+  BuildContext context,
+  AppStore store, {
+  SyncEntity? entity,
+}) =>
+    showDialog<void>(
+      context: context,
+      builder: (_) => _SemesterDialog(store: store, entity: entity),
+    );
+
+Future<void> showAcademicSubjectEditor(
+  BuildContext context,
+  AppStore store, {
+  SyncEntity? entity,
+  String? initialSemesterId,
+}) =>
+    showDialog<void>(
+      context: context,
+      builder: (_) => _SubjectDialog(
+        store: store,
+        entity: entity,
+        initialSemesterId: initialSemesterId,
+      ),
+    );
+
+Future<void> showAcademicContentEditor(
+  BuildContext context,
+  AppStore store, {
+  SyncEntity? entity,
+  String? initialSubjectId,
+}) =>
+    showDialog<void>(
+      context: context,
+      builder: (_) => _ContentDialog(
+        store: store,
+        entity: entity,
+        initialSubjectId: initialSubjectId,
+      ),
+    );
+
+Future<void> showAcademicScheduleEditor(
+  BuildContext context,
+  AppStore store, {
+  SyncEntity? entity,
+  String? initialSubjectId,
+}) =>
+    showDialog<void>(
+      context: context,
+      builder: (_) => _ScheduleDialog(
+        store: store,
+        entity: entity,
+        initialSubjectId: initialSubjectId,
+      ),
+    );
 
 class AcademicManagementScreen extends StatelessWidget {
   const AcademicManagementScreen({required this.store, super.key});
@@ -727,10 +786,15 @@ class _SemesterDialogState extends State<_SemesterDialog> {
 }
 
 class _SubjectDialog extends StatefulWidget {
-  const _SubjectDialog({required this.store, this.entity});
+  const _SubjectDialog({
+    required this.store,
+    this.entity,
+    this.initialSemesterId,
+  });
 
   final AppStore store;
   final SyncEntity? entity;
+  final String? initialSemesterId;
 
   @override
   State<_SubjectDialog> createState() => _SubjectDialogState();
@@ -744,6 +808,11 @@ class _SubjectDialogState extends State<_SubjectDialog> {
   late final TextEditingController workload;
   late final TextEditingController order;
   String? semesterId;
+  late int folderColor;
+  late String folderIcon;
+  late String coverImageBase64;
+  late String coverImageName;
+  bool pickingCover = false;
 
   @override
   void initState() {
@@ -767,10 +836,40 @@ class _SubjectDialogState extends State<_SubjectDialog> {
     order = TextEditingController(
       text: '${widget.entity?.payload['order'] ?? semesters.length + 1}',
     );
-    final existing = widget.entity?.payload['semesterId'] as String?;
+    final existing = widget.entity?.payload['semesterId'] as String? ??
+        widget.initialSemesterId;
     semesterId = semesters.any((item) => item.id == existing)
         ? existing
         : (semesters.isEmpty ? null : semesters.first.id);
+    folderColor = (widget.entity?.payload['folderColor'] as num?)?.toInt() ??
+        AcademicFolderStyle.colors.first.toARGB32();
+    folderIcon = widget.entity?.payload['folderIcon'] as String? ?? 'code';
+    coverImageBase64 =
+        widget.entity?.payload['coverImageBase64'] as String? ?? '';
+    coverImageName = widget.entity?.payload['coverImageName'] as String? ?? '';
+  }
+
+  Future<void> _pickCover() async {
+    if (pickingCover) return;
+    setState(() => pickingCover = true);
+    try {
+      final picked = await FileTransferService.pickImagePayload();
+      final bytes = picked?['imageBytes'];
+      if (picked != null && bytes is List<int> && mounted) {
+        setState(() {
+          coverImageBase64 = base64Encode(bytes);
+          coverImageName = picked['imageName'] as String? ?? 'capa.jpg';
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível usar a imagem: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => pickingCover = false);
+    }
   }
 
   @override
@@ -788,7 +887,7 @@ class _SubjectDialogState extends State<_SubjectDialog> {
   Widget build(BuildContext context) {
     final semesters = AcademicData.sortedSemesters(widget.store);
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Nova cadeira' : 'Editar cadeira'),
+      title: Text(widget.entity == null ? 'Nova matéria' : 'Editar matéria'),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
@@ -814,7 +913,7 @@ class _SubjectDialogState extends State<_SubjectDialog> {
               TextField(
                 controller: name,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Nome da cadeira'),
+                decoration: const InputDecoration(labelText: 'Nome da matéria'),
               ),
               const SizedBox(height: 12),
               Row(
@@ -866,6 +965,117 @@ class _SubjectDialogState extends State<_SubjectDialog> {
                   ),
                 ],
               ),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'APARÊNCIA DA PASTA',
+                  style: TextStyle(
+                    color: AppColors.primaryLight,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Wrap(
+                  spacing: 9,
+                  runSpacing: 9,
+                  children: AcademicFolderStyle.colors.map((color) {
+                    final selected = color.toARGB32() == folderColor;
+                    return Tooltip(
+                      message: 'Cor da pasta',
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(13),
+                        onTap: () =>
+                            setState(() => folderColor = color.toARGB32()),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 160),
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(13),
+                            border: Border.all(
+                              color: selected ? Colors.white : Colors.white24,
+                              width: selected ? 3 : 1,
+                            ),
+                          ),
+                          child: selected
+                              ? const Icon(Icons.check, color: Colors.white)
+                              : null,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: AcademicFolderStyle.icons.map((option) {
+                    return ChoiceChip(
+                      selected: folderIcon == option.id,
+                      onSelected: (_) => setState(() => folderIcon = option.id),
+                      avatar: Icon(option.icon, size: 18),
+                      label: Text(option.label),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: pickingCover ? null : _pickCover,
+                      icon: pickingCover
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.add_photo_alternate_outlined),
+                      label: Text(
+                        coverImageBase64.isEmpty
+                            ? 'Adicionar imagem de fundo'
+                            : 'Trocar imagem de fundo',
+                      ),
+                    ),
+                  ),
+                  if (coverImageBase64.isNotEmpty) ...<Widget>[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      tooltip: 'Remover imagem de fundo',
+                      onPressed: () => setState(() {
+                        coverImageBase64 = '';
+                        coverImageName = '';
+                      }),
+                      icon: const Icon(Icons.delete_outline),
+                    ),
+                  ],
+                ],
+              ),
+              if (coverImageName.isNotEmpty) ...<Widget>[
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    coverImageName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -889,6 +1099,10 @@ class _SubjectDialogState extends State<_SubjectDialog> {
                   'room': room.text.trim(),
                   'workload': int.tryParse(workload.text.trim()) ?? 0,
                   'order': int.tryParse(order.text.trim()) ?? 999,
+                  'folderColor': folderColor,
+                  'folderIcon': folderIcon,
+                  'coverImageBase64': coverImageBase64,
+                  'coverImageName': coverImageName,
                 },
                 id: widget.entity?.id);
             if (context.mounted) Navigator.pop(context);
@@ -901,10 +1115,15 @@ class _SubjectDialogState extends State<_SubjectDialog> {
 }
 
 class _ContentDialog extends StatefulWidget {
-  const _ContentDialog({required this.store, this.entity});
+  const _ContentDialog({
+    required this.store,
+    this.entity,
+    this.initialSubjectId,
+  });
 
   final AppStore store;
   final SyncEntity? entity;
+  final String? initialSubjectId;
 
   @override
   State<_ContentDialog> createState() => _ContentDialogState();
@@ -930,7 +1149,8 @@ class _ContentDialogState extends State<_ContentDialog> {
     order = TextEditingController(
       text: '${widget.entity?.payload['order'] ?? 1}',
     );
-    final existing = widget.entity?.payload['subjectId'] as String?;
+    final existing = widget.entity?.payload['subjectId'] as String? ??
+        widget.initialSubjectId;
     subjectId = subjects.any((item) => item.id == existing)
         ? existing
         : (subjects.isEmpty ? null : subjects.first.id);
@@ -963,7 +1183,8 @@ class _ContentDialogState extends State<_ContentDialog> {
             children: <Widget>[
               DropdownButtonFormField<String>(
                 initialValue: subjectId,
-                decoration: const InputDecoration(labelText: 'Cadeira'),
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Matéria'),
                 items: subjects
                     .map(
                       (item) => DropdownMenuItem<String>(
@@ -1045,10 +1266,15 @@ class _ContentDialogState extends State<_ContentDialog> {
 }
 
 class _ScheduleDialog extends StatefulWidget {
-  const _ScheduleDialog({required this.store, this.entity});
+  const _ScheduleDialog({
+    required this.store,
+    this.entity,
+    this.initialSubjectId,
+  });
 
   final AppStore store;
   final SyncEntity? entity;
+  final String? initialSubjectId;
 
   @override
   State<_ScheduleDialog> createState() => _ScheduleDialogState();
@@ -1066,7 +1292,8 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
   void initState() {
     super.initState();
     final subjects = AcademicData.academicSubjects(widget.store);
-    final existing = widget.entity?.payload['subjectId'] as String?;
+    final existing = widget.entity?.payload['subjectId'] as String? ??
+        widget.initialSubjectId;
     subjectId = subjects.any((item) => item.id == existing)
         ? existing
         : (subjects.isEmpty ? null : subjects.first.id);

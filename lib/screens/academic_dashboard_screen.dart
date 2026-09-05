@@ -103,7 +103,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
         _AcademicInfoStrip(
           items: <_InfoStripItem>[
             _InfoStripItem(
-              label: 'Cadeiras atuais',
+              label: 'Matérias atuais',
               value: '${currentSubjects.length}',
               icon: Icons.menu_book_outlined,
               color: AppColors.primary,
@@ -166,46 +166,89 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           store: widget.store,
           goals: todayGoals,
           tasks: openKanban,
-          onOpenGoals: () => widget.onOpenSection(1),
-          onOpenKanban: () => widget.onOpenSection(3),
+          onOpenGoals: () => widget.onOpenSection(2),
+          onOpenKanban: () => widget.onOpenSection(4),
         ),
         const SizedBox(height: 24),
         AcademicSectionTitle(
           title: 'Sua graduação',
-          subtitle:
-              'Semestres mais recentes primeiro. Abra uma cadeira para acessar conteúdos e ferramentas.',
+          subtitle: 'A organização completa agora fica na nova área Faculdade.',
           trailing: TextButton(
-            onPressed: () => widget.onOpenSection(8),
-            child: const Text('Organizar'),
+            onPressed: () => widget.onOpenSection(1),
+            child: const Text('Abrir Faculdade'),
           ),
         ),
         const SizedBox(height: 12),
         if (semesters.isEmpty && allSubjects.isEmpty)
-          const EmptyState(
-            icon: Icons.school_outlined,
-            title: 'Sua graduação começa aqui',
-            message:
-                'Abra Faculdade no menu lateral e cadastre o semestre atual, as cadeiras e seus conteúdos.',
+          PremiumCard(
+            onTap: () => widget.onOpenSection(1),
+            borderColor: AppColors.primary.withValues(alpha: .45),
+            child: const ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.create_new_folder_outlined),
+              title: Text(
+                'Sua graduação começa aqui',
+                style: TextStyle(fontWeight: FontWeight.w900),
+              ),
+              subtitle: Text(
+                'Abra Faculdade e crie o semestre atual.',
+                style: TextStyle(color: AppColors.textMuted),
+              ),
+              trailing: Icon(Icons.arrow_forward_rounded),
+            ),
           )
-        else ...<Widget>[
-          ...semesters.map(
-            (semester) => Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: _SemesterViewer(store: widget.store, semester: semester),
+        else
+          PremiumCard(
+            onTap: () => widget.onOpenSection(1),
+            borderColor: AppColors.primary.withValues(alpha: .45),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: .15),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    Icons.folder_special_rounded,
+                    color: AppColors.primaryLight,
+                  ),
+                ),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        currentSemester?.payload['name'] as String? ??
+                            semesters.first.payload['name'] as String? ??
+                            'Faculdade',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${currentSubjects.length} matéria(s) • organização por pastas',
+                        style: const TextStyle(color: AppColors.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_rounded, color: AppColors.primary),
+              ],
             ),
           ),
-          if (AcademicData.subjectsForSemester(widget.store, null).isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: _UnassignedSubjectsViewer(store: widget.store),
-            ),
-        ],
         const SizedBox(height: 24),
         AcademicSectionTitle(
           title: 'Próximas avaliações',
           subtitle: 'Provas, trabalhos, projetos e apresentações.',
           trailing: TextButton(
-            onPressed: () => widget.onOpenSection(5),
+            onPressed: () => widget.onOpenSection(6),
             child: const Text('Ver agenda'),
           ),
         ),
@@ -259,21 +302,21 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                 color: AppColors.primary,
                 title: 'Biblioteca de resumos',
                 subtitle: 'Texto, imagens e PDF por conteúdo.',
-                onTap: () => widget.onOpenSection(2),
+                onTap: () => widget.onOpenSection(3),
               ),
               AcademicActionCard(
                 icon: Icons.quiz_outlined,
                 color: AppColors.green,
                 title: 'Treinar com simulados',
                 subtitle: 'Questões filtradas por matéria e conteúdo.',
-                onTap: () => widget.onOpenSection(4),
+                onTap: () => widget.onOpenSection(5),
               ),
               AcademicActionCard(
                 icon: Icons.terminal_rounded,
                 color: AppColors.cyan,
                 title: 'Abrir IDE acadêmica',
                 subtitle: 'Projetos de código ligados às matérias.',
-                onTap: () => widget.onOpenSection(6),
+                onTap: () => widget.onOpenSection(7),
               ),
             ];
             if (constraints.maxWidth >= 960) {
@@ -726,6 +769,7 @@ class _ScheduleViewer extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _SemesterViewer extends StatelessWidget {
   const _SemesterViewer({required this.store, required this.semester});
 
@@ -814,6 +858,7 @@ class _SemesterViewer extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _UnassignedSubjectsViewer extends StatelessWidget {
   const _UnassignedSubjectsViewer({required this.store});
 
