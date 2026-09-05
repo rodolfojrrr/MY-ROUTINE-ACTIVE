@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -107,6 +108,62 @@ class FileTransferService {
     return result;
   }
 
+  static Future<List<Map<String, dynamic>>> pickAttachmentPayloads() async {
+    final picked = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Selecionar anexos do resumo',
+      type: FileType.any,
+      allowMultiple: true,
+      withData: true,
+    );
+    if (picked == null || picked.files.isEmpty) return <Map<String, dynamic>>[];
+    if (picked.files.length > 10) {
+      throw const FileSystemException('Selecione no máximo 10 anexos por vez.');
+    }
+    final result = <Map<String, dynamic>>[];
+    var totalBytes = 0;
+    for (final file in picked.files) {
+      final bytes = file.bytes ??
+          (file.path == null ? null : await File(file.path!).readAsBytes());
+      if (bytes == null) continue;
+      if (bytes.length > 20 * 1024 * 1024) {
+        throw FileSystemException(
+          'O arquivo ${file.name} ultrapassa o limite de 20 MB.',
+        );
+      }
+      totalBytes += bytes.length;
+      if (totalBytes > 48 * 1024 * 1024) {
+        throw const FileSystemException(
+          'Os anexos selecionados ultrapassam o limite total de 48 MB.',
+        );
+      }
+      result.add(<String, dynamic>{
+        'name': file.name,
+        'extension': file.extension ?? _extensionFromName(file.name),
+        'sizeBytes': bytes.length,
+        'base64': base64Encode(bytes),
+      });
+    }
+    return result;
+  }
+
+  static Future<String?> saveAttachment(Map<String, dynamic> attachment) {
+    final name = attachment['name'] as String? ?? 'anexo';
+    final encoded = attachment['base64'] as String? ?? '';
+    if (encoded.isEmpty) {
+      throw const FileSystemException('O anexo não possui dados.');
+    }
+    final extension =
+        (attachment['extension'] as String? ?? _extensionFromName(name))
+            .replaceAll('.', '')
+            .toLowerCase();
+    return saveBytes(
+      bytes: base64Decode(encoded),
+      fileName: name,
+      dialogTitle: 'Salvar anexo do resumo',
+      extension: extension.isEmpty ? 'bin' : extension,
+    );
+  }
+
   static Future<String?> saveBytes({
     required Uint8List bytes,
     required String fileName,
@@ -120,5 +177,11 @@ class FileTransferService {
       allowedExtensions: <String>[extension],
       bytes: bytes,
     );
+  }
+
+  static String _extensionFromName(String name) {
+    final separator = name.lastIndexOf('.');
+    if (separator < 0 || separator == name.length - 1) return '';
+    return name.substring(separator + 1).toLowerCase();
   }
 }

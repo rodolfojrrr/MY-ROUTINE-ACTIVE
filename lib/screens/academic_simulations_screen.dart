@@ -12,9 +12,16 @@ import '../widgets/premium_widgets.dart';
 import 'academic_shared.dart';
 
 class AcademicSimulationsScreen extends StatefulWidget {
-  const AcademicSimulationsScreen({required this.store, super.key});
+  const AcademicSimulationsScreen({
+    required this.store,
+    this.initialSubjectId,
+    this.initialContentId,
+    super.key,
+  });
 
   final AppStore store;
+  final String? initialSubjectId;
+  final String? initialContentId;
 
   @override
   State<AcademicSimulationsScreen> createState() =>
@@ -27,13 +34,26 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
   String? contentId;
 
   @override
+  void initState() {
+    super.initState();
+    subjectId = widget.initialSubjectId;
+    contentId = widget.initialContentId;
+  }
+
+  @override
   void dispose() {
     search.dispose();
     super.dispose();
   }
 
   void _newQuestion() {
-    if (widget.store.records(EntityTypes.studyContent).isEmpty) {
+    final academicSubjectIds = AcademicData.academicSubjects(widget.store)
+        .map((item) => item.id)
+        .toSet();
+    final hasAcademicContent = widget.store
+        .records(EntityTypes.studyContent)
+        .any((item) => academicSubjectIds.contains(item.payload['subjectId']));
+    if (!hasAcademicContent) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -45,12 +65,22 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
     }
     showDialog<void>(
       context: context,
-      builder: (_) => AcademicQuestionEditorDialog(store: widget.store),
+      builder: (_) => AcademicQuestionEditorDialog(
+        store: widget.store,
+        initialSubjectId: subjectId,
+        initialContentId: contentId,
+      ),
     );
   }
 
   Future<void> _startMock() async {
-    if (widget.store.records(EntityTypes.studyQuestion).isEmpty) {
+    final academicSubjectIds = AcademicData.academicSubjects(widget.store)
+        .map((item) => item.id)
+        .toSet();
+    final hasAcademicQuestions = widget.store
+        .records(EntityTypes.studyQuestion)
+        .any((item) => academicSubjectIds.contains(item.payload['subjectId']));
+    if (!hasAcademicQuestions) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cadastre questões antes do simulado.')),
       );
@@ -58,7 +88,11 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
     }
     final config = await showDialog<AcademicMockConfiguration>(
       context: context,
-      builder: (_) => AcademicMockSetupDialog(store: widget.store),
+      builder: (_) => AcademicMockSetupDialog(
+        store: widget.store,
+        initialSubjectId: subjectId,
+        initialContentId: contentId,
+      ),
     );
     if (!mounted || config == null) return;
     await Navigator.of(context).push(
@@ -73,17 +107,19 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = widget.store.records(EntityTypes.subject).toList()
+    final subjects = AcademicData.academicSubjects(widget.store)
       ..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
         ),
       );
+    final academicSubjectIds = subjects.map((item) => item.id).toSet();
     final contents = AcademicData.contentsForSubject(widget.store, subjectId);
     final term = search.text.trim().toLowerCase();
     final questions = widget.store.records(EntityTypes.studyQuestion).where((
       item,
     ) {
+      if (!academicSubjectIds.contains(item.payload['subjectId'])) return false;
       if (subjectId != null && item.payload['subjectId'] != subjectId) {
         return false;
       }
@@ -104,7 +140,12 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
         ),
       ].join(' ').toLowerCase().contains(term);
     }).toList();
-    final mocks = widget.store.records(EntityTypes.mockExam);
+    final mocks = widget.store.records(EntityTypes.mockExam).where((item) {
+      final linkedSubject = item.payload['subjectId'];
+      if (subjectId != null) return linkedSubject == subjectId;
+      return linkedSubject == null ||
+          academicSubjectIds.contains(linkedSubject);
+    }).toList();
     final totalAttempts = questions.fold<int>(
       0,
       (sum, item) => sum + (item.payload['attempts'] as num? ?? 0).toInt(),
@@ -129,8 +170,7 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
           children: <Widget>[
             MetricCard(
               label: 'Questões cadastradas',
-              value:
-                  '${widget.store.records(EntityTypes.studyQuestion).length}',
+              value: '${questions.length}',
               icon: Icons.quiz_outlined,
               color: AppColors.primary,
             ),
@@ -191,7 +231,9 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
             SizedBox(
               width: 250,
               child: DropdownButtonFormField<String?>(
-                initialValue: subjectId,
+                key: ValueKey<String?>('simulation-subject-$subjectId'),
+                initialValue:
+                    academicSubjectIds.contains(subjectId) ? subjectId : null,
                 decoration: const InputDecoration(labelText: 'Matéria'),
                 items: <DropdownMenuItem<String?>>[
                   const DropdownMenuItem<String?>(
@@ -214,7 +256,10 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
             SizedBox(
               width: 270,
               child: DropdownButtonFormField<String?>(
-                initialValue: contentId,
+                key: ValueKey<String?>('simulation-content-$subjectId'),
+                initialValue: contents.any((item) => item.id == contentId)
+                    ? contentId
+                    : null,
                 decoration: const InputDecoration(labelText: 'Conteúdo'),
                 items: <DropdownMenuItem<String?>>[
                   const DropdownMenuItem<String?>(
@@ -407,7 +452,7 @@ class _AcademicQuestionEditorDialogState
   @override
   void initState() {
     super.initState();
-    final subjects = widget.store.records(EntityTypes.subject);
+    final subjects = AcademicData.academicSubjects(widget.store);
     final preferredSubject = widget.entity?.payload['subjectId'] as String? ??
         widget.initialSubjectId;
     subjectId = subjects.any((item) => item.id == preferredSubject)
@@ -452,7 +497,7 @@ class _AcademicQuestionEditorDialogState
 
   @override
   Widget build(BuildContext context) {
-    final subjects = widget.store.records(EntityTypes.subject).toList()
+    final subjects = AcademicData.academicSubjects(widget.store)
       ..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
@@ -637,9 +682,16 @@ class AcademicMockConfiguration {
 }
 
 class AcademicMockSetupDialog extends StatefulWidget {
-  const AcademicMockSetupDialog({required this.store, super.key});
+  const AcademicMockSetupDialog({
+    required this.store,
+    this.initialSubjectId,
+    this.initialContentId,
+    super.key,
+  });
 
   final AppStore store;
+  final String? initialSubjectId;
+  final String? initialContentId;
 
   @override
   State<AcademicMockSetupDialog> createState() =>
@@ -652,8 +704,19 @@ class _AcademicMockSetupDialogState extends State<AcademicMockSetupDialog> {
   int questionCount = 10;
   int durationMinutes = 30;
 
+  @override
+  void initState() {
+    super.initState();
+    subjectId = widget.initialSubjectId;
+    contentId = widget.initialContentId;
+  }
+
   List<SyncEntity> get available {
+    final academicSubjectIds = AcademicData.academicSubjects(widget.store)
+        .map((item) => item.id)
+        .toSet();
     return widget.store.records(EntityTypes.studyQuestion).where((item) {
+      if (!academicSubjectIds.contains(item.payload['subjectId'])) return false;
       if (subjectId != null && item.payload['subjectId'] != subjectId) {
         return false;
       }
@@ -666,7 +729,7 @@ class _AcademicMockSetupDialogState extends State<AcademicMockSetupDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = widget.store.records(EntityTypes.subject).toList()
+    final subjects = AcademicData.academicSubjects(widget.store)
       ..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
@@ -688,7 +751,10 @@ class _AcademicMockSetupDialogState extends State<AcademicMockSetupDialog> {
             ),
             const SizedBox(height: 14),
             DropdownButtonFormField<String?>(
-              initialValue: subjectId,
+              key: ValueKey<String?>('mock-subject-$subjectId'),
+              initialValue: subjects.any((item) => item.id == subjectId)
+                  ? subjectId
+                  : null,
               decoration: const InputDecoration(labelText: 'Matéria'),
               items: <DropdownMenuItem<String?>>[
                 const DropdownMenuItem<String?>(
@@ -709,7 +775,10 @@ class _AcademicMockSetupDialogState extends State<AcademicMockSetupDialog> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String?>(
-              initialValue: contentId,
+              key: ValueKey<String?>('mock-content-$subjectId'),
+              initialValue: contents.any((item) => item.id == contentId)
+                  ? contentId
+                  : null,
               decoration: const InputDecoration(labelText: 'Conteúdo'),
               items: <DropdownMenuItem<String?>>[
                 const DropdownMenuItem<String?>(

@@ -1,4 +1,4 @@
-SMART ROUTINE SI 5.0.1+51 — MANIFESTO DO PACOTE
+SMART ROUTINE SI 5.1.0+52 — MANIFESTO DO PACOTE
 ================================================
 
 ESCOPO
@@ -6,7 +6,9 @@ ESCOPO
 - Uso local/offline, sem WebView e sem nuvem.
 - Foco em Sistemas de Informação, faculdade, cursos e estudos gerais.
 - Contas locais, metas, cronograma, timer persistente, Kanban, rascunhos,
-  resumos/PDF, conversor, temas, simulados, flashcards e IDE acadêmica.
+  editor rico de resumos/anexos/PDF, conversor, temas, simulados,
+  flashcards e IDE acadêmica.
+- Faculdade e cursos em áreas separadas; certificados locais nos cursos.
 - Backup .mra/.mra.gz, lixeira e sincronização Wi-Fi bidirecional.
 
 COMPATIBILIDADE
@@ -17,7 +19,7 @@ COMPATIBILIDADE
 
 VALIDAÇÃO DA ENTREGA
 - dart analyze: nenhum problema.
-- flutter test: 32 testes aprovados.
+- flutter test: 40 testes aprovados.
 - Migração v1 → v2 com dados preservados.
 - Contas isoladas e recuperação de senha testadas.
 - Rascunho e digitação contínua testados.
@@ -25,4 +27,5 @@ VALIDAÇÃO DA ENTREGA
 - .mra e .mra.gz testados.
 - Telas novas testadas em 360 × 760 e navegação em celular/desktop.
 - Menu lateral do desktop testado aberto, recolhido e restaurado por preferência.
+- Editor rico e separação entre faculdade/cursos cobertos por testes.
 - Repositório auditado sem banco, backup, chave privada ou credencial pessoal.

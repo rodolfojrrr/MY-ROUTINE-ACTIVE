@@ -1,20 +1,28 @@
-SMART ROUTINE SI — V5.0.1 ESTUDOS PRO, LOCAL E MULTIUSUÁRIO
+SMART ROUTINE SI — V5.1.0 AMBIENTE ACADÊMICO E RESUMOS AVANÇADOS
 ============================================================
 
 Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
 Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
 
 PRINCIPAIS NOVIDADES
+- Editor grande de resumos com títulos, tamanhos, estilos, listas e código.
+- Visual escuro e responsivo, usando a cor escolhida no aplicativo.
+- Imagens e anexos diversos em cada resumo, com rascunho automático.
+- PDF formatado, com botão de voltar e relação dos anexos.
+- Faculdade: semestre -> cadeira -> conteúdo -> resumo.
+- Flashcards, provas/notas e simulados dentro de cada cadeira.
+- Nova aba Cursos, separada da faculdade, com imagens dos certificados.
+- Início reorganizado: horário, metas/atividades e graduação em cards compactos.
 - Vários usuários locais com login, senha e recuperação.
 - Migração dos dados antigos para a primeira conta sem zerar o banco.
 - Metas diárias e cronograma semanal flexível.
 - Cronômetro global: continua nos menus e volta pausado após fechar o app.
 - Rascunho automático dos resumos durante a digitação.
-- Resumos com imagens e PDF individual.
+- Resumos antigos continuam abrindo normalmente e recebem o novo editor ao editar.
 - Conversor local de arquivos para PDF.
 - Kanban: Pendentes, Fazendo e Concluídas, com limpeza configurável.
 - Temas azul, roxo, cinza, verde, amarelo e colorido.
-- Semestres, cursos e trilhas, matérias e conteúdos bem separados.
+- Faculdade e cursos agora aparecem em áreas realmente separadas.
 - Importação direta de .mra e .mra.gz recebido pelo WhatsApp.
 - Lixeira de segurança e sincronização Wi-Fi preservada e melhorada.
 - Interface testada em celular compacto e desktop.

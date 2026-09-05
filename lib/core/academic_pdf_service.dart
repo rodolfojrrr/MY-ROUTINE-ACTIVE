@@ -8,6 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'academic_data.dart';
 import 'app_store.dart';
 import 'file_transfer_service.dart';
+import 'rich_summary_document.dart';
 import 'sync_entity.dart';
 
 class AcademicPdfService {
@@ -28,7 +29,8 @@ class AcademicPdfService {
         .byId(summary.payload['subjectId'] as String? ?? '')
         ?.payload['semesterId'] as String?;
     final semester = AcademicData.semesterName(store, semesterId);
-    final body = summary.payload['body'] as String? ?? '';
+    final richDocument = AcademicData.summaryDocument(summary);
+    final attachments = AcademicData.summaryAttachments(summary);
     final imageWidgets = <pw.Widget>[];
 
     for (final item in AcademicData.summaryImages(summary)) {
@@ -76,7 +78,7 @@ class AcademicPdfService {
           padding: const pw.EdgeInsets.only(bottom: 10),
           decoration: const pw.BoxDecoration(
             border: pw.Border(
-              bottom: pw.BorderSide(color: PdfColors.deepPurple400, width: 1),
+              bottom: pw.BorderSide(color: PdfColors.blue400, width: 1),
             ),
           ),
           child: pw.Row(
@@ -85,7 +87,7 @@ class AcademicPdfService {
               pw.Text(
                 'SMART ROUTINE SI',
                 style: pw.TextStyle(
-                  color: PdfColors.deepPurple600,
+                  color: PdfColors.blue700,
                   fontSize: 10,
                   fontWeight: pw.FontWeight.bold,
                   letterSpacing: 1.2,
@@ -125,21 +127,62 @@ class AcademicPdfService {
             children: <pw.Widget>[_tag(semester), _tag(subject), _tag(content)],
           ),
           pw.SizedBox(height: 22),
-          if (body.trim().isEmpty)
+          if (richDocument.text.trim().isEmpty)
             pw.Text(
               'Este resumo não possui texto.',
               style: const pw.TextStyle(color: PdfColors.grey600),
             )
           else
-            pw.Text(
-              body,
-              style: const pw.TextStyle(
-                fontSize: 11.5,
-                lineSpacing: 4,
-                color: PdfColors.blueGrey900,
+            pw.RichText(
+              text: pw.TextSpan(
+                style: const pw.TextStyle(
+                  fontSize: 11.5,
+                  lineSpacing: 4,
+                  color: PdfColors.blueGrey900,
+                ),
+                children: richDocument.segments
+                    .map(
+                      (segment) => pw.TextSpan(
+                        text: segment.text,
+                        style: _pdfTextStyle(segment.style),
+                      ),
+                    )
+                    .toList(growable: false),
               ),
             ),
           ...imageWidgets,
+          if (attachments.isNotEmpty) ...<pw.Widget>[
+            pw.SizedBox(height: 18),
+            pw.Text(
+              'ANEXOS DO RESUMO',
+              style: pw.TextStyle(
+                color: PdfColors.blue700,
+                fontSize: 10,
+                fontWeight: pw.FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+            pw.SizedBox(height: 7),
+            ...attachments.map(
+              (item) => pw.Padding(
+                padding: const pw.EdgeInsets.only(bottom: 4),
+                child: pw.Text(
+                  '• ${item['name'] as String? ?? 'Anexo'} (${_formatBytes((item['sizeBytes'] as num? ?? 0).toInt())})',
+                  style: const pw.TextStyle(
+                    color: PdfColors.blueGrey800,
+                    fontSize: 9.5,
+                  ),
+                ),
+              ),
+            ),
+            pw.Text(
+              'Os arquivos originais permanecem anexados ao resumo no Smart Routine SI.',
+              style: const pw.TextStyle(
+                color: PdfColors.grey600,
+                fontSize: 8.5,
+              ),
+            ),
+          ],
           pw.SizedBox(height: 22),
           pw.Divider(color: PdfColors.grey300),
           pw.Text(
@@ -163,13 +206,44 @@ class AcademicPdfService {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: pw.BoxDecoration(
-        color: PdfColors.deepPurple50,
+        color: PdfColors.blue50,
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(12)),
       ),
       child: pw.Text(
         text,
-        style: const pw.TextStyle(color: PdfColors.deepPurple700, fontSize: 9),
+        style: const pw.TextStyle(color: PdfColors.blue700, fontSize: 9),
       ),
     );
+  }
+
+  static pw.TextStyle _pdfTextStyle(SummaryTextStyle value) {
+    final decorations = <pw.TextDecoration>[
+      if (value.underline) pw.TextDecoration.underline,
+      if (value.strikeThrough) pw.TextDecoration.lineThrough,
+    ];
+    return pw.TextStyle(
+      color: value.accent ? PdfColors.blue700 : PdfColors.blueGrey900,
+      fontSize: (value.fontSize * .72).clamp(9, 22).toDouble(),
+      fontWeight: value.bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+      fontStyle: value.italic ? pw.FontStyle.italic : pw.FontStyle.normal,
+      fontNormal: value.monospace ? pw.Font.courier() : null,
+      fontBold: value.monospace ? pw.Font.courierBold() : null,
+      fontItalic: value.monospace ? pw.Font.courierOblique() : null,
+      fontBoldItalic: value.monospace ? pw.Font.courierBoldOblique() : null,
+      lineSpacing: 4,
+      decoration: decorations.isEmpty
+          ? pw.TextDecoration.none
+          : pw.TextDecoration.combine(decorations),
+      decorationColor: value.accent ? PdfColors.blue700 : PdfColors.blueGrey900,
+    );
+  }
+
+  static String _formatBytes(int bytes) {
+    if (bytes <= 0) return 'tamanho não informado';
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 }

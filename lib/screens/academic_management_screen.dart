@@ -26,10 +26,10 @@ class AcademicManagementScreen extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1180),
                   child: PageIntro(
-                    eyebrow: 'Estrutura dos estudos',
-                    title: 'Organização acadêmica',
+                    eyebrow: 'Sua graduação',
+                    title: 'Área acadêmica',
                     subtitle:
-                        'Organize faculdade e cursos na ordem: período, matéria, conteúdo e horário. Seus dados antigos continuam na mesma estrutura.',
+                        'Organize a faculdade na ordem: semestre, cadeira, conteúdo e horário. Cursos livres agora ficam em uma área própria.',
                     color: AppColors.primary,
                   ),
                 ),
@@ -38,10 +38,8 @@ class AcademicManagementScreen extends StatelessWidget {
             const TabBar(
               isScrollable: true,
               tabs: <Widget>[
-                Tab(
-                    icon: Icon(Icons.layers_outlined),
-                    text: 'Períodos e cursos'),
-                Tab(icon: Icon(Icons.menu_book_outlined), text: 'Matérias'),
+                Tab(icon: Icon(Icons.layers_outlined), text: 'Semestres'),
+                Tab(icon: Icon(Icons.menu_book_outlined), text: 'Cadeiras'),
                 Tab(icon: Icon(Icons.account_tree_outlined), text: 'Conteúdos'),
                 Tab(icon: Icon(Icons.calendar_view_week), text: 'Horários'),
               ],
@@ -106,16 +104,16 @@ class _SemestersTab extends StatelessWidget {
               builder: (_) => _SemesterDialog(store: store),
             ),
             icon: const Icon(Icons.add),
-            label: const Text('Novo período ou curso'),
+            label: const Text('Novo semestre'),
           ),
         ),
         const SizedBox(height: 16),
         if (semesters.isEmpty)
           const EmptyState(
             icon: Icons.layers_outlined,
-            title: 'Nenhum período ou curso cadastrado',
+            title: 'Nenhum semestre cadastrado',
             message:
-                'Comece pelo semestre atual ou crie um curso livre, trilha ou certificação.',
+                'Comece pelo semestre atual da faculdade. Cursos livres ficam no menu Cursos.',
           )
         else
           ...semesters.map((semester) {
@@ -124,7 +122,6 @@ class _SemestersTab extends StatelessWidget {
               semester.id,
             );
             final status = semester.payload['status'] as String? ?? 'current';
-            final kind = semester.payload['kind'] as String? ?? 'semester';
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: PremiumCard(
@@ -152,7 +149,7 @@ class _SemestersTab extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${_studyGroupKindLabel(kind)} • ${semester.payload['year'] ?? ''}${kind == 'semester' ? '.${semester.payload['term'] ?? ''}' : ''} • ${subjects.length} matéria(s)',
+                            'Semestre acadêmico • ${semester.payload['year'] ?? ''}.${semester.payload['term'] ?? ''} • ${subjects.length} cadeira(s)',
                             style: const TextStyle(color: AppColors.textMuted),
                           ),
                           const SizedBox(height: 7),
@@ -164,7 +161,7 @@ class _SemestersTab extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Editar período ou curso',
+                      tooltip: 'Editar semestre',
                       onPressed: () => showDialog<void>(
                         context: context,
                         builder: (_) =>
@@ -192,9 +189,9 @@ class _SubjectsTab extends StatelessWidget {
   final AppStore store;
 
   void _create(BuildContext context) {
-    if (store.records(EntityTypes.semester).isEmpty) {
+    if (AcademicData.sortedSemesters(store).isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cadastre um período ou curso primeiro.')),
+        const SnackBar(content: Text('Cadastre um semestre primeiro.')),
       );
       return;
     }
@@ -206,7 +203,7 @@ class _SubjectsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = store.records(EntityTypes.subject).toList()
+    final subjects = AcademicData.academicSubjects(store)
       ..sort((a, b) {
         final semester = AcademicData.semesterName(
           store,
@@ -229,16 +226,16 @@ class _SubjectsTab extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () => _create(context),
             icon: const Icon(Icons.add),
-            label: const Text('Nova matéria'),
+            label: const Text('Nova cadeira'),
           ),
         ),
         const SizedBox(height: 16),
         if (subjects.isEmpty)
           const EmptyState(
             icon: Icons.menu_book_outlined,
-            title: 'Nenhuma matéria cadastrada',
+            title: 'Nenhuma cadeira cadastrada',
             message:
-                'Depois de criar o período ou curso, adicione as matérias estudadas nele.',
+                'Depois de criar o semestre, adicione as cadeiras cursadas nele.',
           )
         else
           ...subjects.map((subject) {
@@ -284,7 +281,7 @@ class _SubjectsTab extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Editar matéria',
+                      tooltip: 'Editar cadeira',
                       onPressed: () => showDialog<void>(
                         context: context,
                         builder: (_) =>
@@ -312,9 +309,9 @@ class _ContentsTab extends StatelessWidget {
   final AppStore store;
 
   void _create(BuildContext context) {
-    if (store.records(EntityTypes.subject).isEmpty) {
+    if (AcademicData.academicSubjects(store).isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cadastre uma matéria primeiro.')),
+        const SnackBar(content: Text('Cadastre uma cadeira primeiro.')),
       );
       return;
     }
@@ -326,7 +323,7 @@ class _ContentsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = store.records(EntityTypes.subject).toList()
+    final subjects = AcademicData.academicSubjects(store)
       ..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
@@ -346,8 +343,8 @@ class _ContentsTab extends StatelessWidget {
         if (subjects.isEmpty)
           const EmptyState(
             icon: Icons.account_tree_outlined,
-            title: 'Nenhuma matéria disponível',
-            message: 'Cadastre uma matéria antes de organizar seus conteúdos.',
+            title: 'Nenhuma cadeira disponível',
+            message: 'Cadastre uma cadeira antes de organizar seus conteúdos.',
           )
         else
           ...subjects.map((subject) {
@@ -446,7 +443,7 @@ class _ContentsTab extends StatelessWidget {
             icon: Icons.account_tree_outlined,
             title: 'Nenhum conteúdo cadastrado',
             message:
-                'Divida cada matéria por unidades, capítulos ou assuntos do plano de ensino.',
+                'Divida cada cadeira por unidades, capítulos ou assuntos do plano de ensino.',
           ),
       ],
     );
@@ -459,9 +456,9 @@ class _SchedulesTab extends StatelessWidget {
   final AppStore store;
 
   void _create(BuildContext context) {
-    if (store.records(EntityTypes.subject).isEmpty) {
+    if (AcademicData.academicSubjects(store).isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cadastre uma matéria primeiro.')),
+        const SnackBar(content: Text('Cadastre uma cadeira primeiro.')),
       );
       return;
     }
@@ -473,7 +470,14 @@ class _SchedulesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sessions = store.records(EntityTypes.classSession).toList()
+    final academicSubjectIds =
+        AcademicData.academicSubjects(store).map((item) => item.id).toSet();
+    final sessions = store
+        .records(EntityTypes.classSession)
+        .where(
+          (item) => academicSubjectIds.contains(item.payload['subjectId']),
+        )
+        .toList()
       ..sort((a, b) {
         final day = (a.payload['weekday'] as num? ?? 1).compareTo(
           b.payload['weekday'] as num? ?? 1,
@@ -584,7 +588,6 @@ class _SemesterDialogState extends State<_SemesterDialog> {
   late final TextEditingController year;
   late final TextEditingController term;
   late String status;
-  late String kind;
 
   @override
   void initState() {
@@ -600,7 +603,6 @@ class _SemesterDialogState extends State<_SemesterDialog> {
       text: '${widget.entity?.payload['term'] ?? (now.month <= 6 ? 1 : 2)}',
     );
     status = widget.entity?.payload['status'] as String? ?? 'current';
-    kind = widget.entity?.payload['kind'] as String? ?? 'semester';
   }
 
   @override
@@ -614,43 +616,19 @@ class _SemesterDialogState extends State<_SemesterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(
-        widget.entity == null
-            ? 'Novo período ou curso'
-            : 'Editar período ou curso',
-      ),
+      title: Text(widget.entity == null ? 'Novo semestre' : 'Editar semestre'),
       content: SizedBox(
         width: 500,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              DropdownButtonFormField<String>(
-                initialValue: kind,
-                decoration: const InputDecoration(labelText: 'Tipo'),
-                items: const <DropdownMenuItem<String>>[
-                  DropdownMenuItem(
-                    value: 'semester',
-                    child: Text('Semestre da faculdade'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'course',
-                    child: Text('Curso livre / certificação'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'track',
-                    child: Text('Trilha de estudos pessoal'),
-                  ),
-                ],
-                onChanged: (value) => setState(() => kind = value ?? kind),
-              ),
-              const SizedBox(height: 12),
               TextField(
                 controller: name,
                 autofocus: true,
                 decoration: const InputDecoration(
-                  labelText: 'Nome de exibição',
-                  hintText: '2026.2 — 3º semestre ou Curso de Python',
+                  labelText: 'Nome do semestre',
+                  hintText: '2026.2 — 4º semestre',
                 ),
               ),
               const SizedBox(height: 12),
@@ -668,11 +646,9 @@ class _SemesterDialogState extends State<_SemesterDialog> {
                     child: TextField(
                       controller: term,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: kind == 'semester'
-                            ? 'Período do ano'
-                            : 'Etapa (opcional)',
-                        hintText: kind == 'semester' ? '1 ou 2' : '1',
+                      decoration: const InputDecoration(
+                        labelText: 'Período do ano',
+                        hintText: '1 ou 2',
                       ),
                     ),
                   ),
@@ -709,11 +685,11 @@ class _SemesterDialogState extends State<_SemesterDialog> {
             final parsedYear = int.tryParse(year.text.trim());
             final parsedTerm = int.tryParse(term.text.trim());
             if (name.text.trim().isEmpty ||
-                (kind == 'semester' &&
-                    (parsedYear == null || parsedTerm == null))) {
+                parsedYear == null ||
+                parsedTerm == null) {
               return;
             }
-            if (status == 'current' && kind == 'semester') {
+            if (status == 'current') {
               for (final item in widget.store.records(EntityTypes.semester)) {
                 if (item.id == widget.entity?.id ||
                     item.payload['status'] != 'current' ||
@@ -735,10 +711,10 @@ class _SemesterDialogState extends State<_SemesterDialog> {
                 <String, dynamic>{
                   ...?widget.entity?.payload,
                   'name': name.text.trim(),
-                  'year': parsedYear ?? DateTime.now().year,
-                  'term': parsedTerm ?? 1,
+                  'year': parsedYear,
+                  'term': parsedTerm,
                   'status': status,
-                  'kind': kind,
+                  'kind': 'semester',
                 },
                 id: widget.entity?.id);
             if (context.mounted) Navigator.pop(context);
@@ -812,7 +788,7 @@ class _SubjectDialogState extends State<_SubjectDialog> {
   Widget build(BuildContext context) {
     final semesters = AcademicData.sortedSemesters(widget.store);
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Nova matéria' : 'Editar matéria'),
+      title: Text(widget.entity == null ? 'Nova cadeira' : 'Editar cadeira'),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
@@ -822,7 +798,7 @@ class _SubjectDialogState extends State<_SubjectDialog> {
               DropdownButtonFormField<String>(
                 initialValue: semesterId,
                 decoration: const InputDecoration(
-                  labelText: 'Período, curso ou trilha',
+                  labelText: 'Semestre da faculdade',
                 ),
                 items: semesters
                     .map(
@@ -838,7 +814,7 @@ class _SubjectDialogState extends State<_SubjectDialog> {
               TextField(
                 controller: name,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Nome da matéria'),
+                decoration: const InputDecoration(labelText: 'Nome da cadeira'),
               ),
               const SizedBox(height: 12),
               Row(
@@ -944,7 +920,7 @@ class _ContentDialogState extends State<_ContentDialog> {
   @override
   void initState() {
     super.initState();
-    final subjects = widget.store.records(EntityTypes.subject);
+    final subjects = AcademicData.academicSubjects(widget.store);
     title = TextEditingController(
       text: widget.entity?.payload['title'] as String? ?? '',
     );
@@ -971,7 +947,7 @@ class _ContentDialogState extends State<_ContentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = widget.store.records(EntityTypes.subject).toList()
+    final subjects = AcademicData.academicSubjects(widget.store)
       ..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
@@ -987,7 +963,7 @@ class _ContentDialogState extends State<_ContentDialog> {
             children: <Widget>[
               DropdownButtonFormField<String>(
                 initialValue: subjectId,
-                decoration: const InputDecoration(labelText: 'Matéria'),
+                decoration: const InputDecoration(labelText: 'Cadeira'),
                 items: subjects
                     .map(
                       (item) => DropdownMenuItem<String>(
@@ -1014,7 +990,7 @@ class _ContentDialogState extends State<_ContentDialog> {
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Conteúdo concluído'),
                 subtitle: const Text(
-                  'Útil para acompanhar tanto a faculdade quanto cursos livres.',
+                  'Marque quando todo o assunto tiver sido estudado.',
                 ),
                 value: completed,
                 onChanged: (value) => setState(() => completed = value),
@@ -1033,7 +1009,7 @@ class _ContentDialogState extends State<_ContentDialog> {
                 controller: order,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Ordem dentro da matéria',
+                  labelText: 'Ordem dentro da cadeira',
                 ),
               ),
             ],
@@ -1089,7 +1065,7 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
   @override
   void initState() {
     super.initState();
-    final subjects = widget.store.records(EntityTypes.subject);
+    final subjects = AcademicData.academicSubjects(widget.store);
     final existing = widget.entity?.payload['subjectId'] as String?;
     subjectId = subjects.any((item) => item.id == existing)
         ? existing
@@ -1127,7 +1103,7 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = widget.store.records(EntityTypes.subject).toList()
+    final subjects = AcademicData.academicSubjects(widget.store)
       ..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
@@ -1144,7 +1120,7 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
             children: <Widget>[
               DropdownButtonFormField<String>(
                 initialValue: subjectId,
-                decoration: const InputDecoration(labelText: 'Matéria'),
+                decoration: const InputDecoration(labelText: 'Cadeira'),
                 items: subjects
                     .map(
                       (item) => DropdownMenuItem<String>(
@@ -1290,14 +1266,6 @@ String _semesterStatusLabel(String status) {
     'completed' => 'Concluído',
     'planned' => 'Planejado',
     _ => 'Em andamento',
-  };
-}
-
-String _studyGroupKindLabel(String kind) {
-  return switch (kind) {
-    'course' => 'Curso livre',
-    'track' => 'Trilha pessoal',
-    _ => 'Semestre',
   };
 }
 

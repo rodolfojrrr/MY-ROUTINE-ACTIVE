@@ -71,8 +71,13 @@ class _PdfToolsScreenState extends State<PdfToolsScreen> {
                 actionLabel: 'Abrir resumos',
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) =>
-                        AcademicSummariesScreen(store: widget.store),
+                    builder: (_) => Scaffold(
+                      appBar: AppBar(
+                        leading: const BackButton(),
+                        title: const Text('Resumos e PDFs'),
+                      ),
+                      body: AcademicSummariesScreen(store: widget.store),
+                    ),
                   ),
                 ),
               ),

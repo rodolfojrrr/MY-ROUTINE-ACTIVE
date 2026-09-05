@@ -18,7 +18,7 @@ class PremiumBackground extends StatelessWidget {
           stops: <double>[0, .58],
         ),
       ),
-      child: child,
+      child: Material(color: Colors.transparent, child: child),
     );
   }
 }
@@ -56,7 +56,11 @@ class PremiumCard extends StatelessWidget {
           ),
         ],
       ),
-      child: child,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(22),
+        child: child,
+      ),
     );
     if (onTap == null) return content;
     return InkWell(

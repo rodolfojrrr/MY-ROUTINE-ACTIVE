@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../core/academic_data.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
 import '../core/study_utils.dart';
@@ -206,9 +207,16 @@ class StudyTodayTab extends StatelessWidget {
 }
 
 class FlashcardReviewScreen extends StatefulWidget {
-  const FlashcardReviewScreen({required this.store, super.key});
+  const FlashcardReviewScreen({
+    required this.store,
+    this.subjectId,
+    this.contentId,
+    super.key,
+  });
 
   final AppStore store;
+  final String? subjectId;
+  final String? contentId;
 
   @override
   State<FlashcardReviewScreen> createState() => _FlashcardReviewScreenState();
@@ -219,10 +227,23 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
   bool revealed = false;
   int reviewed = 0;
 
-  List<SyncEntity> get due => widget.store
-      .records(EntityTypes.flashcard)
-      .where((item) => StudyUtils.isDue(item.payload))
-      .toList();
+  List<SyncEntity> get due {
+    final academicSubjectIds = AcademicData.academicSubjects(widget.store)
+        .map((item) => item.id)
+        .toSet();
+    return widget.store
+        .records(EntityTypes.flashcard)
+        .where(
+          (item) =>
+              StudyUtils.isDue(item.payload) &&
+              (widget.subjectId == null
+                  ? academicSubjectIds.contains(item.payload['subjectId'])
+                  : item.payload['subjectId'] == widget.subjectId) &&
+              (widget.contentId == null ||
+                  item.payload['contentId'] == widget.contentId),
+        )
+        .toList();
+  }
 
   Future<void> _rate(String rating) async {
     final cards = due;

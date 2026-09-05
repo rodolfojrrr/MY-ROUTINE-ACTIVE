@@ -8,6 +8,7 @@ import '../core/app_theme.dart';
 import '../core/study_timer_controller.dart';
 import '../core/wifi_sync_service.dart';
 import 'academic_assessments_screen.dart';
+import 'academic_courses_screen.dart';
 import 'academic_dashboard_screen.dart';
 import 'academic_management_screen.dart';
 import 'academic_simulations_screen.dart';
@@ -98,10 +99,16 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       selectedIcon: Icons.style,
     ),
     _AcademicDestination(
-      label: 'Organização',
-      title: 'Faculdade, cursos e conteúdos',
+      label: 'Faculdade',
+      title: 'Área acadêmica',
       icon: Icons.account_tree_outlined,
       selectedIcon: Icons.account_tree,
+    ),
+    _AcademicDestination(
+      label: 'Cursos',
+      title: 'Cursos e certificados',
+      icon: Icons.workspace_premium_outlined,
+      selectedIcon: Icons.workspace_premium,
     ),
     _AcademicDestination(
       label: 'Ferramentas PDF',
@@ -177,6 +184,7 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       CodeWorkspaceScreen(store: widget.store),
       StudyFlashcardsPage(store: widget.store),
       AcademicManagementScreen(store: widget.store),
+      AcademicCoursesScreen(store: widget.store),
       PdfToolsScreen(store: widget.store),
     ];
     return AnimatedBuilder(
@@ -489,6 +497,7 @@ class _AcademicSidebar extends StatelessWidget {
               ),
               Expanded(
                 child: ListView.builder(
+                  key: const Key('academic-sidebar-destinations'),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   itemCount: destinations.length,
                   itemBuilder: (_, index) {
@@ -671,6 +680,7 @@ class _AcademicSidebarCompact extends StatelessWidget {
               const SizedBox(height: 8),
               Expanded(
                 child: ListView.builder(
+                  key: const Key('academic-sidebar-compact-destinations'),
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   itemCount: destinations.length,
                   itemBuilder: (_, index) {

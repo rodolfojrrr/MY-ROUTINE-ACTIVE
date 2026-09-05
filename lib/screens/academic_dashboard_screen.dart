@@ -6,8 +6,11 @@ import '../core/app_store.dart';
 import '../core/app_theme.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
+import 'academic_assessments_screen.dart';
 import 'academic_shared.dart';
+import 'academic_simulations_screen.dart';
 import 'academic_summaries_screen.dart';
+import 'studies_screen.dart';
 
 class AcademicDashboardScreen extends StatefulWidget {
   const AcademicDashboardScreen({
@@ -40,13 +43,18 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
     final currentItems =
         semesters.where((item) => item.payload['status'] == 'current').toList();
     final currentSemester = currentItems.isEmpty ? null : currentItems.first;
-    final allSubjects = widget.store.records(EntityTypes.subject);
+    final allSubjects = AcademicData.academicSubjects(widget.store);
+    final academicSubjectIds = allSubjects.map((item) => item.id).toSet();
     final currentSubjects = currentSemester == null
         ? allSubjects
         : AcademicData.subjectsForSemester(widget.store, currentSemester.id);
     final classes = widget.store
         .records(EntityTypes.classSession)
-        .where((item) => item.payload['weekday'] == selectedWeekday)
+        .where(
+          (item) =>
+              item.payload['weekday'] == selectedWeekday &&
+              academicSubjectIds.contains(item.payload['subjectId']),
+        )
         .toList()
       ..sort(
         (a, b) => (a.payload['start'] as String? ?? '').compareTo(
@@ -54,6 +62,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
         ),
       );
     final upcoming = widget.store.records(EntityTypes.exam).where((item) {
+      if (!academicSubjectIds.contains(item.payload['subjectId'])) return false;
       if (item.payload['completed'] == true) return false;
       final date = DateTime.tryParse(item.payload['date'] as String? ?? '');
       if (date == null) return false;
@@ -74,6 +83,14 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
         .records(EntityTypes.kanbanTask)
         .where((item) => item.payload['status'] != 'done')
         .toList();
+    final academicSummaryCount = widget.store
+        .records(EntityTypes.studyNote)
+        .where((item) => academicSubjectIds.contains(item.payload['subjectId']))
+        .length;
+    final academicQuestionCount = widget.store
+        .records(EntityTypes.studyQuestion)
+        .where((item) => academicSubjectIds.contains(item.payload['subjectId']))
+        .length;
 
     return AcademicPageBody(
       children: <Widget>[
@@ -83,59 +100,33 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           displayName: widget.store.activeAccount?.displayName,
         ),
         const SizedBox(height: 18),
-        ResponsiveGrid(
-          minItemWidth: 220,
-          children: <Widget>[
-            MetricCard(
-              label: 'Matérias no semestre',
+        _AcademicInfoStrip(
+          items: <_InfoStripItem>[
+            _InfoStripItem(
+              label: 'Cadeiras atuais',
               value: '${currentSubjects.length}',
               icon: Icons.menu_book_outlined,
               color: AppColors.primary,
             ),
-            MetricCard(
-              label: 'Resumos salvos',
-              value: '${widget.store.records(EntityTypes.studyNote).length}',
+            _InfoStripItem(
+              label: 'Resumos',
+              value: '$academicSummaryCount',
               icon: Icons.summarize_outlined,
-              color: AppColors.blue,
+              color: AppColors.cyan,
             ),
-            MetricCard(
-              label: 'Próximas avaliações',
+            _InfoStripItem(
+              label: 'Avaliações próximas',
               value: '${upcoming.length}',
-              caption: 'Nos próximos 30 dias',
               icon: Icons.event_available_outlined,
               color: AppColors.orange,
             ),
-            MetricCard(
-              label: 'Questões cadastradas',
-              value:
-                  '${widget.store.records(EntityTypes.studyQuestion).length}',
+            _InfoStripItem(
+              label: 'Questões',
+              value: '$academicQuestionCount',
               icon: Icons.quiz_outlined,
               color: AppColors.green,
             ),
-            MetricCard(
-              label: 'Metas de hoje',
-              value:
-                  '${todayGoals.where((item) => item.payload['completed'] != true).length}',
-              caption: '${todayGoals.length} planejada(s)',
-              icon: Icons.flag_outlined,
-              color: AppColors.cyan,
-            ),
-            MetricCard(
-              label: 'Atividades em aberto',
-              value: '${openKanban.length}',
-              caption: 'No Kanban de estudos',
-              icon: Icons.view_kanban_outlined,
-              color: AppColors.orange,
-            ),
           ],
-        ),
-        const SizedBox(height: 24),
-        _TodayStudyOverview(
-          store: widget.store,
-          goals: todayGoals,
-          tasks: openKanban,
-          onOpenGoals: () => widget.onOpenSection(1),
-          onOpenKanban: () => widget.onOpenSection(3),
         ),
         const SizedBox(height: 24),
         const AcademicSectionTitle(
@@ -171,10 +162,18 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           sessions: classes,
         ),
         const SizedBox(height: 24),
+        _TodayStudyOverview(
+          store: widget.store,
+          goals: todayGoals,
+          tasks: openKanban,
+          onOpenGoals: () => widget.onOpenSection(1),
+          onOpenKanban: () => widget.onOpenSection(3),
+        ),
+        const SizedBox(height: 24),
         AcademicSectionTitle(
-          title: 'Períodos, cursos e matérias',
+          title: 'Sua graduação',
           subtitle:
-              'Abra uma cadeira para visualizar conteúdos, resumos e avaliações.',
+              'Semestres mais recentes primeiro. Abra uma cadeira para acessar conteúdos e ferramentas.',
           trailing: TextButton(
             onPressed: () => widget.onOpenSection(8),
             child: const Text('Organizar'),
@@ -186,7 +185,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
             icon: Icons.school_outlined,
             title: 'Sua graduação começa aqui',
             message:
-                'Abra Organização acadêmica no menu lateral e cadastre o semestre atual, as matérias e seus conteúdos.',
+                'Abra Faculdade no menu lateral e cadastre o semestre atual, as cadeiras e seus conteúdos.',
           )
         else ...<Widget>[
           ...semesters.map(
@@ -301,6 +300,105 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           },
         ),
       ],
+    );
+  }
+}
+
+class _InfoStripItem {
+  const _InfoStripItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+}
+
+class _AcademicInfoStrip extends StatelessWidget {
+  const _AcademicInfoStrip({required this.items});
+
+  final List<_InfoStripItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return PremiumCard(
+      padding: const EdgeInsets.all(10),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final count = constraints.maxWidth >= 900
+              ? 4
+              : constraints.maxWidth >= 520
+                  ? 2
+                  : 1;
+          final width = (constraints.maxWidth - ((count - 1) * 8)) / count;
+          return Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: items.map((item) {
+              return SizedBox(
+                width: width,
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 76),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 13,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: item.color.withValues(alpha: .08),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: item.color.withValues(alpha: .28),
+                    ),
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: item.color.withValues(alpha: .14),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(item.icon, color: item.color, size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              item.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              item.value,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          );
+        },
+      ),
     );
   }
 }
@@ -641,6 +739,7 @@ class _SemesterViewer extends StatelessWidget {
     return PremiumCard(
       borderColor:
           current ? AppColors.primary.withValues(alpha: .65) : AppColors.border,
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -665,7 +764,17 @@ class _SemesterViewer extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 5),
+          Text(
+            'SEMESTRE → CADEIRAS → CONTEÚDOS',
+            style: TextStyle(
+              color: current ? AppColors.primaryLight : AppColors.textMuted,
+              fontSize: 10,
+              letterSpacing: 1.25,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 14),
           if (subjects.isEmpty)
             const Text(
               'Nenhuma matéria neste semestre.',
@@ -680,20 +789,22 @@ class _SemesterViewer extends StatelessWidget {
                     : width >= 560
                         ? 2
                         : 1;
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: count,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: count == 1 ? 3.4 : 2.45,
-                  ),
-                  itemCount: subjects.length,
-                  itemBuilder: (_, index) => _SubjectViewerCard(
-                    store: store,
-                    subject: subjects[index],
-                  ),
+                final itemWidth = (width - ((count - 1) * 10)) / count;
+                return Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: subjects
+                      .map(
+                        (subject) => SizedBox(
+                          width: itemWidth,
+                          height: count == 1 ? 104 : 118,
+                          child: _SubjectViewerCard(
+                            store: store,
+                            subject: subject,
+                          ),
+                        ),
+                      )
+                      .toList(),
                 );
               },
             ),
@@ -829,248 +940,386 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
             .records(EntityTypes.studyNote)
             .where((item) => item.payload['subjectId'] == subjectId)
             .toList();
-        final exams = store
-            .records(EntityTypes.exam)
-            .where((item) => item.payload['subjectId'] == subjectId)
-            .toList()
-          ..sort(
-            (a, b) => (a.payload['date'] as String? ?? '').compareTo(
-              b.payload['date'] as String? ?? '',
+        return DefaultTabController(
+          length: 4,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(subject.payload['name'] as String? ?? 'Cadeira'),
+              bottom: const TabBar(
+                isScrollable: true,
+                tabs: <Widget>[
+                  Tab(
+                      icon: Icon(Icons.account_tree_outlined),
+                      text: 'Conteúdos'),
+                  Tab(icon: Icon(Icons.style_outlined), text: 'Flashcards'),
+                  Tab(
+                      icon: Icon(Icons.event_available_outlined),
+                      text: 'Provas e notas'),
+                  Tab(icon: Icon(Icons.quiz_outlined), text: 'Simulados'),
+                ],
+              ),
             ),
-          );
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(subject.payload['name'] as String? ?? 'Matéria'),
-          ),
-          body: PremiumBackground(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+            body: TabBarView(
               children: <Widget>[
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 980),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: <Color>[
-                                AppColors.primaryLight,
-                                AppColors.primaryDark,
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                          ),
+                PremiumBackground(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+                    children: <Widget>[
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 980),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: <Widget>[
-                              Text(
-                                AcademicData.semesterName(
-                                  store,
-                                  subject.payload['semesterId'] as String?,
-                                ).toUpperCase(),
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: .72),
-                                  letterSpacing: 1.5,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w900,
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: <Color>[
+                                      AppColors.primaryLight,
+                                      AppColors.primaryDark,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
                                 ),
-                              ),
-                              const SizedBox(height: 9),
-                              Text(
-                                subject.payload['name'] as String? ?? '',
-                                style: const TextStyle(
-                                  fontSize: 29,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: <Widget>[
-                                  if ((subject.payload['code'] as String? ?? '')
-                                      .isNotEmpty)
-                                    AcademicBadge(
-                                      label: subject.payload['code'] as String,
-                                      color: Colors.white,
-                                    ),
-                                  if ((subject.payload['professor']
-                                              as String? ??
-                                          '')
-                                      .isNotEmpty)
-                                    AcademicBadge(
-                                      label: subject.payload['professor']
-                                          as String,
-                                      color: Colors.white,
-                                      icon: Icons.person_outline,
-                                    ),
-                                  if ((subject.payload['room'] as String? ?? '')
-                                      .isNotEmpty)
-                                    AcademicBadge(
-                                      label: subject.payload['room'] as String,
-                                      color: Colors.white,
-                                      icon: Icons.location_on_outlined,
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const AcademicSectionTitle(
-                          title: 'Conteúdos da matéria',
-                          subtitle:
-                              'Estrutura do que foi ou será estudado nesta cadeira.',
-                        ),
-                        const SizedBox(height: 11),
-                        if (contents.isEmpty)
-                          const EmptyState(
-                            icon: Icons.account_tree_outlined,
-                            title: 'Nenhum conteúdo cadastrado',
-                            message:
-                                'Use Organização acadêmica no menu principal para criar a estrutura.',
-                          )
-                        else
-                          ...contents.map((content) {
-                            final linked = summaries
-                                .where(
-                                  (item) =>
-                                      item.payload['contentId'] == content.id,
-                                )
-                                .toList();
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 11),
-                              child: PremiumCard(
-                                child: ExpansionTile(
-                                  tilePadding: EdgeInsets.zero,
-                                  childrenPadding: EdgeInsets.zero,
-                                  leading: CircleAvatar(
-                                    backgroundColor: AppColors.primary
-                                        .withValues(alpha: .16),
-                                    foregroundColor: AppColors.primary,
-                                    child: Text(
-                                      '${content.payload['order'] ?? '•'}',
-                                    ),
-                                  ),
-                                  title: Text(
-                                    content.payload['title'] as String? ?? '',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    '${linked.length} resumo(s)',
-                                    style: const TextStyle(
-                                      color: AppColors.textMuted,
-                                    ),
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
-                                    if ((content.payload['description']
-                                                as String? ??
-                                            '')
-                                        .isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 16,
-                                          right: 16,
-                                          bottom: 10,
-                                        ),
-                                        child: Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            content.payload['description']
-                                                as String,
-                                            style: const TextStyle(
-                                              color: AppColors.textMuted,
-                                            ),
-                                          ),
-                                        ),
+                                    Text(
+                                      AcademicData.semesterName(
+                                        store,
+                                        subject.payload['semesterId']
+                                            as String?,
+                                      ).toUpperCase(),
+                                      style: TextStyle(
+                                        color:
+                                            Colors.white.withValues(alpha: .72),
+                                        letterSpacing: 1.5,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w900,
                                       ),
-                                    if (linked.isEmpty)
-                                      const ListTile(
-                                        title: Text(
-                                          'Nenhum resumo neste conteúdo.',
-                                        ),
-                                      )
-                                    else
-                                      ...linked.map(
-                                        (summary) => ListTile(
-                                          leading: Icon(
-                                            Icons.description_outlined,
-                                            color: AppColors.blue,
-                                          ),
-                                          title: Text(
-                                            summary.payload['title']
+                                    ),
+                                    const SizedBox(height: 9),
+                                    Text(
+                                      subject.payload['name'] as String? ?? '',
+                                      style: const TextStyle(
+                                        fontSize: 29,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: <Widget>[
+                                        if ((subject.payload['code']
                                                     as String? ??
-                                                '',
+                                                '')
+                                            .isNotEmpty)
+                                          AcademicBadge(
+                                            label: subject.payload['code']
+                                                as String,
+                                            color: Colors.white,
                                           ),
-                                          trailing: const Icon(
-                                            Icons.arrow_forward,
+                                        if ((subject.payload['professor']
+                                                    as String? ??
+                                                '')
+                                            .isNotEmpty)
+                                          AcademicBadge(
+                                            label: subject.payload['professor']
+                                                as String,
+                                            color: Colors.white,
+                                            icon: Icons.person_outline,
                                           ),
-                                          onTap: () =>
-                                              Navigator.of(context).push(
-                                            MaterialPageRoute<void>(
-                                              builder: (_) =>
-                                                  AcademicSummaryDetailScreen(
-                                                store: store,
-                                                summaryId: summary.id,
-                                              ),
-                                            ),
+                                        if ((subject.payload['room']
+                                                    as String? ??
+                                                '')
+                                            .isNotEmpty)
+                                          AcademicBadge(
+                                            label: subject.payload['room']
+                                                as String,
+                                            color: Colors.white,
+                                            icon: Icons.location_on_outlined,
                                           ),
-                                        ),
-                                      ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
-                            );
-                          }),
-                        if (exams.isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 18),
-                          const AcademicSectionTitle(
-                            title: 'Avaliações da matéria',
+                              const SizedBox(height: 20),
+                              const AcademicSectionTitle(
+                                title: 'Conteúdos da cadeira',
+                                subtitle:
+                                    'Cada conteúdo reúne seus próprios resumos e mantém a sequência da disciplina.',
+                              ),
+                              const SizedBox(height: 11),
+                              if (contents.isEmpty)
+                                const EmptyState(
+                                  icon: Icons.account_tree_outlined,
+                                  title: 'Nenhum conteúdo cadastrado',
+                                  message:
+                                      'Use Faculdade no menu principal para criar a estrutura.',
+                                )
+                              else
+                                ...contents.map((content) {
+                                  final linked = summaries
+                                      .where(
+                                        (item) =>
+                                            item.payload['contentId'] ==
+                                            content.id,
+                                      )
+                                      .toList();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 11),
+                                    child: PremiumCard(
+                                      child: ExpansionTile(
+                                        tilePadding: EdgeInsets.zero,
+                                        childrenPadding: EdgeInsets.zero,
+                                        leading: CircleAvatar(
+                                          backgroundColor: AppColors.primary
+                                              .withValues(alpha: .16),
+                                          foregroundColor: AppColors.primary,
+                                          child: Text(
+                                            '${content.payload['order'] ?? '•'}',
+                                          ),
+                                        ),
+                                        title: Text(
+                                          content.payload['title'] as String? ??
+                                              '',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          '${linked.length} resumo(s)',
+                                          style: const TextStyle(
+                                            color: AppColors.textMuted,
+                                          ),
+                                        ),
+                                        children: <Widget>[
+                                          ListTile(
+                                            contentPadding: EdgeInsets.zero,
+                                            leading: const Icon(
+                                              Icons.open_in_new,
+                                              color: AppColors.green,
+                                            ),
+                                            title: const Text(
+                                              'Abrir ambiente deste conteúdo',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                            ),
+                                            subtitle: const Text(
+                                              'Resumos, flashcards, provas e simulados filtrados.',
+                                            ),
+                                            trailing: const Icon(
+                                              Icons.arrow_forward,
+                                            ),
+                                            onTap: () =>
+                                                Navigator.of(context).push(
+                                              MaterialPageRoute<void>(
+                                                builder: (_) =>
+                                                    AcademicContentDetailScreen(
+                                                  store: store,
+                                                  subjectId: subjectId,
+                                                  contentId: content.id,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          ListTile(
+                                            contentPadding: EdgeInsets.zero,
+                                            leading: Icon(
+                                              Icons.note_add_outlined,
+                                              color: AppColors.primary,
+                                            ),
+                                            title: const Text(
+                                              'Novo resumo neste conteúdo',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            trailing: const Icon(Icons.add),
+                                            onTap: () =>
+                                                Navigator.of(context).push(
+                                              MaterialPageRoute<void>(
+                                                builder: (_) =>
+                                                    AcademicSummaryEditorDialog(
+                                                  store: store,
+                                                  initialSubjectId: subjectId,
+                                                  initialContentId: content.id,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          if ((content.payload['description']
+                                                      as String? ??
+                                                  '')
+                                              .isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 16,
+                                                right: 16,
+                                                bottom: 10,
+                                              ),
+                                              child: Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: Text(
+                                                  content.payload['description']
+                                                      as String,
+                                                  style: const TextStyle(
+                                                    color: AppColors.textMuted,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          if (linked.isEmpty)
+                                            const ListTile(
+                                              title: Text(
+                                                'Nenhum resumo neste conteúdo.',
+                                              ),
+                                            )
+                                          else
+                                            ...linked.map(
+                                              (summary) => ListTile(
+                                                leading: Icon(
+                                                  Icons.description_outlined,
+                                                  color: AppColors.blue,
+                                                ),
+                                                title: Text(
+                                                  summary.payload['title']
+                                                          as String? ??
+                                                      '',
+                                                ),
+                                                trailing: const Icon(
+                                                  Icons.arrow_forward,
+                                                ),
+                                                onTap: () =>
+                                                    Navigator.of(context).push(
+                                                  MaterialPageRoute<void>(
+                                                    builder: (_) =>
+                                                        AcademicSummaryDetailScreen(
+                                                      store: store,
+                                                      summaryId: summary.id,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }),
+                            ],
                           ),
-                          const SizedBox(height: 11),
-                          PremiumCard(
-                            child: Column(
-                              children: exams.map((item) {
-                                final date = DateTime.tryParse(
-                                  item.payload['date'] as String? ?? '',
-                                );
-                                return ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  leading: Icon(
-                                    item.payload['completed'] == true
-                                        ? Icons.check_circle_outline
-                                        : Icons.event_outlined,
-                                    color: item.payload['completed'] == true
-                                        ? AppColors.green
-                                        : AppColors.orange,
-                                  ),
-                                  title: Text(
-                                    item.payload['title'] as String? ?? '',
-                                  ),
-                                  trailing: Text(
-                                    date == null
-                                        ? '—'
-                                        : DateFormat('dd/MM/yyyy').format(date),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                StudyFlashcardsPage(
+                  store: store,
+                  initialSubjectId: subjectId,
+                ),
+                AcademicAssessmentsScreen(
+                  store: store,
+                  initialSubjectId: subjectId,
+                ),
+                AcademicSimulationsScreen(
+                  store: store,
+                  initialSubjectId: subjectId,
                 ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class AcademicContentDetailScreen extends StatelessWidget {
+  const AcademicContentDetailScreen({
+    required this.store,
+    required this.subjectId,
+    required this.contentId,
+    super.key,
+  });
+
+  final AppStore store;
+  final String subjectId;
+  final String contentId;
+
+  @override
+  Widget build(BuildContext context) {
+    final subject = store.byId(subjectId);
+    final content = store.byId(contentId);
+    if (subject == null || content == null) {
+      return const Scaffold(
+        body: Center(child: Text('Conteúdo não encontrado.')),
+      );
+    }
+    final subjectName = subject.payload['name'] as String? ?? 'Cadeira';
+    final contentName = content.payload['title'] as String? ?? 'Conteúdo';
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: const BackButton(),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(contentName, overflow: TextOverflow.ellipsis),
+              Text(
+                subjectName,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          bottom: const TabBar(
+            isScrollable: true,
+            tabs: <Widget>[
+              Tab(icon: Icon(Icons.description_outlined), text: 'Resumos'),
+              Tab(icon: Icon(Icons.style_outlined), text: 'Flashcards'),
+              Tab(
+                icon: Icon(Icons.event_available_outlined),
+                text: 'Provas e notas',
+              ),
+              Tab(icon: Icon(Icons.quiz_outlined), text: 'Simulados'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: <Widget>[
+            AcademicSummariesScreen(
+              store: store,
+              initialSubjectId: subjectId,
+              initialContentId: contentId,
+            ),
+            StudyFlashcardsPage(
+              store: store,
+              initialSubjectId: subjectId,
+              initialContentId: contentId,
+            ),
+            AcademicAssessmentsScreen(
+              store: store,
+              initialSubjectId: subjectId,
+              initialContentId: contentId,
+            ),
+            AcademicSimulationsScreen(
+              store: store,
+              initialSubjectId: subjectId,
+              initialContentId: contentId,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

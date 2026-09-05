@@ -985,13 +985,28 @@ class _NoteDialogState extends State<_NoteDialog> {
 }
 
 class _FlashcardsTab extends StatelessWidget {
-  const _FlashcardsTab({required this.store});
+  const _FlashcardsTab({
+    required this.store,
+    this.subjectId,
+    this.contentId,
+  });
 
   final AppStore store;
+  final String? subjectId;
+  final String? contentId;
 
   @override
   Widget build(BuildContext context) {
-    final cards = store.records(EntityTypes.flashcard);
+    final academicSubjectIds =
+        AcademicData.academicSubjects(store).map((item) => item.id).toSet();
+    final cards = store.records(EntityTypes.flashcard).where((card) {
+      final linkedSubject = card.payload['subjectId'];
+      final matchesSubject = subjectId == null
+          ? academicSubjectIds.contains(linkedSubject)
+          : linkedSubject == subjectId;
+      return matchesSubject &&
+          (contentId == null || card.payload['contentId'] == contentId);
+    }).toList();
     return _TabBody(
       children: <Widget>[
         PageIntro(
@@ -1009,7 +1024,11 @@ class _FlashcardsTab extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: () => showDialog<void>(
                 context: context,
-                builder: (_) => _FlashcardDialog(store: store),
+                builder: (_) => _FlashcardDialog(
+                  store: store,
+                  initialSubjectId: subjectId,
+                  initialContentId: contentId,
+                ),
               ),
               icon: const Icon(Icons.add),
               label: const Text('Novo flashcard'),
@@ -1019,7 +1038,11 @@ class _FlashcardsTab extends StatelessWidget {
                   ? null
                   : () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => FlashcardReviewScreen(store: store),
+                          builder: (_) => FlashcardReviewScreen(
+                            store: store,
+                            subjectId: subjectId,
+                            contentId: contentId,
+                          ),
                         ),
                       ),
               icon: const Icon(Icons.psychology_alt_outlined),
@@ -1116,10 +1139,17 @@ class _FlashcardsTab extends StatelessWidget {
 }
 
 class _FlashcardDialog extends StatefulWidget {
-  const _FlashcardDialog({required this.store, this.entity});
+  const _FlashcardDialog({
+    required this.store,
+    this.entity,
+    this.initialSubjectId,
+    this.initialContentId,
+  });
 
   final AppStore store;
   final SyncEntity? entity;
+  final String? initialSubjectId;
+  final String? initialContentId;
 
   @override
   State<_FlashcardDialog> createState() => _FlashcardDialogState();
@@ -1134,19 +1164,21 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
   @override
   void initState() {
     super.initState();
-    final subjects = widget.store.records(EntityTypes.subject);
+    final subjects = AcademicData.academicSubjects(widget.store);
     front = TextEditingController(
       text: widget.entity?.payload['front'] as String?,
     );
     back = TextEditingController(
       text: widget.entity?.payload['back'] as String?,
     );
-    final existingSubjectId = widget.entity?.payload['subjectId'] as String?;
+    final existingSubjectId = widget.entity?.payload['subjectId'] as String? ??
+        widget.initialSubjectId;
     subjectId = subjects.any((item) => item.id == existingSubjectId)
         ? existingSubjectId
         : (subjects.isEmpty ? null : subjects.first.id);
     final contents = AcademicData.contentsForSubject(widget.store, subjectId);
-    final existingContentId = widget.entity?.payload['contentId'] as String?;
+    final existingContentId = widget.entity?.payload['contentId'] as String? ??
+        widget.initialContentId;
     contentId = contents.any((item) => item.id == existingContentId)
         ? existingContentId
         : (contents.isEmpty ? null : contents.first.id);
@@ -1161,7 +1193,7 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = widget.store.records(EntityTypes.subject);
+    final subjects = AcademicData.academicSubjects(widget.store);
     final contents = AcademicData.contentsForSubject(widget.store, subjectId);
     return AlertDialog(
       title: Text(
@@ -1266,12 +1298,25 @@ String _formatIsoDate(String? value) {
 }
 
 class StudyFlashcardsPage extends StatelessWidget {
-  const StudyFlashcardsPage({required this.store, super.key});
+  const StudyFlashcardsPage({
+    required this.store,
+    this.initialSubjectId,
+    this.initialContentId,
+    super.key,
+  });
 
   final AppStore store;
+  final String? initialSubjectId;
+  final String? initialContentId;
 
   @override
   Widget build(BuildContext context) {
-    return PremiumBackground(child: _FlashcardsTab(store: store));
+    return PremiumBackground(
+      child: _FlashcardsTab(
+        store: store,
+        subjectId: initialSubjectId,
+        contentId: initialContentId,
+      ),
+    );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'app_store.dart';
+import 'rich_summary_document.dart';
 import 'sync_entity.dart';
 
 class AcademicData {
@@ -40,7 +41,10 @@ class AcademicData {
   }
 
   static List<SyncEntity> sortedSemesters(AppStore store) {
-    final items = store.records(EntityTypes.semester).toList();
+    final items = store.records(EntityTypes.semester).where((item) {
+      final kind = item.payload['kind'] as String? ?? 'semester';
+      return kind != 'course' && kind != 'track';
+    }).toList();
     items.sort((a, b) {
       final statusA = a.payload['status'] == 'current' ? 1 : 0;
       final statusB = b.payload['status'] == 'current' ? 1 : 0;
@@ -51,6 +55,55 @@ class AcademicData {
       final termA = (a.payload['term'] as num? ?? 0).toInt();
       final termB = (b.payload['term'] as num? ?? 0).toInt();
       return termB.compareTo(termA);
+    });
+    return items;
+  }
+
+  static List<SyncEntity> sortedCourses(AppStore store) {
+    final items = store
+        .records(EntityTypes.semester)
+        .where(
+          (item) =>
+              item.payload['kind'] == 'course' ||
+              item.payload['kind'] == 'track',
+        )
+        .toList();
+    const priority = <String, int>{
+      'current': 0,
+      'planned': 1,
+      'completed': 2,
+    };
+    items.sort((a, b) {
+      final status = (priority[a.payload['status']] ?? 3).compareTo(
+        priority[b.payload['status']] ?? 3,
+      );
+      if (status != 0) return status;
+      final completedA = a.payload['completedAt'] as String? ?? '';
+      final completedB = b.payload['completedAt'] as String? ?? '';
+      if (completedA != completedB) return completedB.compareTo(completedA);
+      return (a.payload['name'] as String? ?? '').compareTo(
+        b.payload['name'] as String? ?? '',
+      );
+    });
+    return items;
+  }
+
+  static List<SyncEntity> academicSubjects(AppStore store) {
+    final academicSemesterIds =
+        sortedSemesters(store).map((item) => item.id).toSet();
+    final items = store.records(EntityTypes.subject).where((subject) {
+      final parentId = subject.payload['semesterId'] as String?;
+      return parentId == null ||
+          parentId.isEmpty ||
+          academicSemesterIds.contains(parentId);
+    }).toList();
+    items.sort((a, b) {
+      final orderA = (a.payload['order'] as num? ?? 999).toInt();
+      final orderB = (b.payload['order'] as num? ?? 999).toInt();
+      if (orderA != orderB) return orderA.compareTo(orderB);
+      return (a.payload['name'] as String? ?? '').compareTo(
+        b.payload['name'] as String? ?? '',
+      );
     });
     return items;
   }
@@ -121,6 +174,32 @@ class AcademicData {
       } catch (_) {}
     }
     return total;
+  }
+
+  static RichSummaryDocument summaryDocument(SyncEntity summary) =>
+      RichSummaryDocument.fromPayload(summary.payload);
+
+  static String summaryPlainText(SyncEntity summary) =>
+      summaryDocument(summary).text;
+
+  static List<Map<String, dynamic>> summaryAttachments(SyncEntity summary) {
+    final raw = summary.payload['attachments'];
+    if (raw is! List) return <Map<String, dynamic>>[];
+    return raw
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .where((item) => (item['base64'] as String? ?? '').isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static List<Map<String, dynamic>> courseCertificates(SyncEntity course) {
+    final raw = course.payload['certificateImages'];
+    if (raw is! List) return <Map<String, dynamic>>[];
+    return raw
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .where((item) => (item['base64'] as String? ?? '').isNotEmpty)
+        .toList(growable: false);
   }
 
   static String safeFileName(String value) {

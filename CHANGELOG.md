@@ -1,5 +1,21 @@
 # Changelog
 
+## 5.1.0
+
+- Editor de resumos reconstruído em tela cheia, responsivo e integrado às cores do aplicativo.
+- Formatação por trecho com títulos, subtítulos, tamanho da fonte, negrito, itálico, sublinhado, tachado, cor de destaque, código e listas.
+- Rascunho automático agora preserva também o texto rico, imagens e anexos.
+- Anexos de diversos formatos adicionados a cada resumo e incluídos no backup/sincronização.
+- Leitura dos resumos redesenhada para impedir textos gigantes ou estilos herdados incorretamente.
+- PDF individual passa a respeitar a formatação, listar anexos e sempre oferecer navegação de volta.
+- Faculdade reorganizada em semestre → cadeira → conteúdo → resumo, com semestres atuais primeiro.
+- Cada cadeira reúne Conteúdos, Flashcards, Provas/Notas e Simulados em abas próprias.
+- Nova área Cursos, totalmente separada da graduação, com progresso, carga horária e imagens de certificados.
+- Painel inicial compactado e reordenado: informações gerais, horário, metas/atividades e graduação.
+- Cards e áreas acadêmicas receberam bordas, limites de largura e melhor encaixe no celular e no PC.
+- Compatibilidade mantida com todos os resumos, imagens, períodos e cursos das versões anteriores.
+- Versão elevada para `5.1.0+52`.
+
 ## 5.0.1
 
 - Menu lateral do Windows agora pode ser recolhido para uma barra compacta de ícones.

@@ -6,30 +6,39 @@ class SummaryDraft {
   const SummaryDraft({
     required this.title,
     required this.body,
+    required this.richText,
     required this.subjectId,
     required this.contentId,
     required this.images,
+    required this.attachments,
     required this.savedAtMs,
     required this.sourceUpdatedAtMs,
   });
 
   final String title;
   final String body;
+  final Map<String, dynamic> richText;
   final String? subjectId;
   final String? contentId;
   final List<Map<String, dynamic>> images;
+  final List<Map<String, dynamic>> attachments;
   final int savedAtMs;
   final int sourceUpdatedAtMs;
 
   bool get hasContent =>
-      title.trim().isNotEmpty || body.trim().isNotEmpty || images.isNotEmpty;
+      title.trim().isNotEmpty ||
+      body.trim().isNotEmpty ||
+      images.isNotEmpty ||
+      attachments.isNotEmpty;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'title': title,
         'body': body,
+        'richText': richText,
         'subjectId': subjectId,
         'contentId': contentId,
         'images': images,
+        'attachments': attachments,
         'savedAtMs': savedAtMs,
         'sourceUpdatedAtMs': sourceUpdatedAtMs,
       };
@@ -37,9 +46,15 @@ class SummaryDraft {
   factory SummaryDraft.fromJson(Map<String, dynamic> json) => SummaryDraft(
         title: json['title'] as String? ?? '',
         body: json['body'] as String? ?? '',
+        richText: (json['richText'] as Map? ?? const <String, dynamic>{})
+            .cast<String, dynamic>(),
         subjectId: json['subjectId'] as String?,
         contentId: json['contentId'] as String?,
         images: (json['images'] as List? ?? const <dynamic>[])
+            .whereType<Map>()
+            .map((item) => item.cast<String, dynamic>())
+            .toList(growable: false),
+        attachments: (json['attachments'] as List? ?? const <dynamic>[])
             .whereType<Map>()
             .map((item) => item.cast<String, dynamic>())
             .toList(growable: false),

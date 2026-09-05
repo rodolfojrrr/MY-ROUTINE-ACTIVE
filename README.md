@@ -1,6 +1,6 @@
 # Smart Routine SI
 
-**Versão 5.0.1 — estudos, cursos e organização acadêmica 100% local**
+**Versão 5.1.0 — ambiente acadêmico, cursos e resumos avançados 100% local**
 
 Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação em **Sistemas de Informação**, mas também organiza cursos livres, trilhas, certificações e estudos pessoais. Não há WebView, nuvem, analytics ou login externo: banco, imagens, projetos e credenciais ficam somente nos aparelhos do usuário.
 
@@ -8,11 +8,15 @@ Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação
 
 - contas locais para vários usuários, com senha, pergunta de segurança e código de recuperação;
 - migração automática dos dados existentes para a primeira conta, sem zerar o banco;
-- semestres, cursos e trilhas → matérias → conteúdos → resumos, avaliações, questões e projetos;
+- faculdade separada de cursos, sem misturar os dois históricos;
+- semestres mais atuais primeiro → cadeiras → conteúdos → resumos;
+- flashcards, provas/notas e simulados acessíveis dentro de cada cadeira;
 - metas diárias flexíveis e cronograma semanal opcional;
 - cronômetro global que continua ao trocar de tela e volta **pausado** após fechar ou ocultar o aplicativo;
 - Kanban com Pendentes, Fazendo e Concluídas, movimentação livre, prazos e limpeza configurável;
-- resumos com várias imagens, rascunho automático e PDF individual;
+- editor de resumos em tela cheia, com títulos, tamanhos, negrito, itálico, sublinhado, tachado, listas, destaque e trechos de código;
+- resumos com várias imagens, anexos de arquivos, rascunho automático e PDF individual;
+- cursos livres separados, com instituição, carga horária, progresso e imagens de certificados;
 - conversor local de arquivos para PDF;
 - temas azul, roxo, cinza, verde, amarelo e colorido;
 - simulados, avaliações, flashcards e IDE acadêmica local;
@@ -24,13 +28,18 @@ Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação
 ## Organização acadêmica
 
 ```text
-Semestre, curso ou trilha
-└── Matéria
-    └── Conteúdo
-        ├── Resumos e imagens
-        ├── Avaliações e questões
+Faculdade
+└── Semestre (mais atual primeiro)
+    └── Cadeira
+        ├── Conteúdos
+        │   └── Resumos, imagens e anexos
         ├── Flashcards
-        └── Projetos de código
+        ├── Provas, datas e notas
+        └── Simulados
+
+Cursos
+└── Curso livre
+    └── Progresso, observações e certificados
 ```
 
 O painel inicial é de consulta. Cadastros e edições ficam no menu lateral, que aparece pelos três traços no celular e permanentemente no desktop. O horário semanal aceita segunda a domingo.
@@ -45,10 +54,12 @@ Se o aplicativo for ocultado ou fechado, o estado é salvo e a sessão volta pau
 
 - rascunho local salvo durante a digitação;
 - restauração do rascunho ao reabrir o formulário;
-- matéria e conteúdo relacionados;
-- várias imagens JPG/PNG, com reordenação;
-- filtros por período, matéria e conteúdo;
-- PDF individual com identificação acadêmica, texto e imagens;
+- cadeira e conteúdo relacionados;
+- editor escuro integrado à paleta do aplicativo, amplo e responsivo;
+- formatação persistente por trecho e por parágrafo;
+- várias imagens JPG/PNG e até 20 anexos diversos por resumo;
+- filtros por semestre, cadeira e conteúdo;
+- PDF individual com navegação de volta, identificação acadêmica, texto formatado, imagens e relação dos anexos;
 - conversor geral para imagens, texto, código, HTML e PDF;
 - no Windows, DOCX/XLSX/PPTX tentam usar LibreOffice ou Microsoft Office; sem esses programas, o aplicativo cria um PDF de leitura com o texto extraído.
 
@@ -97,7 +108,7 @@ No Android, os projetos podem ser criados, editados e sincronizados. No Windows,
 4. No GitHub, abra **Actions → Validar e gerar aplicativos**.
 5. Baixe `Smart-Routine-SI-Android` e `Smart-Routine-SI-Windows`.
 
-O workflow executa análise estática, 32 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
+O workflow executa análise estática, 40 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
 
 ## BATs incluídos
 

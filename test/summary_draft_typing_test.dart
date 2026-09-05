@@ -48,6 +48,38 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     store.dispose();
   });
+
+  testWidgets('editor rico permanece encaixado no celular durante o autosave',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 760);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final store = _MemorySummaryStore();
+    addTearDown(store.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark(),
+        home: AcademicSummaryEditorDialog(store: store),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(tester.takeException(), isNull);
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('summary-title-field')),
+      'Normalização',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('summary-body-field')),
+      'Primeira, segunda e terceira forma normal.',
+    );
+    await tester.pump(const Duration(milliseconds: 900));
+
+    expect(find.text('EDITOR DO RESUMO'), findsOneWidget);
+    expect(find.byIcon(Icons.save_outlined), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _MemorySummaryStore extends AppStore {

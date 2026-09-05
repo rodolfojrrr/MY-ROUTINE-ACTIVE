@@ -9,9 +9,16 @@ import '../widgets/premium_widgets.dart';
 import 'academic_shared.dart';
 
 class AcademicAssessmentsScreen extends StatefulWidget {
-  const AcademicAssessmentsScreen({required this.store, super.key});
+  const AcademicAssessmentsScreen({
+    required this.store,
+    this.initialSubjectId,
+    this.initialContentId,
+    super.key,
+  });
 
   final AppStore store;
+  final String? initialSubjectId;
+  final String? initialContentId;
 
   @override
   State<AcademicAssessmentsScreen> createState() =>
@@ -20,18 +27,32 @@ class AcademicAssessmentsScreen extends StatefulWidget {
 
 class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
   String? subjectId;
+  String? contentId;
   bool showCompleted = true;
 
   @override
+  void initState() {
+    super.initState();
+    subjectId = widget.initialSubjectId;
+    contentId = widget.initialContentId;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final subjects = widget.store.records(EntityTypes.subject).toList()
+    final subjects = AcademicData.academicSubjects(widget.store)
       ..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
         ),
       );
+    final academicSubjectIds = subjects.map((item) => item.id).toSet();
+    final contents = AcademicData.contentsForSubject(widget.store, subjectId);
     final exams = widget.store.records(EntityTypes.exam).where((item) {
+      if (!academicSubjectIds.contains(item.payload['subjectId'])) return false;
       if (subjectId != null && item.payload['subjectId'] != subjectId) {
+        return false;
+      }
+      if (contentId != null && item.payload['contentId'] != contentId) {
         return false;
       }
       if (!showCompleted && item.payload['completed'] == true) return false;
@@ -71,8 +92,11 @@ class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
                   ? null
                   : () => showDialog<void>(
                         context: context,
-                        builder: (_) =>
-                            AcademicAssessmentEditorDialog(store: widget.store),
+                        builder: (_) => AcademicAssessmentEditorDialog(
+                          store: widget.store,
+                          initialSubjectId: subjectId,
+                          initialContentId: contentId,
+                        ),
                       ),
               icon: const Icon(Icons.add),
               label: const Text('Nova avaliação'),
@@ -80,7 +104,9 @@ class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
             SizedBox(
               width: 270,
               child: DropdownButtonFormField<String?>(
-                initialValue: subjectId,
+                key: ValueKey<String?>('assessment-subject-$subjectId'),
+                initialValue:
+                    academicSubjectIds.contains(subjectId) ? subjectId : null,
                 decoration: const InputDecoration(labelText: 'Matéria'),
                 items: <DropdownMenuItem<String?>>[
                   const DropdownMenuItem<String?>(
@@ -94,7 +120,33 @@ class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
                     ),
                   ),
                 ],
-                onChanged: (value) => setState(() => subjectId = value),
+                onChanged: (value) => setState(() {
+                  subjectId = value;
+                  contentId = null;
+                }),
+              ),
+            ),
+            SizedBox(
+              width: 270,
+              child: DropdownButtonFormField<String?>(
+                key: ValueKey<String?>('assessment-content-$subjectId'),
+                initialValue: contents.any((item) => item.id == contentId)
+                    ? contentId
+                    : null,
+                decoration: const InputDecoration(labelText: 'Conteúdo'),
+                items: <DropdownMenuItem<String?>>[
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('Todos os conteúdos'),
+                  ),
+                  ...contents.map(
+                    (item) => DropdownMenuItem<String?>(
+                      value: item.id,
+                      child: Text(item.payload['title'] as String? ?? ''),
+                    ),
+                  ),
+                ],
+                onChanged: (value) => setState(() => contentId = value),
               ),
             ),
             FilterChip(
@@ -283,12 +335,14 @@ class AcademicAssessmentEditorDialog extends StatefulWidget {
     required this.store,
     this.entity,
     this.initialSubjectId,
+    this.initialContentId,
     super.key,
   });
 
   final AppStore store;
   final SyncEntity? entity;
   final String? initialSubjectId;
+  final String? initialContentId;
 
   @override
   State<AcademicAssessmentEditorDialog> createState() =>
@@ -311,14 +365,15 @@ class _AcademicAssessmentEditorDialogState
   @override
   void initState() {
     super.initState();
-    final subjects = widget.store.records(EntityTypes.subject);
+    final subjects = AcademicData.academicSubjects(widget.store);
     final preferred = widget.entity?.payload['subjectId'] as String? ??
         widget.initialSubjectId;
     subjectId = subjects.any((item) => item.id == preferred)
         ? preferred
         : (subjects.isEmpty ? null : subjects.first.id);
     final contents = AcademicData.contentsForSubject(widget.store, subjectId);
-    final existingContent = widget.entity?.payload['contentId'] as String?;
+    final existingContent = widget.entity?.payload['contentId'] as String? ??
+        widget.initialContentId;
     contentId = contents.any((item) => item.id == existingContent)
         ? existingContent
         : null;
@@ -355,7 +410,7 @@ class _AcademicAssessmentEditorDialogState
 
   @override
   Widget build(BuildContext context) {
-    final subjects = widget.store.records(EntityTypes.subject).toList()
+    final subjects = AcademicData.academicSubjects(widget.store)
       ..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
@@ -382,6 +437,8 @@ class _AcademicAssessmentEditorDialogState
                 children: <Widget>[
                   Expanded(
                     child: DropdownButtonFormField<String>(
+                      key: ValueKey<String?>(
+                          'assessment-editor-subject-$subjectId'),
                       initialValue: subjectId,
                       decoration: const InputDecoration(labelText: 'Matéria'),
                       items: subjects
@@ -403,6 +460,9 @@ class _AcademicAssessmentEditorDialogState
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String?>(
+                      key: ValueKey<String?>(
+                        'assessment-editor-content-$subjectId',
+                      ),
                       initialValue: contentId,
                       decoration: const InputDecoration(labelText: 'Conteúdo'),
                       items: <DropdownMenuItem<String?>>[

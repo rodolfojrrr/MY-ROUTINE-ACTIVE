@@ -38,10 +38,16 @@ void main() {
 
     expect(find.text('Smart Routine SI'), findsOneWidget);
     expect(find.text('Metas e foco'), findsOneWidget);
-    expect(find.text('Resumos'), findsOneWidget);
+    expect(find.text('Resumos'), findsWidgets);
     expect(find.text('Kanban'), findsOneWidget);
     expect(find.text('Simulados'), findsOneWidget);
-    expect(find.text('Organização'), findsOneWidget);
+    expect(find.text('Faculdade'), findsOneWidget);
+    await tester.drag(
+      find.byKey(const Key('academic-sidebar-destinations')),
+      const Offset(0, -350),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Cursos'), findsOneWidget);
   });
 
   testWidgets('menu acadêmico pode ser recolhido no desktop', (tester) async {
