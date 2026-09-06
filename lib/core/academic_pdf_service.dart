@@ -17,6 +17,20 @@ class AcademicPdfService {
     required SyncEntity summary,
   }) async {
     final title = summary.payload['title'] as String? ?? 'Resumo';
+    final bytes = await buildSummaryBytes(store: store, summary: summary);
+    return FileTransferService.saveBytes(
+      bytes: bytes,
+      fileName: '${AcademicData.safeFileName(title)}.pdf',
+      dialogTitle: 'Salvar PDF do resumo',
+      extension: 'pdf',
+    );
+  }
+
+  static Future<Uint8List> buildSummaryBytes({
+    required AppStore store,
+    required SyncEntity summary,
+  }) async {
+    final title = summary.payload['title'] as String? ?? 'Resumo';
     final subject = AcademicData.subjectName(
       store,
       summary.payload['subjectId'] as String?,
@@ -31,38 +45,6 @@ class AcademicPdfService {
     final semester = AcademicData.semesterName(store, semesterId);
     final richDocument = AcademicData.summaryDocument(summary);
     final attachments = AcademicData.summaryAttachments(summary);
-    final imageWidgets = <pw.Widget>[];
-
-    for (final item in AcademicData.summaryImages(summary)) {
-      try {
-        final bytes = base64Decode(item['base64'] as String);
-        final provider = pw.MemoryImage(Uint8List.fromList(bytes));
-        imageWidgets.add(
-          pw.Container(
-            margin: const pw.EdgeInsets.only(top: 14),
-            padding: const pw.EdgeInsets.all(8),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.grey300),
-              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
-            ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: <pw.Widget>[
-                pw.Image(provider, height: 300, fit: pw.BoxFit.contain),
-                pw.SizedBox(height: 6),
-                pw.Text(
-                  item['name'] as String? ?? 'Imagem do resumo',
-                  style: const pw.TextStyle(
-                    color: PdfColors.grey700,
-                    fontSize: 9,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      } catch (_) {}
-    }
 
     final document = pw.Document(
       title: title,
@@ -127,31 +109,14 @@ class AcademicPdfService {
             children: <pw.Widget>[_tag(semester), _tag(subject), _tag(content)],
           ),
           pw.SizedBox(height: 22),
-          if (richDocument.text.trim().isEmpty)
+          if (richDocument.plainText.trim().isEmpty &&
+              richDocument.embeds.isEmpty)
             pw.Text(
               'Este resumo não possui texto.',
               style: const pw.TextStyle(color: PdfColors.grey600),
             )
           else
-            pw.RichText(
-              textAlign: _pdfTextAlign(richDocument.textAlignment),
-              text: pw.TextSpan(
-                style: const pw.TextStyle(
-                  fontSize: 11.5,
-                  lineSpacing: 4,
-                  color: PdfColors.blueGrey900,
-                ),
-                children: richDocument.segments
-                    .map(
-                      (segment) => pw.TextSpan(
-                        text: segment.text,
-                        style: _pdfTextStyle(segment.style),
-                      ),
-                    )
-                    .toList(growable: false),
-              ),
-            ),
-          ...imageWidgets,
+            ..._documentWidgets(richDocument),
           if (attachments.isNotEmpty) ...<pw.Widget>[
             pw.SizedBox(height: 18),
             pw.Text(
@@ -194,13 +159,7 @@ class AcademicPdfService {
       ),
     );
 
-    final bytes = Uint8List.fromList(await document.save());
-    return FileTransferService.saveBytes(
-      bytes: bytes,
-      fileName: '${AcademicData.safeFileName(title)}.pdf',
-      dialogTitle: 'Salvar PDF do resumo',
-      extension: 'pdf',
-    );
+    return Uint8List.fromList(await document.save());
   }
 
   static pw.Widget _tag(String text) {
@@ -215,6 +174,175 @@ class AcademicPdfService {
         style: const pw.TextStyle(color: PdfColors.blue700, fontSize: 9),
       ),
     );
+  }
+
+  static List<pw.Widget> _documentWidgets(RichSummaryDocument document) {
+    final result = <pw.Widget>[];
+    var cursor = 0;
+    var embedIndex = 0;
+    for (var index = 0; index < document.text.length; index++) {
+      if (document.text[index] != summaryEmbedPlaceholder) continue;
+      if (index > cursor) {
+        result.add(_richText(document, cursor, index));
+      }
+      if (embedIndex < document.embeds.length) {
+        result.add(_pdfEmbed(document.embeds[embedIndex++]));
+      }
+      cursor = index + 1;
+    }
+    if (cursor < document.text.length) {
+      result.add(_richText(document, cursor, document.text.length));
+    }
+    return result;
+  }
+
+  static pw.Widget _richText(RichSummaryDocument document, int start, int end) {
+    return pw.RichText(
+      textAlign: _pdfTextAlign(document.textAlignment),
+      text: pw.TextSpan(
+        style: const pw.TextStyle(
+          fontSize: 11.5,
+          lineSpacing: 4,
+          color: PdfColors.blueGrey900,
+        ),
+        children: document
+            .segmentsBetween(start, end)
+            .map(
+              (segment) => pw.TextSpan(
+                text: segment.text,
+                style: _pdfTextStyle(segment.style),
+              ),
+            )
+            .toList(growable: false),
+      ),
+    );
+  }
+
+  static pw.Widget _pdfEmbed(SummaryEmbed embed) {
+    const pageBodyWidth = 511.0;
+    final width = (pageBodyWidth * embed.widthFactor)
+        .clamp(154.0, pageBodyWidth)
+        .toDouble();
+    final alignment = switch (embed.alignment) {
+      'left' => pw.Alignment.centerLeft,
+      'right' => pw.Alignment.centerRight,
+      _ => pw.Alignment.center,
+    };
+    if (embed.isImage) {
+      try {
+        final bytes = base64Decode(embed.base64);
+        final image = pw.MemoryImage(Uint8List.fromList(bytes));
+        return pw.Align(
+          alignment: alignment,
+          child: pw.Container(
+            width: width,
+            margin: const pw.EdgeInsets.symmetric(vertical: 10),
+            padding: const pw.EdgeInsets.all(7),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.blueGrey200),
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(7)),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: <pw.Widget>[
+                pw.Image(
+                  image,
+                  height: (embed.height * .62).clamp(75, 330).toDouble(),
+                  width: width - 14,
+                  fit: pw.BoxFit.contain,
+                ),
+                if (embed.caption.isNotEmpty) ...<pw.Widget>[
+                  pw.SizedBox(height: 5),
+                  pw.Text(
+                    embed.caption,
+                    style: const pw.TextStyle(
+                      color: PdfColors.blueGrey700,
+                      fontSize: 8.5,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      } catch (_) {
+        return pw.SizedBox.shrink();
+      }
+    }
+    return pw.Align(
+      alignment: alignment,
+      child: pw.Container(
+        width: width,
+        margin: const pw.EdgeInsets.symmetric(vertical: 10),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.blueGrey900,
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(7)),
+          border: pw.Border.all(color: PdfColors.blueGrey700),
+        ),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: <pw.Widget>[
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 7,
+              ),
+              decoration: const pw.BoxDecoration(
+                color: PdfColors.blueGrey800,
+                borderRadius: pw.BorderRadius.only(
+                  topLeft: pw.Radius.circular(7),
+                  topRight: pw.Radius.circular(7),
+                ),
+              ),
+              child: pw.Text(
+                embed.language.toUpperCase(),
+                style: pw.TextStyle(
+                  color: PdfColors.blue200,
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                  letterSpacing: .8,
+                ),
+              ),
+            ),
+            pw.Padding(
+              padding: const pw.EdgeInsets.all(10),
+              child: pw.Text(
+                _wrapCodeForPdf(embed.code, width, embed.height),
+                style: pw.TextStyle(
+                  color: PdfColors.grey100,
+                  fontSize: 8.2,
+                  lineSpacing: 2.6,
+                  font: pw.Font.courier(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static String _wrapCodeForPdf(String code, double width, double height) {
+    final maxCharacters = ((width - 20) / 4.8).floor().clamp(18, 105);
+    final lines = <String>[];
+    for (final sourceLine in code.split('\n')) {
+      var line = sourceLine;
+      if (line.isEmpty) {
+        lines.add('');
+        continue;
+      }
+      while (line.length > maxCharacters) {
+        lines.add(line.substring(0, maxCharacters));
+        line = '  ${line.substring(maxCharacters)}';
+      }
+      lines.add(line);
+    }
+    final maxLines = ((height * .62 - 46) / 10).floor().clamp(3, 34);
+    if (lines.length <= maxLines) return lines.join('\n');
+    return <String>[
+      ...lines.take(maxLines - 1),
+      '… restante disponível no resumo do aplicativo',
+    ].join('\n');
   }
 
   static pw.TextStyle _pdfTextStyle(SummaryTextStyle value) {

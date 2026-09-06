@@ -121,6 +121,191 @@ class AcademicFolderStyle {
       label: 'Design',
       icon: Icons.palette_rounded,
     ),
+    AcademicFolderIconOption(
+      id: 'dart',
+      label: 'Dart / Flutter',
+      icon: Icons.flutter_dash_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'python',
+      label: 'Python',
+      icon: Icons.data_object_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'java',
+      label: 'Java',
+      icon: Icons.coffee_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'javascript',
+      label: 'JavaScript',
+      icon: Icons.javascript_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'typescript',
+      label: 'TypeScript',
+      icon: Icons.integration_instructions_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'c_language',
+      label: 'C',
+      icon: Icons.memory_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'cpp',
+      label: 'C++',
+      icon: Icons.settings_suggest_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'csharp',
+      label: 'C# / .NET',
+      icon: Icons.grid_view_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'kotlin',
+      label: 'Kotlin / Android',
+      icon: Icons.phone_android_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'php',
+      label: 'PHP',
+      icon: Icons.webhook_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'html',
+      label: 'HTML',
+      icon: Icons.html_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'css',
+      label: 'CSS',
+      icon: Icons.style_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'terminal',
+      label: 'Terminal / Shell',
+      icon: Icons.terminal_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'linux',
+      label: 'Linux / Sistemas',
+      icon: Icons.computer_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'mobile',
+      label: 'Desenvolvimento móvel',
+      icon: Icons.developer_mode_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'api',
+      label: 'API e integração',
+      icon: Icons.api_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'software_architecture',
+      label: 'Arquitetura de software',
+      icon: Icons.architecture_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'testing',
+      label: 'Testes de software',
+      icon: Icons.fact_check_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'bugs',
+      label: 'Debug e qualidade',
+      icon: Icons.bug_report_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'ai',
+      label: 'Inteligência artificial',
+      icon: Icons.psychology_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'analytics',
+      label: 'Análise de dados',
+      icon: Icons.analytics_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'statistics',
+      label: 'Estatística',
+      icon: Icons.query_stats_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'calculus',
+      label: 'Cálculo',
+      icon: Icons.calculate_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'logic',
+      label: 'Lógica',
+      icon: Icons.schema_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'libras',
+      label: 'Libras',
+      icon: Icons.sign_language_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'accessibility',
+      label: 'Acessibilidade',
+      icon: Icons.accessibility_new_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'languages',
+      label: 'Idiomas',
+      icon: Icons.translate_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'communication',
+      label: 'Comunicação',
+      icon: Icons.record_voice_over_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'writing',
+      label: 'Português e escrita',
+      icon: Icons.spellcheck_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'research',
+      label: 'Pesquisa científica',
+      icon: Icons.biotech_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'law',
+      label: 'Direito e legislação',
+      icon: Icons.gavel_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'business',
+      label: 'Gestão e negócios',
+      icon: Icons.business_center_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'people',
+      label: 'Pessoas e equipes',
+      icon: Icons.groups_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'presentation',
+      label: 'Apresentação',
+      icon: Icons.co_present_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'history',
+      label: 'História e sociedade',
+      icon: Icons.history_edu_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'project',
+      label: 'Projeto',
+      icon: Icons.rocket_launch_rounded,
+    ),
+    AcademicFolderIconOption(
+      id: 'certificate',
+      label: 'Certificado',
+      icon: Icons.workspace_premium_rounded,
+    ),
   ];
 
   static Color colorFor(SyncEntity entity, {Color? fallback}) {
@@ -145,11 +330,7 @@ class AcademicFolderStyle {
     return Icons.folder_rounded;
   }
 
-  static Color toolColorFor(
-    SyncEntity content,
-    String toolId,
-    Color fallback,
-  ) {
+  static Color toolColorFor(SyncEntity content, String toolId, Color fallback) {
     final raw = content.payload['toolFolderColors'];
     if (raw is Map) {
       final stored = raw[toolId];

@@ -49,11 +49,11 @@ if errorlevel 1 goto :erro
 git diff --cached --quiet
 if not errorlevel 1 goto :sem_alteracoes
 
-set /p "COMMIT_MSG=Mensagem do commit [Smart Routine SI v5.5.1 - recuperar banco Android]: "
-if not defined COMMIT_MSG set "COMMIT_MSG=Smart Routine SI v5.5.1 - recuperar banco Android"
+set /p "COMMIT_MSG=Mensagem do commit [Smart Routine SI v5.6 PRO - editor inline e horario visual]: "
+if not defined COMMIT_MSG set "COMMIT_MSG=Smart Routine SI v5.6 PRO - editor inline e horario visual"
 if /I "%COMMIT_MSG:~0,4%"=="http" (
   echo A URL do repositorio ja esta configurada. Usando a mensagem padrao.
-  set "COMMIT_MSG=Smart Routine SI v5.5.1 - recuperar banco Android"
+  set "COMMIT_MSG=Smart Routine SI v5.6 PRO - editor inline e horario visual"
 )
 git commit -m "%COMMIT_MSG%"
 if errorlevel 1 goto :erro

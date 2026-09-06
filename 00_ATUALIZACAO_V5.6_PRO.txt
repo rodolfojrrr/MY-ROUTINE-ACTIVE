@@ -1,0 +1,39 @@
+SMART ROUTINE SI V5.6 PRO — ATUALIZAÇÃO SEGURA
+==============================================
+
+ESTA VERSÃO NÃO ZERA NEM SUBSTITUI O BANCO.
+
+Antes de atualizar:
+1. Abra Configurações e exporte um backup .mra.
+2. Não desinstale o aplicativo e não use "Limpar dados" no Android.
+3. Gere o APK com a mesma chave de assinatura usada na versão instalada.
+
+Para atualizar no Android:
+1. Baixe o novo app-release.apk gerado no GitHub Actions.
+2. Abra o APK e escolha Atualizar.
+3. Entre na mesma conta local.
+
+Para atualizar no Windows:
+1. Feche o Smart Routine SI.
+2. Execute o novo Setup.exe por cima da instalação atual.
+3. Abra normalmente; o banco no perfil do usuário será preservado.
+
+Compatibilidade:
+- não há mudança destrutiva no esquema do SQLite;
+- os resumos antigos continuam abrindo e editando;
+- documentos ricos v1/v2 continuam compatíveis;
+- a recuperação de imagens e anexos grandes do Android continua ativa;
+- backup .mra, .mra.gz e sincronização Wi-Fi permanecem compatíveis;
+- os novos elementos inline são enviados dentro do próprio resumo.
+
+Uso rápido:
+- Arrastar conteúdos: abra Faculdade > semestre > matéria e arraste pelo
+  indicador no canto superior do cartão.
+- Imagem no texto: no editor, use "Inserir imagem dentro do texto".
+- Código de exemplo: use "Inserir caixa profissional de código", escolha a
+  linguagem e ajuste a caixa. Esse código é apenas visual e não é executado.
+- Imagem fixada: permanece na galeria Materiais do resumo e não entra no PDF.
+
+Se o Android mostrar "Aplicativo não instalado", não desinstale de imediato:
+isso normalmente significa que o APK foi assinado com uma chave diferente.
+Gere novamente usando os mesmos Secrets MRA_* do repositório.

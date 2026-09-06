@@ -76,7 +76,7 @@ void main() {
     expect(restored.spans.single.style.highlight, isTrue);
     expect(restored.spans.single.style.codeBlock, isTrue);
     expect(restored.spans.single.style.monospace, isTrue);
-    expect(restored.toJson()['version'], 2);
+    expect(restored.toJson()['version'], 3);
   });
 
   test('listas de tarefa citações recuo e divisor preservam o texto', () {
@@ -100,5 +100,131 @@ void main() {
         TextSelection.collapsed(offset: controller.text.length);
     controller.insertDivider();
     expect(controller.text, contains('────────────────────────'));
+  });
+
+  test('imagem e código entram no documento sem quebrar texto antigo', () {
+    final controller = RichSummaryController(
+      const RichSummaryDocument(text: 'Introdução'),
+    );
+    addTearDown(controller.dispose);
+    controller.selection =
+        TextSelection.collapsed(offset: controller.text.length);
+    controller.insertEmbed(
+      const SummaryEmbed(
+        id: 'codigo-1',
+        type: SummaryEmbed.codeType,
+        language: 'sql',
+        code: 'SELECT * FROM alunos;',
+        widthFactor: .8,
+        height: 220,
+      ),
+    );
+
+    final restored = RichSummaryDocument.fromPayload(<String, dynamic>{
+      'richText': controller.document.toJson(),
+    });
+
+    expect(restored.embeds, hasLength(1));
+    expect(restored.embeds.single.language, 'sql');
+    expect(restored.text, contains(summaryEmbedPlaceholder));
+    expect(restored.plainText, contains('SELECT * FROM alunos;'));
+  });
+
+  test('remover elemento interno também remove seu marcador invisível', () {
+    final controller = RichSummaryController(
+      const RichSummaryDocument(text: 'Antes\nDepois'),
+    );
+    addTearDown(controller.dispose);
+    controller.selection = const TextSelection.collapsed(offset: 6);
+    controller.insertEmbed(
+      const SummaryEmbed(
+        id: 'imagem-1',
+        type: SummaryEmbed.imageType,
+        name: 'diagrama.png',
+        base64: 'AQID',
+      ),
+    );
+    expect(controller.embeds, hasLength(1));
+
+    controller.removeEmbed('imagem-1');
+
+    expect(controller.embeds, isEmpty);
+    expect(controller.text, isNot(contains(summaryEmbedPlaceholder)));
+    expect(controller.plainText, contains('Antes'));
+    expect(controller.plainText, contains('Depois'));
+  });
+
+  testWidgets('campo de texto renderiza elemento rico dentro da página',
+      (tester) async {
+    final controller = RichSummaryController(
+      const RichSummaryDocument(
+        text: 'Antes\n\uFFFC\nDepois',
+        embeds: <SummaryEmbed>[
+          SummaryEmbed(
+            id: 'code-widget',
+            type: SummaryEmbed.codeType,
+            code: 'print("teste");',
+          ),
+        ],
+      ),
+    );
+    addTearDown(controller.dispose);
+    controller.setEmbedBuilder(
+      (embed) => SizedBox(
+        key: ValueKey<String>('inline-${embed.id}'),
+        width: 220,
+        height: 120,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 500,
+            height: 400,
+            child: TextField(
+              controller: controller,
+              maxLines: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey<String>('inline-code-widget')),
+        findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('desfazer e refazer a edição preserva o elemento incorporado', () {
+    const originalText = 'Antes\n\uFFFC\nDepois';
+    final controller = RichSummaryController(
+      const RichSummaryDocument(
+        text: originalText,
+        embeds: <SummaryEmbed>[
+          SummaryEmbed(
+            id: 'codigo-undo',
+            type: SummaryEmbed.codeType,
+            language: 'python',
+            code: 'print("preservado")',
+          ),
+        ],
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    controller.value = const TextEditingValue(
+      text: 'Antes\n\nDepois',
+      selection: TextSelection.collapsed(offset: 7),
+    );
+    expect(controller.embeds, isEmpty);
+
+    controller.value = const TextEditingValue(
+      text: originalText,
+      selection: TextSelection.collapsed(offset: 7),
+    );
+    expect(controller.embeds.single.id, 'codigo-undo');
+    expect(controller.embeds.single.code, 'print("preservado")');
   });
 }

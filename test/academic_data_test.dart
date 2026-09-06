@@ -30,4 +30,37 @@ void main() {
     ]);
     expect(AcademicData.summaryImageBytes(summary), 4);
   });
+
+  test('conteúdos podem ser arrastados do primeiro para o último', () {
+    const contents = <SyncEntity>[
+      SyncEntity(
+        id: 'a',
+        type: 'study_content',
+        payload: <String, dynamic>{'title': 'A', 'order': 1},
+        updatedAtMs: 1,
+        deviceId: 'pc',
+        revision: 1,
+      ),
+      SyncEntity(
+        id: 'b',
+        type: 'study_content',
+        payload: <String, dynamic>{'title': 'B', 'order': 2},
+        updatedAtMs: 1,
+        deviceId: 'pc',
+        revision: 1,
+      ),
+      SyncEntity(
+        id: 'c',
+        type: 'study_content',
+        payload: <String, dynamic>{'title': 'C', 'order': 3},
+        updatedAtMs: 1,
+        deviceId: 'pc',
+        revision: 1,
+      ),
+    ];
+
+    final reordered = AcademicData.reorderedContents(contents, 'a', 'c');
+
+    expect(reordered.map((item) => item.id), <String>['b', 'c', 'a']);
+  });
 }

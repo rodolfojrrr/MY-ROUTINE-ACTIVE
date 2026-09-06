@@ -1,8 +1,21 @@
-SMART ROUTINE SI — V5.5.1 PRO RECUPERAÇÃO ANDROID
-=================================================
+SMART ROUTINE SI — V5.6 PRO EDITOR MULTIMÍDIA
+==============================================
 
 Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
 Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
+
+NOVIDADES DA V5.6 PRO
+- Arraste os conteúdos de uma matéria para salvar a ordem de estudo.
+- O horário usa cartões compactos com capa, cor e símbolo de cada matéria.
+- Imagens podem ser inseridas no meio do resumo e ajustadas em largura,
+  altura e alinhamento dentro da folha A4.
+- Imagens fixadas continuam disponíveis no aplicativo, backup e Wi-Fi,
+  mas ficam fora do PDF e não impedem mais sua geração.
+- Caixas de código de exemplo oferecem 21 linguagens, cabeçalho, realce de
+  sintaxe, tamanho ajustável e rolagem interna para linhas extensas.
+- O catálogo de símbolos ganhou linguagens de programação, Libras,
+  acessibilidade, tecnologia e outras disciplinas acadêmicas.
+- Banco e formato de sincronização permanecem compatíveis. Não desinstale.
 
 CORREÇÃO URGENTE DO BANCO ANDROID
 - Corrigido "Row too big to fit into CursorWindow" ao abrir o aplicativo.
@@ -95,6 +108,7 @@ https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
 LEIA TAMBÉM
 - 00_RECUPERAR_BANCO_ANDROID_V5.5.1.txt
+- 00_ATUALIZACAO_V5.6_PRO.txt
 - 00_CORRECAO_BUILD_WINDOWS_GITHUB.txt
 - 00_ATUALIZACAO_V5.5_PRO_SEM_PERDER_DADOS.txt
 - 00_MIGRACAO_PARA_V5.txt

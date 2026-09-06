@@ -1,5 +1,106 @@
 import 'package:flutter/material.dart';
 
+const String summaryEmbedPlaceholder = '\uFFFC';
+
+typedef SummaryEmbedBuilder = Widget Function(SummaryEmbed embed);
+
+@immutable
+class SummaryEmbed {
+  const SummaryEmbed({
+    required this.id,
+    required this.type,
+    this.widthFactor = 1,
+    this.height = 260,
+    this.alignment = 'center',
+    this.name = '',
+    this.base64 = '',
+    this.caption = '',
+    this.language = 'dart',
+    this.code = '',
+  });
+
+  static const imageType = 'image';
+  static const codeType = 'code';
+
+  final String id;
+  final String type;
+  final double widthFactor;
+  final double height;
+  final String alignment;
+  final String name;
+  final String base64;
+  final String caption;
+  final String language;
+  final String code;
+
+  bool get isImage => type == imageType;
+  bool get isCode => type == codeType;
+
+  String get fallbackText => isCode
+      ? code
+      : caption.trim().isNotEmpty
+          ? caption.trim()
+          : '[Imagem: ${name.isEmpty ? 'sem nome' : name}]';
+
+  SummaryEmbed copyWith({
+    double? widthFactor,
+    double? height,
+    String? alignment,
+    String? name,
+    String? base64,
+    String? caption,
+    String? language,
+    String? code,
+  }) {
+    return SummaryEmbed(
+      id: id,
+      type: type,
+      widthFactor: (widthFactor ?? this.widthFactor).clamp(.3, 1).toDouble(),
+      height: (height ?? this.height).clamp(110, 560).toDouble(),
+      alignment: alignment ?? this.alignment,
+      name: name ?? this.name,
+      base64: base64 ?? this.base64,
+      caption: caption ?? this.caption,
+      language: language ?? this.language,
+      code: code ?? this.code,
+    );
+  }
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'id': id,
+        'type': type,
+        'widthFactor': widthFactor,
+        'height': height,
+        'alignment': alignment,
+        if (name.isNotEmpty) 'name': name,
+        if (base64.isNotEmpty) 'base64': base64,
+        if (caption.isNotEmpty) 'caption': caption,
+        if (language.isNotEmpty) 'language': language,
+        if (code.isNotEmpty) 'code': code,
+      };
+
+  factory SummaryEmbed.fromJson(Map<String, dynamic> json) {
+    final rawType = json['type'] as String? ?? codeType;
+    final rawAlignment = json['alignment'] as String? ?? 'center';
+    return SummaryEmbed(
+      id: json['id'] as String? ??
+          'embed-${DateTime.now().microsecondsSinceEpoch}',
+      type: rawType == imageType ? imageType : codeType,
+      widthFactor: (json['widthFactor'] as num? ?? 1).toDouble().clamp(.3, 1),
+      height: (json['height'] as num? ?? 260).toDouble().clamp(110, 560),
+      alignment:
+          const <String>{'left', 'center', 'right'}.contains(rawAlignment)
+              ? rawAlignment
+              : 'center',
+      name: json['name'] as String? ?? '',
+      base64: json['base64'] as String? ?? '',
+      caption: json['caption'] as String? ?? '',
+      language: json['language'] as String? ?? 'dart',
+      code: json['code'] as String? ?? '',
+    );
+  }
+}
+
 @immutable
 class SummaryTextStyle {
   const SummaryTextStyle({
@@ -156,14 +257,33 @@ class RichSummaryDocument {
   const RichSummaryDocument({
     required this.text,
     this.spans = const [],
+    this.embeds = const [],
     this.textAlignment = 'left',
     this.lineHeight = 1.55,
   });
 
   final String text;
   final List<SummaryStyleSpan> spans;
+  final List<SummaryEmbed> embeds;
   final String textAlignment;
   final double lineHeight;
+
+  String get plainText {
+    if (!text.contains(summaryEmbedPlaceholder)) return text;
+    final buffer = StringBuffer();
+    var embedIndex = 0;
+    for (final rune in text.runes) {
+      final value = String.fromCharCode(rune);
+      if (value != summaryEmbedPlaceholder) {
+        buffer.write(value);
+        continue;
+      }
+      if (embedIndex < embeds.length) {
+        buffer.write(embeds[embedIndex++].fallbackText);
+      }
+    }
+    return buffer.toString();
+  }
 
   TextAlign get flutterTextAlign => switch (textAlignment) {
         'center' => TextAlign.center,
@@ -181,22 +301,33 @@ class RichSummaryDocument {
       final text = json['text'] as String? ?? legacyText;
       final spans = (json['spans'] as List? ?? const <dynamic>[])
           .whereType<Map>()
-          .map((item) => SummaryStyleSpan.fromJson(
-                item.cast<String, dynamic>(),
-              ))
+          .map(
+            (item) => SummaryStyleSpan.fromJson(item.cast<String, dynamic>()),
+          )
           .where((span) => span.start >= 0 && span.end <= text.length)
           .where((span) => span.end > span.start)
           .toList(growable: false);
+      final embeds = (json['embeds'] as List? ?? const <dynamic>[])
+          .whereType<Map>()
+          .map((item) => SummaryEmbed.fromJson(item.cast<String, dynamic>()))
+          .toList(growable: false);
       final rawAlignment = json['textAlignment'] as String? ?? 'left';
-      final alignment = const <String>{'left', 'center', 'right', 'justify'}
-              .contains(rawAlignment)
+      final alignment = const <String>{
+        'left',
+        'center',
+        'right',
+        'justify',
+      }.contains(rawAlignment)
           ? rawAlignment
           : 'left';
-      final lineHeight =
-          (json['lineHeight'] as num? ?? 1.55).toDouble().clamp(1.15, 2.0);
+      final lineHeight = (json['lineHeight'] as num? ?? 1.55).toDouble().clamp(
+            1.15,
+            2.0,
+          );
       return RichSummaryDocument(
         text: text,
         spans: spans,
+        embeds: embeds,
         textAlignment: alignment,
         lineHeight: lineHeight,
       );
@@ -206,37 +337,42 @@ class RichSummaryDocument {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'version': 2,
+        'version': 3,
         'text': text,
         'spans': spans.map((span) => span.toJson()).toList(growable: false),
+        'embeds': embeds.map((embed) => embed.toJson()).toList(growable: false),
         'textAlignment': textAlignment,
         'lineHeight': lineHeight,
       };
 
-  List<RichSummarySegment> get segments {
-    if (text.isEmpty) return const <RichSummarySegment>[];
+  List<RichSummarySegment> get segments => segmentsBetween(0, text.length);
+
+  List<RichSummarySegment> segmentsBetween(int rawStart, int rawEnd) {
+    final rangeStart = rawStart.clamp(0, text.length).toInt();
+    final rangeEnd = rawEnd.clamp(rangeStart, text.length).toInt();
+    if (rangeStart == rangeEnd) return const <RichSummarySegment>[];
     final styles = List<SummaryTextStyle>.filled(
-      text.length,
+      rangeEnd - rangeStart,
       const SummaryTextStyle(),
     );
     for (final span in spans) {
-      final start = span.start.clamp(0, text.length).toInt();
-      final end = span.end.clamp(start, text.length).toInt();
+      final start = span.start.clamp(rangeStart, rangeEnd).toInt();
+      final end = span.end.clamp(start, rangeEnd).toInt();
       for (var index = start; index < end; index++) {
-        styles[index] = span.style;
+        styles[index - rangeStart] = span.style;
       }
     }
     final result = <RichSummarySegment>[];
-    var start = 0;
+    var start = rangeStart;
     var style = styles.first;
-    for (var index = 1; index <= text.length; index++) {
-      if (index == text.length || styles[index] != style) {
+    for (var index = rangeStart + 1; index <= rangeEnd; index++) {
+      if (index == rangeEnd || styles[index - rangeStart] != style) {
         result.add(
           RichSummarySegment(text: text.substring(start, index), style: style),
         );
-        if (index < text.length) {
+        if (index < rangeEnd) {
           start = index;
-          style = styles[index];
+          style = styles[index - rangeStart];
         }
       }
     }
@@ -246,22 +382,53 @@ class RichSummaryDocument {
   TextSpan toTextSpan({
     required TextStyle baseStyle,
     required Color accentColor,
+    SummaryEmbedBuilder? embedBuilder,
   }) {
-    return TextSpan(
-      style: baseStyle,
-      children: segments
-          .map(
-            (segment) => TextSpan(
-              text: segment.text,
-              style: textStyleFor(
-                segment.style,
-                baseStyle: baseStyle,
-                accentColor: accentColor,
-              ),
+    final children = <InlineSpan>[];
+    var cursor = 0;
+    var embedIndex = 0;
+    for (var index = 0; index < text.length; index++) {
+      if (text[index] != summaryEmbedPlaceholder) continue;
+      children.addAll(_textSpansBetween(cursor, index, baseStyle, accentColor));
+      if (embedIndex < embeds.length) {
+        final embed = embeds[embedIndex++];
+        if (embedBuilder == null) {
+          children.add(TextSpan(text: embed.fallbackText));
+        } else {
+          children.add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: embedBuilder(embed),
             ),
-          )
-          .toList(growable: false),
+          );
+        }
+      }
+      cursor = index + 1;
+    }
+    children.addAll(
+      _textSpansBetween(cursor, text.length, baseStyle, accentColor),
     );
+    return TextSpan(style: baseStyle, children: children);
+  }
+
+  List<TextSpan> _textSpansBetween(
+    int start,
+    int end,
+    TextStyle baseStyle,
+    Color accentColor,
+  ) {
+    return segmentsBetween(start, end)
+        .map(
+          (segment) => TextSpan(
+            text: segment.text,
+            style: textStyleFor(
+              segment.style,
+              baseStyle: baseStyle,
+              accentColor: accentColor,
+            ),
+          ),
+        )
+        .toList(growable: false);
   }
 
   static TextStyle textStyleFor(
@@ -298,6 +465,7 @@ class RichSummaryDocument {
 class RichSummaryController extends TextEditingController {
   RichSummaryController(RichSummaryDocument document)
       : _styles = _stylesFromDocument(document),
+        _embeds = List<SummaryEmbed>.from(document.embeds),
         _textAlignment = document.textAlignment,
         _lineHeight = document.lineHeight,
         _previousText = document.text,
@@ -306,12 +474,15 @@ class RichSummaryController extends TextEditingController {
   }
 
   List<SummaryTextStyle> _styles;
+  List<SummaryEmbed> _embeds;
   String _textAlignment;
   double _lineHeight;
   String _previousText;
   bool _synchronizing = false;
   SummaryTextStyle _typingStyle = const SummaryTextStyle();
   TextSelection _previousSelection = const TextSelection.collapsed(offset: -1);
+  SummaryEmbedBuilder? _embedBuilder;
+  final List<_RemovedSummaryEmbed> _removedEmbeds = <_RemovedSummaryEmbed>[];
 
   SummaryTextStyle get activeStyle {
     if (_styles.isEmpty) return _typingStyle;
@@ -322,6 +493,12 @@ class RichSummaryController extends TextEditingController {
 
   String get textAlignment => _textAlignment;
   double get lineHeight => _lineHeight;
+  List<SummaryEmbed> get embeds => List<SummaryEmbed>.unmodifiable(_embeds);
+  String get plainText => document.plainText;
+
+  void setEmbedBuilder(SummaryEmbedBuilder? builder) {
+    _embedBuilder = builder;
+  }
 
   TextAlign get flutterTextAlign => switch (_textAlignment) {
         'center' => TextAlign.center,
@@ -333,6 +510,7 @@ class RichSummaryController extends TextEditingController {
   RichSummaryDocument get document => RichSummaryDocument(
         text: text,
         spans: _spansFromStyles(_styles),
+        embeds: List<SummaryEmbed>.unmodifiable(_embeds),
         textAlignment: _textAlignment,
         lineHeight: _lineHeight,
       );
@@ -340,9 +518,11 @@ class RichSummaryController extends TextEditingController {
   void loadDocument(RichSummaryDocument document) {
     _synchronizing = true;
     _styles = _stylesFromDocument(document);
+    _embeds = List<SummaryEmbed>.from(document.embeds);
     _textAlignment = document.textAlignment;
     _lineHeight = document.lineHeight;
     _previousText = document.text;
+    _removedEmbeds.clear();
     value = TextEditingValue(
       text: document.text,
       selection: TextSelection.collapsed(offset: document.text.length),
@@ -360,10 +540,7 @@ class RichSummaryController extends TextEditingController {
     final end = rawEnd < start ? start : rawEnd;
     final before = start == 0 ? -1 : text.lastIndexOf('\n', start - 1);
     final after = text.indexOf('\n', end);
-    return TextRange(
-      start: before + 1,
-      end: after < 0 ? text.length : after,
-    );
+    return TextRange(start: before + 1, end: after < 0 ? text.length : after);
   }
 
   void applyToSelection(
@@ -448,10 +625,8 @@ class RichSummaryController extends TextEditingController {
     var counter = 1;
     final replacement = lines.map((line) {
       if (line.trim().isEmpty) return line;
-      final clean = line.replaceFirst(bulletPattern, '').replaceFirst(
-            numberPattern,
-            '',
-          );
+      final clean =
+          line.replaceFirst(bulletPattern, '').replaceFirst(numberPattern, '');
       if (allFormatted) return clean;
       return numbered ? '${counter++}. $clean' : '• $clean';
     }).join('\n');
@@ -507,6 +682,73 @@ class RichSummaryController extends TextEditingController {
     );
   }
 
+  void insertEmbed(SummaryEmbed embed) {
+    final rawOffset = selection.isValid ? selection.extentOffset : text.length;
+    final offset = rawOffset.clamp(0, text.length).toInt();
+    final before = offset > 0 && text[offset - 1] != '\n' ? '\n' : '';
+    final after = offset < text.length && text[offset] != '\n' ? '\n' : '';
+    final inserted = '$before$summaryEmbedPlaceholder$after';
+    final embedIndex = _placeholderCount(text.substring(0, offset));
+    _embeds.insert(embedIndex.clamp(0, _embeds.length), embed);
+    _replaceRangeDirectly(offset, offset, inserted);
+  }
+
+  void updateEmbed(SummaryEmbed embed) {
+    final index = _embeds.indexWhere((item) => item.id == embed.id);
+    if (index < 0) return;
+    _embeds[index] = embed;
+    notifyListeners();
+  }
+
+  void removeEmbed(String id) {
+    final embedIndex = _embeds.indexWhere((item) => item.id == id);
+    if (embedIndex < 0) return;
+    final offset = _placeholderOffset(text, embedIndex);
+    final removed = _embeds.removeAt(embedIndex);
+    _removedEmbeds.add(
+      _RemovedSummaryEmbed(index: embedIndex, embed: removed),
+    );
+    if (offset < 0) {
+      notifyListeners();
+      return;
+    }
+    var start = offset;
+    var end = offset + 1;
+    if (start > 0 &&
+        end < text.length &&
+        text[start - 1] == '\n' &&
+        text[end] == '\n') {
+      start--;
+    } else if (end < text.length && text[end] == '\n') {
+      end++;
+    } else if (start > 0 && text[start - 1] == '\n') {
+      start--;
+    }
+    _replaceRangeDirectly(start, end, '');
+  }
+
+  void _replaceRangeDirectly(int start, int end, String replacement) {
+    _synchronizing = true;
+    final nextText = text.replaceRange(start, end, replacement);
+    final nextStyles = <SummaryTextStyle>[
+      ..._styles.take(start),
+      ...List<SummaryTextStyle>.filled(
+        replacement.length,
+        const SummaryTextStyle(),
+      ),
+      ..._styles.skip(end),
+    ];
+    _styles = nextStyles;
+    _previousText = nextText;
+    value = TextEditingValue(
+      text: nextText,
+      selection: TextSelection.collapsed(offset: start + replacement.length),
+    );
+    _previousSelection = selection;
+    _synchronizing = false;
+    notifyListeners();
+  }
+
   void selectAllText() {
     selection = TextSelection(baseOffset: 0, extentOffset: text.length);
   }
@@ -554,6 +796,7 @@ class RichSummaryController extends TextEditingController {
     return document.toTextSpan(
       baseStyle: base,
       accentColor: Theme.of(context).colorScheme.primary,
+      embedBuilder: _embedBuilder,
     );
   }
 
@@ -588,6 +831,47 @@ class RichSummaryController extends TextEditingController {
       suffix++;
     }
     final insertedLength = newText.length - prefix - suffix;
+    final removedEnd = oldText.length - suffix;
+    if (removedEnd > prefix) {
+      final removed = oldText.substring(prefix, removedEnd);
+      final removedEmbeds = _placeholderCount(removed);
+      if (removedEmbeds > 0) {
+        final firstEmbed = _placeholderCount(oldText.substring(0, prefix));
+        final lastEmbed = (firstEmbed + removedEmbeds).clamp(
+          firstEmbed,
+          _embeds.length,
+        );
+        if (firstEmbed < lastEmbed) {
+          final removedItems = _embeds.sublist(firstEmbed, lastEmbed);
+          for (var index = 0; index < removedItems.length; index++) {
+            _removedEmbeds.add(
+              _RemovedSummaryEmbed(
+                index: firstEmbed + index,
+                embed: removedItems[index],
+              ),
+            );
+          }
+          _embeds.removeRange(firstEmbed, lastEmbed);
+        }
+      }
+    }
+    final expectedEmbeds = _placeholderCount(newText);
+    var restorationIndex = _placeholderCount(newText.substring(0, prefix));
+    while (_embeds.length < expectedEmbeds) {
+      final historyIndex = _removedEmbeds.lastIndexWhere(
+        (item) => item.index == restorationIndex,
+      );
+      final restored = historyIndex < 0
+          ? SummaryEmbed(
+              id: 'recovered-${DateTime.now().microsecondsSinceEpoch}',
+              type: SummaryEmbed.codeType,
+              code:
+                  'Elemento recuperado. Edite esta caixa para completar o conteúdo.',
+            )
+          : _removedEmbeds.removeAt(historyIndex).embed;
+      _embeds.insert(restorationIndex.clamp(0, _embeds.length), restored);
+      restorationIndex++;
+    }
     final preservedBefore = _styles.take(prefix).toList(growable: true);
     final insertedStyle = _typingStyle;
     preservedBefore.addAll(
@@ -646,9 +930,29 @@ class RichSummaryController extends TextEditingController {
     return spans;
   }
 
+  static int _placeholderCount(String value) =>
+      summaryEmbedPlaceholder.allMatches(value).length;
+
+  static int _placeholderOffset(String value, int wantedIndex) {
+    var current = 0;
+    for (var index = 0; index < value.length; index++) {
+      if (value[index] != summaryEmbedPlaceholder) continue;
+      if (current == wantedIndex) return index;
+      current++;
+    }
+    return -1;
+  }
+
   @override
   void dispose() {
     removeListener(_synchronizeStyles);
     super.dispose();
   }
+}
+
+class _RemovedSummaryEmbed {
+  const _RemovedSummaryEmbed({required this.index, required this.embed});
+
+  final int index;
+  final SummaryEmbed embed;
 }

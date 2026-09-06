@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -11,6 +12,7 @@ import '../core/file_transfer_service.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
 import '../widgets/pro_color_picker.dart';
+import '../widgets/academic_schedule_card.dart';
 import 'academic_assessments_screen.dart';
 import 'academic_management_screen.dart';
 import 'academic_shared.dart';
@@ -96,8 +98,10 @@ class AcademicFacultyScreen extends StatelessWidget {
               _AcademicFolderGrid(
                 children: <Widget>[
                   ...semesters.map((semester) {
-                    final subjects =
-                        AcademicData.subjectsForSemester(store, semester.id);
+                    final subjects = AcademicData.subjectsForSemester(
+                      store,
+                      semester.id,
+                    );
                     final status =
                         semester.payload['status'] as String? ?? 'planned';
                     final currentSemester = status == 'current';
@@ -165,10 +169,8 @@ class AcademicFacultyScreen extends StatelessWidget {
   void _openSemester(BuildContext context, String semesterId) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => AcademicSemesterPage(
-          store: store,
-          semesterId: semesterId,
-        ),
+        builder: (_) =>
+            AcademicSemesterPage(store: store, semesterId: semesterId),
       ),
     );
   }
@@ -211,8 +213,10 @@ class AcademicUnassignedSubjectsPage extends StatelessWidget {
               else
                 _AcademicFolderGrid(
                   children: subjects.map((subject) {
-                    final contents =
-                        AcademicData.contentsForSubject(store, subject.id);
+                    final contents = AcademicData.contentsForSubject(
+                      store,
+                      subject.id,
+                    );
                     return AcademicFolderCard(
                       title: subject.payload['name'] as String? ?? 'Matéria',
                       subtitle: 'Escolha um semestre em Editar',
@@ -300,10 +304,7 @@ class _CurrentSemesterBanner extends StatelessWidget {
                   )
                 : null,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: color.withValues(alpha: .72),
-              width: 1.4,
-            ),
+            border: Border.all(color: color.withValues(alpha: .72), width: 1.4),
             boxShadow: <BoxShadow>[
               BoxShadow(
                 color: color.withValues(alpha: .13),
@@ -474,8 +475,10 @@ class AcademicSemesterPage extends StatelessWidget {
               else
                 _AcademicFolderGrid(
                   children: subjects.map((subject) {
-                    final contents =
-                        AcademicData.contentsForSubject(store, subject.id);
+                    final contents = AcademicData.contentsForSubject(
+                      store,
+                      subject.id,
+                    );
                     final color = AcademicFolderStyle.colorFor(subject);
                     return AcademicFolderCard(
                       key: ValueKey<String>('subject-folder-${subject.id}'),
@@ -591,7 +594,7 @@ class AcademicSubjectFolderPage extends StatelessWidget {
               AcademicSectionTitle(
                 title: 'Conteúdos',
                 subtitle:
-                    'Cada pasta reúne os resumos, códigos, arquivos e exercícios daquele assunto.',
+                    'Cada pasta reúne os materiais daquele assunto. Arraste pelo indicador para definir a ordem de estudo.',
                 trailing: Text(
                   '${contents.length} pasta(s)',
                   style: const TextStyle(color: AppColors.textMuted),
@@ -612,45 +615,117 @@ class AcademicSubjectFolderPage extends StatelessWidget {
                       content,
                       fallback: color,
                     );
-                    return AcademicFolderCard(
+                    return DragTarget<String>(
                       key: ValueKey<String>('content-folder-${content.id}'),
-                      title: content.payload['title'] as String? ?? 'Conteúdo',
-                      subtitle: content.payload['description'] as String? ?? '',
-                      countLabel:
-                          '${_contentItemCount(store, content.id)} item(ns)',
-                      color: contentColor,
-                      icon: content.payload['completed'] == true &&
-                              content.payload['folderIcon'] == null
-                          ? Icons.task_alt_rounded
-                          : AcademicFolderStyle.iconFor(content),
-                      coverBytes: AcademicFolderStyle.coverBytes(content),
-                      builtInArt: 'content',
-                      badge: content.payload['completed'] == true
-                          ? 'CONCLUÍDO'
-                          : null,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => AcademicContentHubPage(
-                            store: store,
-                            semesterId: semesterId,
-                            subjectId: subjectId,
-                            contentId: content.id,
+                      onWillAcceptWithDetails: (details) =>
+                          details.data != content.id,
+                      onAcceptWithDetails: (details) {
+                        unawaited(
+                          AcademicData.reorderContents(
+                            store,
+                            contents,
+                            details.data,
+                            content.id,
+                          ).catchError((Object error) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Não foi possível salvar a nova ordem: $error',
+                                  ),
+                                ),
+                              );
+                            }
+                          }),
+                        );
+                      },
+                      builder: (context, candidates, _) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: EdgeInsets.all(candidates.isEmpty ? 0 : 4),
+                        decoration: BoxDecoration(
+                          color: candidates.isEmpty
+                              ? Colors.transparent
+                              : contentColor.withValues(alpha: .16),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: AcademicFolderCard(
+                          title:
+                              content.payload['title'] as String? ?? 'Conteúdo',
+                          subtitle:
+                              content.payload['description'] as String? ?? '',
+                          countLabel:
+                              '${_contentItemCount(store, content.id)} item(ns)',
+                          color: contentColor,
+                          icon: content.payload['completed'] == true &&
+                                  content.payload['folderIcon'] == null
+                              ? Icons.task_alt_rounded
+                              : AcademicFolderStyle.iconFor(content),
+                          coverBytes: AcademicFolderStyle.coverBytes(content),
+                          builtInArt: 'content',
+                          badge: content.payload['completed'] == true
+                              ? 'CONCLUÍDO'
+                              : null,
+                          trailingAction: Draggable<String>(
+                            data: content.id,
+                            feedback: Material(
+                              color: Colors.transparent,
+                              child: Container(
+                                width: 190,
+                                padding: const EdgeInsets.all(13),
+                                decoration: BoxDecoration(
+                                  color: AppColors.appSurfaceRaised,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: contentColor),
+                                ),
+                                child: Text(
+                                  content.payload['title'] as String? ??
+                                      'Conteúdo',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            childWhenDragging: const Icon(
+                              Icons.drag_indicator_rounded,
+                              color: AppColors.textMuted,
+                            ),
+                            child: Tooltip(
+                              message: 'Arraste para reorganizar',
+                              child: Icon(
+                                Icons.drag_indicator_rounded,
+                                color: contentColor,
+                              ),
+                            ),
+                          ),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => AcademicContentHubPage(
+                                store: store,
+                                semesterId: semesterId,
+                                subjectId: subjectId,
+                                contentId: content.id,
+                              ),
+                            ),
+                          ),
+                          onEdit: () => showAcademicContentEditor(
+                            context,
+                            store,
+                            entity: content,
+                            initialSubjectId: subjectId,
+                          ),
+                          onDelete: () => _confirmDelete(
+                            context,
+                            title: 'Excluir este conteúdo?',
+                            message:
+                                'Os resumos, questões, flashcards e arquivos vinculados irão para a lixeira.',
+                            onConfirm: () =>
+                                AcademicData.deleteContent(store, content),
                           ),
                         ),
-                      ),
-                      onEdit: () => showAcademicContentEditor(
-                        context,
-                        store,
-                        entity: content,
-                        initialSubjectId: subjectId,
-                      ),
-                      onDelete: () => _confirmDelete(
-                        context,
-                        title: 'Excluir este conteúdo?',
-                        message:
-                            'Os resumos, questões, flashcards e arquivos vinculados irão para a lixeira.',
-                        onConfirm: () =>
-                            AcademicData.deleteContent(store, content),
                       ),
                     );
                   }).toList(),
@@ -760,11 +835,8 @@ class AcademicContentHubPage extends StatelessWidget {
                       children: <Widget>[
                         IconButton(
                           tooltip: 'Cores das pastas internas',
-                          onPressed: () => _showContentFolderColors(
-                            context,
-                            store,
-                            content,
-                          ),
+                          onPressed: () =>
+                              _showContentFolderColors(context, store, content),
                           icon: const Icon(Icons.palette_outlined),
                         ),
                         IconButton(
@@ -804,16 +876,31 @@ class AcademicContentHubPage extends StatelessWidget {
     Color subjectColor,
   ) {
     final notes = _recordsForContent(store, EntityTypes.studyNote, contentId);
-    final projects =
-        _recordsForContent(store, EntityTypes.codeProject, contentId);
-    final images =
-        AcademicData.assetsForContent(store, contentId, kind: 'image');
-    final attachments =
-        AcademicData.assetsForContent(store, contentId, kind: 'attachment');
-    final questions =
-        _recordsForContent(store, EntityTypes.studyQuestion, contentId);
-    final flashcards =
-        _recordsForContent(store, EntityTypes.flashcard, contentId);
+    final projects = _recordsForContent(
+      store,
+      EntityTypes.codeProject,
+      contentId,
+    );
+    final images = AcademicData.assetsForContent(
+      store,
+      contentId,
+      kind: 'image',
+    );
+    final attachments = AcademicData.assetsForContent(
+      store,
+      contentId,
+      kind: 'attachment',
+    );
+    final questions = _recordsForContent(
+      store,
+      EntityTypes.studyQuestion,
+      contentId,
+    );
+    final flashcards = _recordsForContent(
+      store,
+      EntityTypes.flashcard,
+      contentId,
+    );
     final exams = _recordsForContent(store, EntityTypes.exam, contentId);
     return <Widget>[
       AcademicFolderCard(
@@ -1031,8 +1118,9 @@ Future<void> _showContentFolderColors(
                 ),
                 const SizedBox(height: 14),
                 ..._contentToolColorDefaults.entries.map((entry) {
-                  final color =
-                      Color(colors[entry.key] ?? entry.value.toARGB32());
+                  final color = Color(
+                    colors[entry.key] ?? entry.value.toARGB32(),
+                  );
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 9),
                     child: ProColorTile(
@@ -1070,13 +1158,12 @@ Future<void> _showContentFolderColors(
   );
   if (saved != true) return;
   await store.save(
-    content.type,
-    <String, dynamic>{
-      ...content.payload,
-      'toolFolderColors': colors,
-    },
-    id: content.id,
-  );
+      content.type,
+      <String, dynamic>{
+        ...content.payload,
+        'toolFolderColors': colors,
+      },
+      id: content.id);
 }
 
 enum ContentAssetKind { image, attachment }
@@ -1116,33 +1203,27 @@ class _AcademicContentAssetsPageState extends State<AcademicContentAssetsPage> {
           final bytes = item['imageBytes'];
           if (bytes is! List<int>) continue;
           final name = item['imageName'] as String? ?? 'imagem.jpg';
-          await widget.store.save(
-            EntityTypes.contentAsset,
-            <String, dynamic>{
-              'subjectId': widget.subjectId,
-              'contentId': widget.contentId,
-              'kind': kindValue,
-              'name': name,
-              'extension': _extensionFromName(name),
-              'sizeBytes': bytes.length,
-              'base64': base64Encode(bytes),
-              'createdAt': DateTime.now().millisecondsSinceEpoch,
-            },
-          );
+          await widget.store.save(EntityTypes.contentAsset, <String, dynamic>{
+            'subjectId': widget.subjectId,
+            'contentId': widget.contentId,
+            'kind': kindValue,
+            'name': name,
+            'extension': _extensionFromName(name),
+            'sizeBytes': bytes.length,
+            'base64': base64Encode(bytes),
+            'createdAt': DateTime.now().millisecondsSinceEpoch,
+          });
         }
       } else {
         final picked = await FileTransferService.pickAttachmentPayloads();
         for (final item in picked) {
-          await widget.store.save(
-            EntityTypes.contentAsset,
-            <String, dynamic>{
-              ...item,
-              'subjectId': widget.subjectId,
-              'contentId': widget.contentId,
-              'kind': kindValue,
-              'createdAt': DateTime.now().millisecondsSinceEpoch,
-            },
-          );
+          await widget.store.save(EntityTypes.contentAsset, <String, dynamic>{
+            ...item,
+            'subjectId': widget.subjectId,
+            'contentId': widget.contentId,
+            'kind': kindValue,
+            'createdAt': DateTime.now().millisecondsSinceEpoch,
+          });
         }
       }
     } catch (error) {
@@ -1187,10 +1268,8 @@ class _AcademicContentAssetsPageState extends State<AcademicContentAssetsPage> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(
-              dialogContext,
-              controller.text.trim(),
-            ),
+            onPressed: () =>
+                Navigator.pop(dialogContext, controller.text.trim()),
             child: const Text('Salvar'),
           ),
         ],
@@ -1199,10 +1278,12 @@ class _AcademicContentAssetsPageState extends State<AcademicContentAssetsPage> {
     controller.dispose();
     if (name == null || name.isEmpty) return;
     await widget.store.save(
-      EntityTypes.contentAsset,
-      <String, dynamic>{...asset.payload, 'name': name},
-      id: asset.id,
-    );
+        EntityTypes.contentAsset,
+        <String, dynamic>{
+          ...asset.payload,
+          'name': name,
+        },
+        id: asset.id);
   }
 
   @override
@@ -1249,11 +1330,14 @@ class _AcademicContentAssetsPageState extends State<AcademicContentAssetsPage> {
                           dimension: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Icon(isImage
-                          ? Icons.add_photo_alternate_outlined
-                          : Icons.attach_file_rounded),
-                  label:
-                      Text(isImage ? 'Adicionar imagens' : 'Adicionar anexos'),
+                      : Icon(
+                          isImage
+                              ? Icons.add_photo_alternate_outlined
+                              : Icons.attach_file_rounded,
+                        ),
+                  label: Text(
+                    isImage ? 'Adicionar imagens' : 'Adicionar anexos',
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -1332,11 +1416,17 @@ class _AcademicContentAssetsPageState extends State<AcademicContentAssetsPage> {
                           },
                           itemBuilder: (_) => const <PopupMenuEntry<String>>[
                             PopupMenuItem(
-                                value: 'save', child: Text('Salvar cópia')),
+                              value: 'save',
+                              child: Text('Salvar cópia'),
+                            ),
                             PopupMenuItem(
-                                value: 'rename', child: Text('Renomear')),
+                              value: 'rename',
+                              child: Text('Renomear'),
+                            ),
                             PopupMenuItem(
-                                value: 'delete', child: Text('Excluir')),
+                              value: 'delete',
+                              child: Text('Excluir'),
+                            ),
                           ],
                         ),
                         onTap: () => _saveFile(asset),
@@ -1384,11 +1474,7 @@ class _AcademicContentAssetsPageState extends State<AcademicContentAssetsPage> {
 }
 
 class AcademicSchedulePage extends StatelessWidget {
-  const AcademicSchedulePage({
-    required this.store,
-    this.semesterId,
-    super.key,
-  });
+  const AcademicSchedulePage({required this.store, this.semesterId, super.key});
 
   final AppStore store;
   final String? semesterId;
@@ -1406,15 +1492,18 @@ class AcademicSchedulePage extends StatelessWidget {
           final subjectIds = subjects.map((item) => item.id).toSet();
           final sessions = store
               .records(EntityTypes.classSession)
-              .where((item) => subjectIds.contains(item.payload['subjectId']))
+              .where(
+                (item) => subjectIds.contains(item.payload['subjectId']),
+              )
               .toList()
             ..sort((a, b) {
               final day = (a.payload['weekday'] as num? ?? 1).compareTo(
                 b.payload['weekday'] as num? ?? 1,
               );
               if (day != 0) return day;
-              return (a.payload['start'] as String? ?? '')
-                  .compareTo(b.payload['start'] as String? ?? '');
+              return (a.payload['start'] as String? ?? '').compareTo(
+                b.payload['start'] as String? ?? '',
+              );
             });
           return AcademicPageBody(
             maxWidth: 980,
@@ -1477,58 +1566,70 @@ class AcademicSchedulePage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          ...daySessions.map(
-                            (session) => ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: const Icon(
-                                Icons.schedule_rounded,
-                                color: AppColors.cyan,
-                              ),
-                              title: Text(
-                                AcademicData.subjectName(
-                                  store,
-                                  session.payload['subjectId'] as String?,
-                                ),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              subtitle: Text(
-                                '${session.payload['start']}–${session.payload['end']}'
-                                '${(session.payload['room'] as String? ?? '').isEmpty ? '' : ' • ${session.payload['room']}'}',
-                              ),
-                              trailing: PopupMenuButton<String>(
-                                onSelected: (value) {
-                                  if (value == 'edit') {
-                                    showAcademicScheduleEditor(
-                                      context,
-                                      store,
-                                      entity: session,
-                                    );
-                                  }
-                                  if (value == 'delete') {
-                                    _confirmDelete(
-                                      context,
-                                      title: 'Excluir este horário?',
-                                      message:
-                                          'A aula será removida do cronograma.',
-                                      onConfirm: () => store.remove(session.id),
-                                    );
-                                  }
-                                },
-                                itemBuilder: (_) =>
-                                    const <PopupMenuEntry<String>>[
-                                  PopupMenuItem(
-                                    value: 'edit',
-                                    child: Text('Editar'),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'delete',
-                                    child: Text('Excluir'),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final columns = constraints.maxWidth >= 800
+                                  ? 4
+                                  : constraints.maxWidth >= 560
+                                      ? 3
+                                      : constraints.maxWidth >= 340
+                                          ? 2
+                                          : 1;
+                              return GridView.count(
+                                crossAxisCount: columns,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                mainAxisSpacing: 10,
+                                crossAxisSpacing: 10,
+                                childAspectRatio: columns == 1 ? 2 : 1.08,
+                                children: daySessions.map((session) {
+                                  final subject = store.byId(
+                                    session.payload['subjectId'] as String? ??
+                                        '',
+                                  );
+                                  return AcademicScheduleCard(
+                                    subject: subject,
+                                    session: session,
+                                    compact: columns <= 2,
+                                    trailing: PopupMenuButton<String>(
+                                      tooltip: 'Opções do horário',
+                                      color: AppColors.appSurfaceRaised,
+                                      iconColor: Colors.white,
+                                      onSelected: (value) {
+                                        if (value == 'edit') {
+                                          showAcademicScheduleEditor(
+                                            context,
+                                            store,
+                                            entity: session,
+                                          );
+                                        }
+                                        if (value == 'delete') {
+                                          _confirmDelete(
+                                            context,
+                                            title: 'Excluir este horário?',
+                                            message:
+                                                'A aula será removida do cronograma.',
+                                            onConfirm: () =>
+                                                store.remove(session.id),
+                                          );
+                                        }
+                                      },
+                                      itemBuilder: (_) =>
+                                          const <PopupMenuEntry<String>>[
+                                        PopupMenuItem(
+                                          value: 'edit',
+                                          child: Text('Editar'),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'delete',
+                                          child: Text('Excluir'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(growable: false),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -1693,6 +1794,7 @@ class AcademicFolderCard extends StatelessWidget {
     this.coverBytes,
     this.builtInArt,
     this.badge,
+    this.trailingAction,
     this.onEdit,
     this.onDelete,
     super.key,
@@ -1707,6 +1809,7 @@ class AcademicFolderCard extends StatelessWidget {
   final Uint8List? coverBytes;
   final String? builtInArt;
   final String? badge;
+  final Widget? trailingAction;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
@@ -1807,6 +1910,10 @@ class AcademicFolderCard extends StatelessWidget {
                             child: Icon(icon, color: Colors.white, size: 25),
                           ),
                           const Spacer(),
+                          if (trailingAction != null) ...<Widget>[
+                            trailingAction!,
+                            const SizedBox(width: 3),
+                          ],
                           if (onEdit != null || onDelete != null)
                             PopupMenuButton<String>(
                               tooltip: 'Opções da pasta',
@@ -1955,7 +2062,11 @@ class _AcademicFolderArtPainter extends CustomPainter {
       case 'summaries':
         final page = RRect.fromRectAndRadius(
           Rect.fromLTWH(
-              size.width * .48, 26, size.width * .38, size.height * .7),
+            size.width * .48,
+            26,
+            size.width * .38,
+            size.height * .7,
+          ),
           const Radius.circular(10),
         );
         canvas.drawRRect(page, line);
@@ -1976,7 +2087,10 @@ class _AcademicFolderArtPainter extends CustomPainter {
           ..lineTo(size.width * .94, size.height * .7);
         canvas.drawPath(path, line);
         canvas.drawCircle(
-            Offset(size.width * .78, size.height * .25), 14, line);
+          Offset(size.width * .78, size.height * .25),
+          14,
+          line,
+        );
         break;
       case 'attachments':
         for (var index = 0; index < 3; index++) {
@@ -2027,7 +2141,11 @@ class _AcademicFolderArtPainter extends CustomPainter {
         canvas.drawRRect(
           RRect.fromRectAndRadius(
             Rect.fromLTWH(
-                size.width * .5, 32, size.width * .38, size.height * .58),
+              size.width * .5,
+              32,
+              size.width * .38,
+              size.height * .58,
+            ),
             const Radius.circular(13),
           ),
           line,

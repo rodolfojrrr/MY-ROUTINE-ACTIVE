@@ -16,6 +16,7 @@ import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
 import '../widgets/pro_color_picker.dart';
 import '../widgets/study_folder_card.dart';
+import '../widgets/summary_embed_widget.dart';
 import 'academic_shared.dart';
 
 class AcademicSummariesScreen extends StatefulWidget {
@@ -67,7 +68,8 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
         .any((item) => academicSubjectIds.contains(item.payload['subjectId']));
     if (!hasAcademicContent) {
       _message(
-          'Cadastre uma matéria e um conteúdo na área acadêmica primeiro.');
+        'Cadastre uma matéria e um conteúdo na área acadêmica primeiro.',
+      );
       return;
     }
     await Navigator.of(context).push(
@@ -474,9 +476,9 @@ class _SummaryCard extends StatelessWidget {
         summary: summary,
       );
       if (context.mounted && path != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PDF salvo com sucesso.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('PDF salvo com sucesso.')));
       }
       return;
     }
@@ -706,7 +708,7 @@ class _AcademicSummaryEditorDialogState
     if (saved) return;
     final draft = SummaryDraft(
       title: title.text,
-      body: body.text,
+      body: body.plainText,
       richText: body.document.toJson(),
       subjectId: subjectId,
       contentId: contentId,
@@ -754,6 +756,66 @@ class _AcademicSummaryEditorDialogState
     } finally {
       if (mounted) setState(() => pickingImages = false);
     }
+  }
+
+  Future<void> _insertInlineImage() async {
+    try {
+      final picked = await FileTransferService.pickImagePayload();
+      final bytes = picked?['imageBytes'];
+      if (!mounted || picked == null || bytes is! List<int>) return;
+      final initial = SummaryEmbed(
+        id: 'image-${DateTime.now().microsecondsSinceEpoch}',
+        type: SummaryEmbed.imageType,
+        name: picked['imageName'] as String? ?? 'imagem.jpg',
+        base64: base64Encode(bytes),
+        height: 280,
+      );
+      final configured = await showDialog<SummaryEmbed>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _SummaryEmbedEditorDialog(embed: initial),
+      );
+      if (configured == null || !mounted) return;
+      body.insertEmbed(configured);
+      editorFocus.requestFocus();
+      _scheduleDraft();
+    } catch (error) {
+      _showError('Não foi possível inserir a imagem: $error');
+    }
+  }
+
+  Future<void> _insertCodeExample() async {
+    final initial = SummaryEmbed(
+      id: 'code-${DateTime.now().microsecondsSinceEpoch}',
+      type: SummaryEmbed.codeType,
+      language: 'dart',
+      height: 250,
+    );
+    final configured = await showDialog<SummaryEmbed>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _SummaryEmbedEditorDialog(embed: initial),
+    );
+    if (configured == null || !mounted) return;
+    body.insertEmbed(configured);
+    editorFocus.requestFocus();
+    _scheduleDraft();
+  }
+
+  Future<void> _editEmbed(SummaryEmbed embed) async {
+    final configured = await showDialog<SummaryEmbed>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _SummaryEmbedEditorDialog(embed: embed),
+    );
+    if (configured == null || !mounted) return;
+    body.updateEmbed(configured);
+    _scheduleDraft();
+  }
+
+  void _removeEmbed(SummaryEmbed embed) {
+    body.removeEmbed(embed.id);
+    _scheduleDraft();
   }
 
   Future<void> _pickAttachments() async {
@@ -820,25 +882,25 @@ class _AcademicSummaryEditorDialogState
     }
     final previous = widget.entity?.payload ?? const <String, dynamic>{};
     await widget.store.save(
-      EntityTypes.studyNote,
-      <String, dynamic>{
-        ...previous,
-        'title': title.text.trim(),
-        'body': body.text,
-        'richText': body.document.toJson(),
-        'subjectId': subjectId,
-        'contentId': contentId,
-        'images': images,
-        'attachments': attachments,
-        'folderColor': folderColor,
-        'folderIcon': folderIcon,
-        'coverImageBase64': coverImageBase64,
-        'coverImageName': coverImageName,
-        'createdAt': previous['createdAt'] ?? DateTime.now().toIso8601String(),
-        'editedAt': DateTime.now().toIso8601String(),
-      },
-      id: widget.entity?.id,
-    );
+        EntityTypes.studyNote,
+        <String, dynamic>{
+          ...previous,
+          'title': title.text.trim(),
+          'body': body.plainText,
+          'richText': body.document.toJson(),
+          'subjectId': subjectId,
+          'contentId': contentId,
+          'images': images,
+          'attachments': attachments,
+          'folderColor': folderColor,
+          'folderIcon': folderIcon,
+          'coverImageBase64': coverImageBase64,
+          'coverImageName': coverImageName,
+          'createdAt':
+              previous['createdAt'] ?? DateTime.now().toIso8601String(),
+          'editedAt': DateTime.now().toIso8601String(),
+        },
+        id: widget.entity?.id);
     saved = true;
     draftDebounce?.cancel();
     await draftService.clear(widget.entity?.id);
@@ -864,9 +926,8 @@ class _AcademicSummaryEditorDialogState
                 tooltip: sidePanelsVisible
                     ? 'Ocultar organização e materiais'
                     : 'Mostrar organização e materiais',
-                onPressed: () => setState(
-                  () => sidePanelsVisible = !sidePanelsVisible,
-                ),
+                onPressed: () =>
+                    setState(() => sidePanelsVisible = !sidePanelsVisible),
                 icon: Icon(
                   sidePanelsVisible
                       ? Icons.fullscreen_rounded
@@ -932,15 +993,18 @@ class _AcademicSummaryEditorDialogState
                     _scheduleDraft();
                   },
                   expanded: metadataExpanded,
-                  onToggle: () => setState(
-                    () => metadataExpanded = !metadataExpanded,
-                  ),
+                  onToggle: () =>
+                      setState(() => metadataExpanded = !metadataExpanded),
                 );
                 final editor = _SummaryEditorCanvas(
                   controller: body,
                   focusNode: editorFocus,
                   undoController: undoHistory,
                   scrollController: editorScroll,
+                  onInsertInlineImage: _insertInlineImage,
+                  onInsertCode: _insertCodeExample,
+                  onEditEmbed: _editEmbed,
+                  onDeleteEmbed: _removeEmbed,
                   panelsVisible: sidePanelsVisible,
                   onTogglePanels: desktop
                       ? () => setState(
@@ -964,9 +1028,8 @@ class _AcademicSummaryEditorDialogState
                     _scheduleDraft();
                   },
                   expanded: assetsExpanded,
-                  onToggle: () => setState(
-                    () => assetsExpanded = !assetsExpanded,
-                  ),
+                  onToggle: () =>
+                      setState(() => assetsExpanded = !assetsExpanded),
                 );
                 final appearance = _SummaryAppearancePanel(
                   color: Color(folderColor),
@@ -974,9 +1037,8 @@ class _AcademicSummaryEditorDialogState
                   coverName: coverImageName,
                   pickingCover: pickingCover,
                   expanded: appearanceExpanded,
-                  onToggle: () => setState(
-                    () => appearanceExpanded = !appearanceExpanded,
-                  ),
+                  onToggle: () =>
+                      setState(() => appearanceExpanded = !appearanceExpanded),
                   onColorChanged: (value) {
                     setState(() => folderColor = value.toARGB32());
                     _scheduleDraft();
@@ -1182,6 +1244,10 @@ class _SummaryEditorCanvas extends StatelessWidget {
     required this.focusNode,
     required this.undoController,
     required this.scrollController,
+    required this.onInsertInlineImage,
+    required this.onInsertCode,
+    required this.onEditEmbed,
+    required this.onDeleteEmbed,
     required this.panelsVisible,
     this.onTogglePanels,
   });
@@ -1190,6 +1256,10 @@ class _SummaryEditorCanvas extends StatelessWidget {
   final FocusNode focusNode;
   final UndoHistoryController undoController;
   final ScrollController scrollController;
+  final VoidCallback onInsertInlineImage;
+  final VoidCallback onInsertCode;
+  final ValueChanged<SummaryEmbed> onEditEmbed;
+  final ValueChanged<SummaryEmbed> onDeleteEmbed;
   final bool panelsVisible;
   final VoidCallback? onTogglePanels;
 
@@ -1220,9 +1290,7 @@ class _SummaryEditorCanvas extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
             decoration: BoxDecoration(
               color: AppColors.appSurfaceRaised.withValues(alpha: .95),
-              border: Border(
-                bottom: BorderSide(color: AppColors.appBorder),
-              ),
+              border: Border(bottom: BorderSide(color: AppColors.appBorder)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1286,6 +1354,8 @@ class _SummaryEditorCanvas extends StatelessWidget {
                   controller: controller,
                   focusNode: focusNode,
                   undoController: undoController,
+                  onInsertInlineImage: onInsertInlineImage,
+                  onInsertCode: onInsertCode,
                 ),
               ],
             ),
@@ -1307,6 +1377,20 @@ class _SummaryEditorCanvas extends StatelessWidget {
                       .toDouble();
                   final horizontalMargin = compact ? 22.0 : 52.0;
                   final verticalMargin = compact ? 28.0 : 46.0;
+                  final contentWidth = (pageWidth - horizontalMargin * 2).clamp(
+                    120,
+                    716,
+                  );
+                  controller.setEmbedBuilder(
+                    (embed) => SummaryEmbedWidget(
+                      key: ValueKey<String>('summary-embed-${embed.id}'),
+                      embed: embed,
+                      maxWidth: contentWidth.toDouble(),
+                      editable: true,
+                      onEdit: () => onEditEmbed(embed),
+                      onDelete: () => onDeleteEmbed(embed),
+                    ),
+                  );
                   return Center(
                     child: SizedBox(
                       key: const Key('summary-a4-page'),
@@ -1340,17 +1424,15 @@ class _SummaryEditorCanvas extends StatelessWidget {
                                     LogicalKeyboardKey.keyB,
                                     control: true,
                                   ): () => controller.applyToSelection(
-                                        (style) => style.copyWith(
-                                          bold: !style.bold,
-                                        ),
+                                        (style) =>
+                                            style.copyWith(bold: !style.bold),
                                       ),
                                   const SingleActivator(
                                     LogicalKeyboardKey.keyI,
                                     control: true,
                                   ): () => controller.applyToSelection(
                                         (style) => style.copyWith(
-                                          italic: !style.italic,
-                                        ),
+                                            italic: !style.italic),
                                       ),
                                   const SingleActivator(
                                     LogicalKeyboardKey.keyU,
@@ -1457,7 +1539,7 @@ class _SummaryEditorCanvas extends StatelessWidget {
                   AnimatedBuilder(
                     animation: controller,
                     builder: (_, __) {
-                      final trimmed = controller.text.trim();
+                      final trimmed = controller.plainText.trim();
                       final words = trimmed.isEmpty
                           ? 0
                           : trimmed.split(RegExp(r'\s+')).length;
@@ -1466,7 +1548,7 @@ class _SummaryEditorCanvas extends StatelessWidget {
                       return Text(
                         constraints.maxWidth < 660
                             ? '$words palavras'
-                            : '$words palavras • ${controller.text.length} caracteres • $readingMinutes min',
+                            : '$words palavras • ${controller.plainText.length} caracteres • $readingMinutes min',
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 11,
@@ -1489,11 +1571,15 @@ class _RichTextToolbar extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     required this.undoController,
+    required this.onInsertInlineImage,
+    required this.onInsertCode,
   });
 
   final RichSummaryController controller;
   final FocusNode focusNode;
   final UndoHistoryController undoController;
+  final VoidCallback onInsertInlineImage;
+  final VoidCallback onInsertCode;
 
   void _run(VoidCallback action) {
     action();
@@ -1571,9 +1657,7 @@ class _RichTextToolbar extends StatelessWidget {
             icon: Icons.text_decrease,
             onPressed: () => _run(
               () => controller.applyToSelection(
-                (current) => current.copyWith(
-                  fontSize: current.fontSize - 2,
-                ),
+                (current) => current.copyWith(fontSize: current.fontSize - 2),
               ),
             ),
           ),
@@ -1593,9 +1677,7 @@ class _RichTextToolbar extends StatelessWidget {
             icon: Icons.text_increase,
             onPressed: () => _run(
               () => controller.applyToSelection(
-                (current) => current.copyWith(
-                  fontSize: current.fontSize + 2,
-                ),
+                (current) => current.copyWith(fontSize: current.fontSize + 2),
               ),
             ),
           ),
@@ -1626,9 +1708,7 @@ class _RichTextToolbar extends StatelessWidget {
             selected: style.underline,
             onPressed: () => _run(
               () => controller.applyToSelection(
-                (current) => current.copyWith(
-                  underline: !current.underline,
-                ),
+                (current) => current.copyWith(underline: !current.underline),
               ),
             ),
           ),
@@ -1638,9 +1718,8 @@ class _RichTextToolbar extends StatelessWidget {
             selected: style.strikeThrough,
             onPressed: () => _run(
               () => controller.applyToSelection(
-                (current) => current.copyWith(
-                  strikeThrough: !current.strikeThrough,
-                ),
+                (current) =>
+                    current.copyWith(strikeThrough: !current.strikeThrough),
               ),
             ),
           ),
@@ -1660,9 +1739,7 @@ class _RichTextToolbar extends StatelessWidget {
             selected: style.highlight,
             onPressed: () => _run(
               () => controller.applyToSelection(
-                (current) => current.copyWith(
-                  highlight: !current.highlight,
-                ),
+                (current) => current.copyWith(highlight: !current.highlight),
               ),
             ),
           ),
@@ -1672,9 +1749,7 @@ class _RichTextToolbar extends StatelessWidget {
             selected: style.monospace,
             onPressed: () => _run(
               () => controller.applyToSelection(
-                (current) => current.copyWith(
-                  monospace: !current.monospace,
-                ),
+                (current) => current.copyWith(monospace: !current.monospace),
               ),
             ),
           ),
@@ -1684,12 +1759,21 @@ class _RichTextToolbar extends StatelessWidget {
             selected: style.codeBlock,
             onPressed: () => _run(controller.toggleCodeBlock),
           ),
+          _FormatButton(
+            tooltip: 'Inserir imagem dentro do texto',
+            icon: Icons.add_photo_alternate_outlined,
+            onPressed: onInsertInlineImage,
+          ),
+          _FormatButton(
+            tooltip: 'Inserir caixa profissional de código',
+            icon: Icons.integration_instructions_outlined,
+            onPressed: onInsertCode,
+          ),
           const _ToolbarDivider(),
           PopupMenuButton<String>(
             tooltip: 'Alinhamento do documento',
-            onSelected: (value) => _run(
-              () => controller.setTextAlignment(value),
-            ),
+            onSelected: (value) =>
+                _run(() => controller.setTextAlignment(value)),
             itemBuilder: (_) => const <PopupMenuEntry<String>>[
               PopupMenuItem(value: 'left', child: Text('Alinhar à esquerda')),
               PopupMenuItem(value: 'center', child: Text('Centralizar')),
@@ -1710,9 +1794,7 @@ class _RichTextToolbar extends StatelessWidget {
           const SizedBox(width: 4),
           PopupMenuButton<double>(
             tooltip: 'Espaçamento entre linhas',
-            onSelected: (value) => _run(
-              () => controller.setLineHeight(value),
-            ),
+            onSelected: (value) => _run(() => controller.setLineHeight(value)),
             itemBuilder: (_) => const <PopupMenuEntry<double>>[
               PopupMenuItem(value: 1.15, child: Text('Compacto — 1,15')),
               PopupMenuItem(value: 1.35, child: Text('Confortável — 1,35')),
@@ -1754,16 +1836,14 @@ class _RichTextToolbar extends StatelessWidget {
           _FormatButton(
             tooltip: 'Diminuir recuo',
             icon: Icons.format_indent_decrease_rounded,
-            onPressed: () => _run(
-              () => controller.indentParagraphs(outdent: true),
-            ),
+            onPressed: () =>
+                _run(() => controller.indentParagraphs(outdent: true)),
           ),
           _FormatButton(
             tooltip: 'Aumentar recuo',
             icon: Icons.format_indent_increase_rounded,
-            onPressed: () => _run(
-              () => controller.indentParagraphs(outdent: false),
-            ),
+            onPressed: () =>
+                _run(() => controller.indentParagraphs(outdent: false)),
           ),
           _FormatButton(
             tooltip: 'Inserir linha divisória',
@@ -1893,6 +1973,225 @@ class _ToolbarDivider extends StatelessWidget {
   }
 }
 
+class _SummaryEmbedEditorDialog extends StatefulWidget {
+  const _SummaryEmbedEditorDialog({required this.embed});
+
+  final SummaryEmbed embed;
+
+  @override
+  State<_SummaryEmbedEditorDialog> createState() =>
+      _SummaryEmbedEditorDialogState();
+}
+
+class _SummaryEmbedEditorDialogState extends State<_SummaryEmbedEditorDialog> {
+  late final TextEditingController content;
+  late String language;
+  late String alignment;
+  late double widthFactor;
+  late double height;
+
+  @override
+  void initState() {
+    super.initState();
+    content = TextEditingController(
+      text: widget.embed.isCode ? widget.embed.code : widget.embed.caption,
+    );
+    language =
+        SummaryCodeLanguage.all.any((item) => item.id == widget.embed.language)
+            ? widget.embed.language
+            : SummaryCodeLanguage.all.first.id;
+    alignment = widget.embed.alignment;
+    widthFactor = widget.embed.widthFactor;
+    height = widget.embed.height;
+  }
+
+  @override
+  void dispose() {
+    content.dispose();
+    super.dispose();
+  }
+
+  void _insertTab() {
+    final value = content.value;
+    final start =
+        value.selection.isValid ? value.selection.start : value.text.length;
+    final end =
+        value.selection.isValid ? value.selection.end : value.text.length;
+    const spaces = '  ';
+    content.value = value.copyWith(
+      text: value.text.replaceRange(start, end, spaces),
+      selection: TextSelection.collapsed(offset: start + spaces.length),
+      composing: TextRange.empty,
+    );
+  }
+
+  void _save() {
+    if (widget.embed.isCode && content.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Digite o código de exemplo.')),
+      );
+      return;
+    }
+    Navigator.of(context).pop(
+      widget.embed.copyWith(
+        widthFactor: widthFactor,
+        height: height,
+        alignment: alignment,
+        caption: widget.embed.isImage ? content.text.trim() : null,
+        language: widget.embed.isCode ? language : null,
+        code: widget.embed.isCode ? content.text : null,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isCode = widget.embed.isCode;
+    return AlertDialog(
+      title: Row(
+        children: <Widget>[
+          Icon(
+            isCode
+                ? Icons.integration_instructions_outlined
+                : Icons.image_outlined,
+            color: AppColors.primaryLight,
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(isCode ? 'Caixa de código' : 'Imagem dentro do texto'),
+          ),
+        ],
+      ),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 680),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (isCode) ...<Widget>[
+                DropdownButtonFormField<String>(
+                  initialValue: language,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Linguagem exibida no cabeçalho',
+                    prefixIcon: Icon(Icons.code_rounded),
+                  ),
+                  items: SummaryCodeLanguage.all
+                      .map(
+                        (item) => DropdownMenuItem<String>(
+                          value: item.id,
+                          child: Text(item.label),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (value) {
+                    if (value != null) setState(() => language = value);
+                  },
+                ),
+                const SizedBox(height: 12),
+                CallbackShortcuts(
+                  bindings: <ShortcutActivator, VoidCallback>{
+                    const SingleActivator(LogicalKeyboardKey.tab): _insertTab,
+                  },
+                  child: TextField(
+                    controller: content,
+                    minLines: 8,
+                    maxLines: 16,
+                    keyboardType: TextInputType.multiline,
+                    style: const TextStyle(
+                      fontFamily: 'Consolas',
+                      fontFamilyFallback: <String>[
+                        'Cascadia Code',
+                        'Courier New',
+                        'monospace',
+                      ],
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Código apenas para exemplo',
+                      alignLabelWithHint: true,
+                      helperText:
+                          'Tab insere dois espaços. O código não será executado.',
+                    ),
+                  ),
+                ),
+              ] else ...<Widget>[
+                TextField(
+                  controller: content,
+                  maxLength: 180,
+                  decoration: const InputDecoration(
+                    labelText: 'Legenda opcional',
+                    prefixIcon: Icon(Icons.short_text_rounded),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Text(
+                'Largura na folha: ${(widthFactor * 100).round()}%',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              Slider(
+                value: widthFactor,
+                min: .3,
+                max: 1,
+                divisions: 14,
+                label: '${(widthFactor * 100).round()}%',
+                onChanged: (value) => setState(() => widthFactor = value),
+              ),
+              Text(
+                'Altura: ${height.round()} px',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              Slider(
+                value: height.clamp(110, 560),
+                min: 110,
+                max: 560,
+                divisions: 18,
+                label: '${height.round()} px',
+                onChanged: (value) => setState(() => height = value),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: alignment,
+                decoration: const InputDecoration(
+                  labelText: 'Posição na folha',
+                  prefixIcon: Icon(Icons.format_align_center_rounded),
+                ),
+                items: const <DropdownMenuItem<String>>[
+                  DropdownMenuItem(value: 'left', child: Text('Esquerda')),
+                  DropdownMenuItem(value: 'center', child: Text('Centro')),
+                  DropdownMenuItem(value: 'right', child: Text('Direita')),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => alignment = value);
+                },
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'A largura e a altura ficam sempre limitadas à página A4.',
+                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton.icon(
+          onPressed: _save,
+          icon: const Icon(Icons.check_rounded),
+          label: const Text('Inserir'),
+        ),
+      ],
+    );
+  }
+}
+
 class _SummaryAppearancePanel extends StatelessWidget {
   const _SummaryAppearancePanel({
     required this.color,
@@ -1988,9 +2287,7 @@ class _SummaryAppearancePanel extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.add_photo_alternate_outlined),
-              label: Text(
-                coverName.isEmpty ? 'Adicionar capa' : 'Trocar capa',
-              ),
+              label: Text(coverName.isEmpty ? 'Adicionar capa' : 'Trocar capa'),
             ),
             if (coverName.isNotEmpty) ...<Widget>[
               const SizedBox(height: 7),
@@ -2199,7 +2496,7 @@ class _SummaryAssetsPanel extends StatelessWidget {
             ],
             const SizedBox(height: 7),
             const Text(
-              'Imagens e anexos entram no backup e na sincronização Wi‑Fi.',
+              'Materiais fixados entram no backup e na sincronização Wi‑Fi, mas ficam somente no app e não entram no PDF.',
               style: TextStyle(color: AppColors.textMuted, fontSize: 11),
             ),
           ],
@@ -2285,8 +2582,9 @@ class AcademicSummaryDetailScreen extends StatelessWidget {
                             padding: EdgeInsets.all(
                               MediaQuery.sizeOf(context).width < 600 ? 18 : 30,
                             ),
-                            borderColor:
-                                AppColors.primary.withValues(alpha: .48),
+                            borderColor: AppColors.primary.withValues(
+                              alpha: .48,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
@@ -2323,20 +2621,28 @@ class AcademicSummaryDetailScreen extends StatelessWidget {
                                 if (document.text.trim().isEmpty)
                                   const Text(
                                     'Este resumo ainda não possui texto.',
-                                    style:
-                                        TextStyle(color: AppColors.textMuted),
+                                    style: TextStyle(
+                                      color: AppColors.textMuted,
+                                    ),
                                   )
                                 else
-                                  RichText(
-                                    textAlign: document.flutterTextAlign,
-                                    text: document.toTextSpan(
-                                      baseStyle: TextStyle(
-                                        color: Color(0xFFDCEBFA),
-                                        fontSize: 16,
-                                        height: document.lineHeight,
-                                        decoration: TextDecoration.none,
+                                  LayoutBuilder(
+                                    builder: (context, constraints) => RichText(
+                                      textAlign: document.flutterTextAlign,
+                                      text: document.toTextSpan(
+                                        baseStyle: TextStyle(
+                                          color: Color(0xFFDCEBFA),
+                                          fontSize: 16,
+                                          height: document.lineHeight,
+                                          decoration: TextDecoration.none,
+                                        ),
+                                        accentColor: AppColors.primaryLight,
+                                        embedBuilder: (embed) =>
+                                            SummaryEmbedWidget(
+                                          embed: embed,
+                                          maxWidth: constraints.maxWidth,
+                                        ),
                                       ),
-                                      accentColor: AppColors.primaryLight,
                                     ),
                                   ),
                               ],
@@ -2368,8 +2674,9 @@ class AcademicSummaryDetailScreen extends StatelessWidget {
                                               const SizedBox(
                                             height: 100,
                                             child: Center(
-                                              child:
-                                                  Text('Imagem indisponível'),
+                                              child: Text(
+                                                'Imagem indisponível',
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -2420,7 +2727,9 @@ class AcademicSummaryDetailScreen extends StatelessWidget {
                                       tooltip: 'Salvar anexo',
                                       onPressed: () async {
                                         final path = await FileTransferService
-                                            .saveAttachment(attachment);
+                                            .saveAttachment(
+                                          attachment,
+                                        );
                                         if (context.mounted && path != null) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(

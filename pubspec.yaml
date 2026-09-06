@@ -1,7 +1,7 @@
 name: my_routine_active
 description: Organizador acadêmico local para Sistemas de Informação.
 publish_to: "none"
-version: 5.5.1+56
+version: 5.6.0+57
 environment:
   sdk: ">=3.5.0 <4.0.0"
 

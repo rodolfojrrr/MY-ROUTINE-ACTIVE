@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.6.0 PRO
+
+- Conteúdos de cada matéria agora podem ser reordenados por arrastar; a ordem é persistida no banco e segue no backup e na sincronização.
+- Horários da tela inicial e da página semanal foram redesenhados como cartões compactos com capa, cor e símbolo da matéria.
+- Editor de resumos ganhou imagens inseridas no meio do texto, com legenda, largura, altura e alinhamento ajustáveis dentro da folha A4.
+- Adicionadas caixas profissionais de código de exemplo com 21 linguagens, cabeçalho, realce de sintaxe e dimensões ajustáveis; linhas extensas permanecem contidas na caixa.
+- Imagens fixadas continuam disponíveis no aplicativo, mas foram removidas do processo de geração do PDF, eliminando a falha causada por anexos grandes.
+- PDFs agora preservam a ordem do texto, das imagens inline e das caixas de código.
+- Catálogo de símbolos ampliado com linguagens de programação, Libras, acessibilidade, tecnologia, pesquisa e matérias acadêmicas.
+- Formato rico elevado para a versão 3, com leitura retrocompatível das versões anteriores e sem alteração no esquema SQLite.
+- Mantida a recuperação automática de valores grandes do Android introduzida na 5.5.1.
+- Análise estática e 61 testes automatizados validados.
+- Versão elevada para `5.6.0+57`.
+
 ## 5.5.1 PRO
 
 - Corrigida a falha `Row too big to fit into CursorWindow` que podia impedir a abertura no Android após salvar imagens, capas, certificados, anexos ou rascunhos grandes.

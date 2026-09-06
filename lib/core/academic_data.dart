@@ -68,11 +68,7 @@ class AcademicData {
               item.payload['kind'] == 'track',
         )
         .toList();
-    const priority = <String, int>{
-      'current': 0,
-      'planned': 1,
-      'completed': 2,
-    };
+    const priority = <String, int>{'current': 0, 'planned': 1, 'completed': 2};
     items.sort((a, b) {
       final status = (priority[a.payload['status']] ?? 3).compareTo(
         priority[b.payload['status']] ?? 3,
@@ -147,6 +143,41 @@ class AcademicData {
     return items;
   }
 
+  static List<SyncEntity> reorderedContents(
+    List<SyncEntity> current,
+    String draggedId,
+    String targetId,
+  ) {
+    final result = current.toList(growable: true);
+    final from = result.indexWhere((item) => item.id == draggedId);
+    final target = result.indexWhere((item) => item.id == targetId);
+    if (from < 0 || target < 0 || from == target) return result;
+    final moved = result.removeAt(from);
+    result.insert(target.clamp(0, result.length), moved);
+    return result;
+  }
+
+  static Future<void> reorderContents(
+    AppStore store,
+    List<SyncEntity> current,
+    String draggedId,
+    String targetId,
+  ) async {
+    final reordered = reorderedContents(current, draggedId, targetId);
+    for (var index = 0; index < reordered.length; index++) {
+      final item = reordered[index];
+      final order = index + 1;
+      if ((item.payload['order'] as num?)?.toInt() == order) continue;
+      await store.save(
+          EntityTypes.studyContent,
+          <String, dynamic>{
+            ...item.payload,
+            'order': order,
+          },
+          id: item.id);
+    }
+  }
+
   static List<SyncEntity> assetsForContent(
     AppStore store,
     String contentId, {
@@ -193,7 +224,7 @@ class AcademicData {
       RichSummaryDocument.fromPayload(summary.payload);
 
   static String summaryPlainText(SyncEntity summary) =>
-      summaryDocument(summary).text;
+      summaryDocument(summary).plainText;
 
   static List<Map<String, dynamic>> summaryAttachments(SyncEntity summary) {
     final raw = summary.payload['attachments'];
@@ -237,10 +268,12 @@ class AcademicData {
         .toList();
     for (final project in linkedProjects) {
       await store.save(
-        EntityTypes.codeProject,
-        <String, dynamic>{...project.payload, 'contentId': null},
-        id: project.id,
-      );
+          EntityTypes.codeProject,
+          <String, dynamic>{
+            ...project.payload,
+            'contentId': null,
+          },
+          id: project.id);
     }
     for (final type in <String>[
       EntityTypes.studyNote,
@@ -273,14 +306,13 @@ class AcademicData {
         .toList();
     for (final project in linkedProjects) {
       await store.save(
-        EntityTypes.codeProject,
-        <String, dynamic>{
-          ...project.payload,
-          'subjectId': null,
-          'contentId': null,
-        },
-        id: project.id,
-      );
+          EntityTypes.codeProject,
+          <String, dynamic>{
+            ...project.payload,
+            'subjectId': null,
+            'contentId': null,
+          },
+          id: project.id);
     }
     for (final type in <String>[
       EntityTypes.classSession,
@@ -318,15 +350,14 @@ class AcademicData {
         .toList();
     for (final project in linkedProjects) {
       await store.save(
-        EntityTypes.codeProject,
-        <String, dynamic>{
-          ...project.payload,
-          'semesterId': null,
-          'subjectId': null,
-          'contentId': null,
-        },
-        id: project.id,
-      );
+          EntityTypes.codeProject,
+          <String, dynamic>{
+            ...project.payload,
+            'semesterId': null,
+            'subjectId': null,
+            'contentId': null,
+          },
+          id: project.id);
     }
     await store.remove(semester.id);
   }

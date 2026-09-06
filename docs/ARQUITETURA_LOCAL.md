@@ -1,4 +1,4 @@
-# Arquitetura local — Smart Routine SI 5.5.1 PRO
+# Arquitetura local — Smart Routine SI 5.6 PRO
 
 ## Plataformas e privacidade
 

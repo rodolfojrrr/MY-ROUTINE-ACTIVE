@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../core/academic_data.dart';
-import '../core/academic_folder_style.dart';
 import '../core/app_store.dart';
 import '../core/app_theme.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
+import '../widgets/academic_schedule_card.dart';
 import 'academic_assessments_screen.dart';
 import 'academic_shared.dart';
 import 'academic_simulations_screen.dart';
@@ -63,7 +63,9 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
         ),
       );
     final upcoming = widget.store.records(EntityTypes.exam).where((item) {
-      if (!academicSubjectIds.contains(item.payload['subjectId'])) return false;
+      if (!academicSubjectIds.contains(item.payload['subjectId'])) {
+        return false;
+      }
       if (item.payload['completed'] == true) return false;
       final date = DateTime.tryParse(item.payload['date'] as String? ?? '');
       if (date == null) return false;
@@ -591,70 +593,33 @@ class _ScheduleViewer extends StatelessWidget {
               ),
             )
           else
-            ...sessions.map((item) {
-              final subject = store.byId(
-                item.payload['subjectId'] as String? ?? '',
-              );
-              final color = subject == null
-                  ? AppColors.primary
-                  : AcademicFolderStyle.colorFor(subject);
-              return Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: .07),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: color.withValues(alpha: .38)),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 5,
-                    ),
-                    leading: Container(
-                      width: 92,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: .18),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: color.withValues(alpha: .35),
-                        ),
-                      ),
-                      child: Text(
-                        '${item.payload['start']}\n${item.payload['end']}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      AcademicData.subjectName(
-                        store,
-                        item.payload['subjectId'] as String?,
-                      ),
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    subtitle: Text(
-                      (item.payload['room'] as String? ?? '').isEmpty
-                          ? 'Sala não informada'
-                          : item.payload['room'] as String,
-                    ),
-                    trailing: Icon(
-                      subject == null
-                          ? Icons.school_outlined
-                          : AcademicFolderStyle.iconFor(subject),
-                      color: color,
-                    ),
-                  ),
-                ),
-              );
-            }),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 720
+                    ? 3
+                    : constraints.maxWidth >= 340
+                        ? 2
+                        : 1;
+                return GridView.count(
+                  crossAxisCount: columns,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 9,
+                  crossAxisSpacing: 9,
+                  childAspectRatio: columns == 1 ? 2.15 : 1.12,
+                  children: sessions.map((item) {
+                    final subject = store.byId(
+                      item.payload['subjectId'] as String? ?? '',
+                    );
+                    return AcademicScheduleCard(
+                      subject: subject,
+                      session: item,
+                      compact: columns <= 2,
+                    );
+                  }).toList(growable: false),
+                );
+              },
+            ),
         ],
       ),
     );
@@ -887,12 +852,14 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                 isScrollable: true,
                 tabs: <Widget>[
                   Tab(
-                      icon: Icon(Icons.account_tree_outlined),
-                      text: 'Conteúdos'),
+                    icon: Icon(Icons.account_tree_outlined),
+                    text: 'Conteúdos',
+                  ),
                   Tab(icon: Icon(Icons.style_outlined), text: 'Flashcards'),
                   Tab(
-                      icon: Icon(Icons.event_available_outlined),
-                      text: 'Provas e notas'),
+                    icon: Icon(Icons.event_available_outlined),
+                    text: 'Provas e notas',
+                  ),
                   Tab(icon: Icon(Icons.quiz_outlined), text: 'Simulados'),
                 ],
               ),
@@ -930,8 +897,9 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                                             as String?,
                                       ).toUpperCase(),
                                       style: TextStyle(
-                                        color:
-                                            Colors.white.withValues(alpha: .72),
+                                        color: Colors.white.withValues(
+                                          alpha: .72,
+                                        ),
                                         letterSpacing: 1.5,
                                         fontSize: 11,
                                         fontWeight: FontWeight.w900,
@@ -1156,10 +1124,7 @@ class AcademicSubjectDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                StudyFlashcardsPage(
-                  store: store,
-                  initialSubjectId: subjectId,
-                ),
+                StudyFlashcardsPage(store: store, initialSubjectId: subjectId),
                 AcademicAssessmentsScreen(
                   store: store,
                   initialSubjectId: subjectId,
