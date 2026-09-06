@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.5.1 PRO
+
+- Corrigida a falha `Row too big to fit into CursorWindow` que podia impedir a abertura no Android após salvar imagens, capas, certificados, anexos ou rascunhos grandes.
+- Banco elevado para a versão 3 com migração automática e transacional antes da primeira consulta de entidades.
+- Conteúdos grandes agora são divididos em blocos de 64 KB dentro do SQLite e reconstruídos de forma transparente durante a leitura.
+- A proteção também cobre rascunhos salvos nas configurações e versões grandes mantidas no histórico de conflitos.
+- O formato lógico das entidades não mudou: backup `.mra`, importação e sincronização Wi-Fi continuam transportando o conteúdo completo.
+- Registros pequenos continuam no formato direto, evitando trabalho desnecessário e mantendo compatibilidade.
+- Dois novos testes cobrem a migração de um banco v2 com aproximadamente 3 MB e novas gravações grandes.
+- Versão elevada para `5.5.1+56`.
+
 ## 5.5.0 PRO — revisão do workflow Windows
 
 - Corrigida a etapa `Configurar Flutter` que podia encerrar com o código 35 no executor Windows do GitHub.

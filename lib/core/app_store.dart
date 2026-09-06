@@ -72,6 +72,7 @@ class AppStore extends ChangeNotifier {
   bool get isAuthenticated => _activeAccount != null;
 
   Future<void> initialize() async {
+    await _database.prepareLargeValuesForReading();
     _deviceId = await _database.readSetting('device_id') ?? '';
     if (_deviceId.isEmpty) {
       _deviceId = _uuid.v4();

@@ -1,0 +1,36 @@
+SMART ROUTINE SI V5.5.1 — RECUPERAR BANCO NO ANDROID
+====================================================
+
+ESTA ATUALIZAÇÃO CORRIGE
+DatabaseException(Row too big to fit into CursorWindow)
+
+O registro grande permanece no banco. O Android apenas não conseguia
+entregá-lo ao aplicativo como uma única linha. A versão 5.5.1 divide imagens,
+anexos, capas, rascunhos e outros conteúdos grandes em blocos menores antes
+de executar a consulta que estava falhando.
+
+O QUE NÃO FAZER
+- NÃO desinstale o Smart Routine SI.
+- NÃO limpe dados nem armazenamento nas configurações do Android.
+- NÃO instale um APK assinado por uma chave diferente.
+
+COMO RECUPERAR
+1. Envie esta versão ao GitHub executando 07_SUBIR_GITHUB.bat.
+2. Aguarde a tarefa Gerar APK Android ficar verde em Actions.
+3. Baixe o novo APK Smart-Routine-SI-Android.
+4. Instale o APK por cima do aplicativo atual.
+5. Abra o aplicativo e aguarde a primeira inicialização terminar.
+6. Assim que entrar, exporte um backup .mra atualizado.
+
+ASSINATURA
+Os quatro Secrets MRA_* do GitHub precisam continuar iguais aos utilizados
+no APK que está instalado. Se o Android oferecer Atualizar, a assinatura está
+correta. Se informar conflito de pacote, não desinstale: confira primeiro a
+chave configurada no GitHub.
+
+SEGURANÇA DA MIGRAÇÃO
+- A alteração ocorre dentro de uma transação do SQLite.
+- Se alguma etapa falhar, o banco anterior é mantido e a migração pode tentar
+  novamente na próxima abertura.
+- Nenhuma entidade acadêmica é excluída ou zerada.
+- O mesmo banco continua compatível com backup e sincronização Wi-Fi.

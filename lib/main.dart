@@ -31,7 +31,7 @@ class _MyRoutineBootstrapState extends State<MyRoutineBootstrap> {
   late final WifiSyncService wifi;
   late final AppAppearanceController appearance;
   late final StudyTimerController studyTimer;
-  late final Future<void> initialization;
+  late Future<void> initialization;
 
   @override
   void initState() {
@@ -45,6 +45,10 @@ class _MyRoutineBootstrapState extends State<MyRoutineBootstrap> {
 
   Future<void> _initialize() async {
     await store.initialize();
+  }
+
+  void _retryInitialization() {
+    setState(() => initialization = _initialize());
   }
 
   Future<void> _onAuthenticated() async {
@@ -85,7 +89,10 @@ class _MyRoutineBootstrapState extends State<MyRoutineBootstrap> {
           future: initialization,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return _StartupError(message: snapshot.error.toString());
+              return _StartupError(
+                message: snapshot.error.toString(),
+                onRetry: _retryInitialization,
+              );
             }
             if (snapshot.connectionState != ConnectionState.done) {
               return const _StartupLoading();
@@ -133,9 +140,10 @@ class _StartupLoading extends StatelessWidget {
 }
 
 class _StartupError extends StatelessWidget {
-  const _StartupError({required this.message});
+  const _StartupError({required this.message, required this.onRetry});
 
   final String message;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +162,18 @@ class _StartupError extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(message, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Tentar novamente'),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Não desinstale o aplicativo nem limpe os dados.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textMuted),
+              ),
             ],
           ),
         ),

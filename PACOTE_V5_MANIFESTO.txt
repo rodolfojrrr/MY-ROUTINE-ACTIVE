@@ -1,4 +1,4 @@
-SMART ROUTINE SI 5.5.0+55 PRO — MANIFESTO DO PACOTE
+SMART ROUTINE SI 5.5.1+56 PRO — MANIFESTO DO PACOTE
 ================================================
 
 ESCOPO
@@ -25,8 +25,9 @@ COMPATIBILIDADE
 
 VALIDAÇÃO DA ENTREGA
 - dart analyze: nenhum problema.
-- Suite automatizada: 52 testes executados pelo GitHub Actions.
-- Migração v1 → v2 com dados preservados.
+- Suite automatizada: 54 testes executados pelo GitHub Actions.
+- Migrações v1 → v2 → v3 com dados preservados.
+- Registros grandes fragmentados e reconstruídos sem alterar backup ou sync.
 - Contas isoladas e recuperação de senha testadas.
 - Rascunho e digitação contínua testados.
 - Timer persistente testado.

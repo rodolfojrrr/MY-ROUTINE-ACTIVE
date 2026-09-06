@@ -1,8 +1,16 @@
-SMART ROUTINE SI — V5.5.0 PRO PERSONALIZÁVEL
+SMART ROUTINE SI — V5.5.1 PRO RECUPERAÇÃO ANDROID
 =================================================
 
 Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
 Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
+
+CORREÇÃO URGENTE DO BANCO ANDROID
+- Corrigido "Row too big to fit into CursorWindow" ao abrir o aplicativo.
+- Imagens, anexos, capas e rascunhos grandes passam a ser divididos em blocos
+  seguros dentro do mesmo banco SQLite.
+- Ao instalar por cima, o banco antigo é migrado automaticamente antes da
+  primeira leitura. Não desinstale o aplicativo e não limpe os dados.
+- Backup .mra e sincronização Wi-Fi continuam usando os registros completos.
 
 CORREÇÃO DO BUILD WINDOWS
 - A falha "Process completed with exit code 35" na etapa Configurar Flutter
@@ -86,6 +94,7 @@ REPOSITÓRIO CONFIGURADO
 https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
 LEIA TAMBÉM
+- 00_RECUPERAR_BANCO_ANDROID_V5.5.1.txt
 - 00_CORRECAO_BUILD_WINDOWS_GITHUB.txt
 - 00_ATUALIZACAO_V5.5_PRO_SEM_PERDER_DADOS.txt
 - 00_MIGRACAO_PARA_V5.txt

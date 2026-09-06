@@ -1,4 +1,4 @@
-SMART ROUTINE SI 5.5 PRO — ATUALIZAR SEM PERDER DADOS
+SMART ROUTINE SI 5.5.1 PRO — ATUALIZAR SEM PERDER DADOS
 =====================================================
 
 Esta versão foi preparada para ser instalada diretamente sobre qualquer
@@ -12,7 +12,7 @@ ANTES DE ATUALIZAR
 NO ANDROID
 1. NÃO desinstale o Smart Routine SI e NÃO limpe os dados.
 2. Gere o APK usando a mesma chave de assinatura da versão já instalada.
-3. Instale o APK 5.5 PRO por cima do aplicativo atual.
+3. Instale o APK 5.5.1 PRO por cima do aplicativo atual.
 
 NO WINDOWS
 1. Feche o aplicativo no PC ou notebook.
@@ -33,7 +33,7 @@ um visual compatível automaticamente e só ganham cor/capa própria quando voc�
 os personalizar. Nenhuma tabela acadêmica é zerada ou recriada.
 
 SINCRONIZAÇÃO
-- Atualize os dois aparelhos para a 5.5 PRO antes de sincronizar, para que
+- Atualize os dois aparelhos para a 5.5.1 PRO antes de sincronizar, para que
   ambos exibam capas, cores, artes de pastas e a Lixeira do mesmo modo.
 - A sincronização continua bidirecional e local entre celular, notebook ou PC.
 - Credenciais permanecem locais e não são copiadas entre aparelhos.

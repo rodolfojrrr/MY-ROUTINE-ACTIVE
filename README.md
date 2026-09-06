@@ -1,6 +1,6 @@
 # Smart Routine SI
 
-**Versão 5.5.0 PRO — personalização completa e ambiente acadêmico 100% local**
+**Versão 5.5.1 PRO — recuperação automática de dados grandes no Android**
 
 Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação em **Sistemas de Informação**, mas também organiza cursos livres, trilhas, certificações e estudos pessoais. Não há WebView, nuvem, analytics ou login externo: banco, imagens, projetos e credenciais ficam somente nos aparelhos do usuário.
 
@@ -96,7 +96,7 @@ Para usar a mesma coleção acadêmica no PC e no celular, crie uma conta com o 
 5. Essa conta assume os registros já existentes e o aplicativo cria antes um snapshot automático.
 6. Se havia PIN, informe-o uma única vez durante a migração.
 
-O banco passa da versão 1 para a versão 2 adicionando a tabela de contas; a tabela acadêmica existente não é recriada. Leia `00_MIGRACAO_PARA_V5.txt`.
+O banco passa da versão 1 para a versão 2 adicionando a tabela de contas. Na versão 3, imagens, anexos e rascunhos grandes são divididos em blocos seguros antes da leitura no Android. A tabela acadêmica existente não é recriada. Leia `00_MIGRACAO_PARA_V5.txt` e `00_RECUPERAR_BANCO_ANDROID_V5.5.1.txt`.
 
 ## Backup e sincronização local
 
@@ -122,7 +122,7 @@ No Android, os projetos podem ser criados, editados e sincronizados. No Windows,
 4. No GitHub, abra **Actions → Validar e gerar aplicativos**.
 5. Baixe `Smart-Routine-SI-Android` e `Smart-Routine-SI-Windows`.
 
-O workflow executa análise estática, 52 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
+O workflow executa análise estática, 54 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
 
 ## BATs incluídos
 

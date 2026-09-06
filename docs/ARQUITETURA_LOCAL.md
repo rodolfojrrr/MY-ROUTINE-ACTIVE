@@ -1,4 +1,4 @@
-# Arquitetura local — Smart Routine SI 5.5.0 PRO
+# Arquitetura local — Smart Routine SI 5.5.1 PRO
 
 ## Plataformas e privacidade
 
@@ -11,9 +11,9 @@ O SQLite usa duas áreas principais:
 - `entities`: registros versionados com UUID, tipo, JSON, revisão, aparelho, atualização e tombstone;
 - `local_accounts`: credenciais locais, perguntas e hashes de recuperação.
 
-`settings` guarda preferências por usuário e por aparelho. `sync_conflicts` preserva divergências.
+`settings` guarda preferências por usuário e por aparelho. `sync_conflicts` preserva divergências. `large_value_chunks` armazena, em blocos de 64 KB, imagens, anexos, rascunhos e versões de conflito que ultrapassem o limite seguro de uma linha no Android.
 
-Na migração v1 → v2, somente `local_accounts` é criada. A tabela `entities` não é apagada. A primeira conta reivindica registros legados ainda sem `ownerId`, depois de um snapshot automático. Um PIN legado, quando configurado, é exigido antes dessa etapa.
+Na migração v1 → v2, somente `local_accounts` é criada. Na v2 → v3, registros grandes são fragmentados numa transação antes da primeira leitura. A tabela `entities` não é apagada e o JSON é reconstruído integralmente para backup, sincronização e interface. A primeira conta reivindica registros legados ainda sem `ownerId`, depois de um snapshot automático. Um PIN legado, quando configurado, é exigido antes dessa etapa.
 
 ## Isolamento de usuários
 
