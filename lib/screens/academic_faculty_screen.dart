@@ -530,24 +530,31 @@ class AcademicSubjectFolderPage extends StatelessWidget {
     required this.store,
     required this.semesterId,
     required this.subjectId,
+    this.courseMode = false,
     super.key,
   });
 
   final AppStore store;
   final String semesterId;
   final String subjectId;
+  final bool courseMode;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Conteúdos da matéria')),
+      appBar: AppBar(
+        title:
+            Text(courseMode ? 'Conteúdos do módulo' : 'Conteúdos da matéria'),
+      ),
       body: AnimatedBuilder(
         animation: store,
         builder: (context, _) {
           final semester = store.byId(semesterId);
           final subject = store.byId(subjectId);
           if (subject == null) {
-            return const _MissingAcademicItem(message: 'Matéria removida.');
+            return _MissingAcademicItem(
+              message: courseMode ? 'Módulo removido.' : 'Matéria removida.',
+            );
           }
           final contents = AcademicData.contentsForSubject(store, subjectId);
           final color = AcademicFolderStyle.colorFor(subject);
@@ -556,9 +563,11 @@ class AcademicSubjectFolderPage extends StatelessWidget {
             children: <Widget>[
               _AcademicBreadcrumb(
                 items: <String>[
-                  'Faculdade',
-                  semester?.payload['name'] as String? ?? 'Semestre',
-                  subject.payload['name'] as String? ?? 'Matéria',
+                  courseMode ? 'Cursos' : 'Faculdade',
+                  semester?.payload['name'] as String? ??
+                      (courseMode ? 'Curso' : 'Semestre'),
+                  subject.payload['name'] as String? ??
+                      (courseMode ? 'Módulo' : 'Matéria'),
                 ],
               ),
               const SizedBox(height: 14),
@@ -569,11 +578,14 @@ class AcademicSubjectFolderPage extends StatelessWidget {
                 runSpacing: 10,
                 children: <Widget>[
                   ElevatedButton.icon(
-                    key: const Key('faculty-add-content'),
+                    key: Key(
+                      courseMode ? 'course-add-content' : 'faculty-add-content',
+                    ),
                     onPressed: () => showAcademicContentEditor(
                       context,
                       store,
                       initialSubjectId: subjectId,
+                      courseMode: courseMode,
                     ),
                     icon: const Icon(Icons.add_rounded),
                     label: const Text('Adicionar conteúdo'),
@@ -584,9 +596,14 @@ class AcademicSubjectFolderPage extends StatelessWidget {
                       store,
                       entity: subject,
                       initialSemesterId: semesterId,
+                      courseMode: courseMode,
                     ),
                     icon: const Icon(Icons.palette_outlined),
-                    label: const Text('Personalizar matéria'),
+                    label: Text(
+                      courseMode
+                          ? 'Personalizar módulo'
+                          : 'Personalizar matéria',
+                    ),
                   ),
                 ],
               ),
@@ -602,11 +619,14 @@ class AcademicSubjectFolderPage extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               if (contents.isEmpty)
-                const EmptyState(
+                EmptyState(
                   icon: Icons.create_new_folder_outlined,
-                  title: 'Nenhum conteúdo nesta matéria',
-                  message:
-                      'Crie unidades, capítulos ou assuntos conforme o plano de ensino.',
+                  title: courseMode
+                      ? 'Nenhum conteúdo neste módulo'
+                      : 'Nenhum conteúdo nesta matéria',
+                  message: courseMode
+                      ? 'Crie aulas, unidades ou capítulos conforme o andamento do curso.'
+                      : 'Crie unidades, capítulos ou assuntos conforme o plano de ensino.',
                 )
               else
                 _AcademicFolderGrid(
@@ -708,6 +728,7 @@ class AcademicSubjectFolderPage extends StatelessWidget {
                                 semesterId: semesterId,
                                 subjectId: subjectId,
                                 contentId: content.id,
+                                courseMode: courseMode,
                               ),
                             ),
                           ),
@@ -716,6 +737,7 @@ class AcademicSubjectFolderPage extends StatelessWidget {
                             store,
                             entity: content,
                             initialSubjectId: subjectId,
+                            courseMode: courseMode,
                           ),
                           onDelete: () => _confirmDelete(
                             context,
@@ -744,6 +766,7 @@ class AcademicContentHubPage extends StatelessWidget {
     required this.semesterId,
     required this.subjectId,
     required this.contentId,
+    this.courseMode = false,
     super.key,
   });
 
@@ -751,6 +774,7 @@ class AcademicContentHubPage extends StatelessWidget {
   final String semesterId;
   final String subjectId;
   final String contentId;
+  final bool courseMode;
 
   @override
   Widget build(BuildContext context) {
@@ -775,9 +799,11 @@ class AcademicContentHubPage extends StatelessWidget {
             children: <Widget>[
               _AcademicBreadcrumb(
                 items: <String>[
-                  'Faculdade',
-                  semester?.payload['name'] as String? ?? 'Semestre',
-                  subject.payload['name'] as String? ?? 'Matéria',
+                  courseMode ? 'Cursos' : 'Faculdade',
+                  semester?.payload['name'] as String? ??
+                      (courseMode ? 'Curso' : 'Semestre'),
+                  subject.payload['name'] as String? ??
+                      (courseMode ? 'Módulo' : 'Matéria'),
                   content.payload['title'] as String? ?? 'Conteúdo',
                 ],
               ),
@@ -846,6 +872,7 @@ class AcademicContentHubPage extends StatelessWidget {
                             store,
                             entity: content,
                             initialSubjectId: subjectId,
+                            courseMode: courseMode,
                           ),
                           icon: const Icon(Icons.edit_outlined),
                         ),
@@ -1474,26 +1501,40 @@ class _AcademicContentAssetsPageState extends State<AcademicContentAssetsPage> {
 }
 
 class AcademicSchedulePage extends StatelessWidget {
-  const AcademicSchedulePage({required this.store, this.semesterId, super.key});
+  const AcademicSchedulePage({
+    required this.store,
+    this.semesterId,
+    this.courseId,
+    super.key,
+  });
 
   final AppStore store;
   final String? semesterId;
+  final String? courseId;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Horário de aulas')),
+      appBar: AppBar(
+        title:
+            Text(courseId == null ? 'Horário de aulas' : 'Horários do curso'),
+      ),
       body: AnimatedBuilder(
         animation: store,
         builder: (context, _) {
-          final subjects = semesterId == null
-              ? AcademicData.academicSubjects(store)
-              : AcademicData.subjectsForSemester(store, semesterId);
+          final courseMode = courseId != null;
+          final subjects = courseMode
+              ? AcademicData.subjectsForSemester(store, courseId)
+              : semesterId == null
+                  ? AcademicData.academicSubjects(store)
+                  : AcademicData.subjectsForSemester(store, semesterId);
           final subjectIds = subjects.map((item) => item.id).toSet();
           final sessions = store
               .records(EntityTypes.classSession)
               .where(
-                (item) => subjectIds.contains(item.payload['subjectId']),
+                (item) => courseMode
+                    ? item.payload['courseId'] == courseId
+                    : subjectIds.contains(item.payload['subjectId']),
               )
               .toList()
             ..sort((a, b) {
@@ -1508,42 +1549,60 @@ class AcademicSchedulePage extends StatelessWidget {
           return AcademicPageBody(
             maxWidth: 980,
             children: <Widget>[
-              const PageIntro(
-                eyebrow: 'Semana acadêmica',
-                title: 'Horário de aulas',
-                subtitle:
-                    'Organize suas aulas de segunda a domingo sem misturar cursos livres.',
-                color: AppColors.cyan,
+              PageIntro(
+                eyebrow:
+                    courseMode ? 'Calendário do curso' : 'Semana acadêmica',
+                title: courseMode ? 'Horários do curso' : 'Horário de aulas',
+                subtitle: courseMode
+                    ? 'Escolha os dias e horários em que pretende estudar este curso.'
+                    : 'Organize suas aulas da faculdade de segunda a domingo.',
+                color: courseMode ? AppColors.green : AppColors.cyan,
               ),
               const SizedBox(height: 18),
               Align(
                 alignment: Alignment.centerLeft,
                 child: ElevatedButton.icon(
-                  onPressed: subjects.isEmpty
-                      ? null
-                      : () => showAcademicScheduleEditor(
+                  key: Key(
+                    courseMode ? 'course-add-schedule' : 'faculty-add-schedule',
+                  ),
+                  onPressed: courseMode
+                      ? () => showAcademicScheduleEditor(
                             context,
                             store,
-                            initialSubjectId:
-                                subjects.length == 1 ? subjects.first.id : null,
-                          ),
+                            initialCourseId: courseId,
+                          )
+                      : subjects.isEmpty
+                          ? null
+                          : () => showAcademicScheduleEditor(
+                                context,
+                                store,
+                                initialSubjectId: subjects.length == 1
+                                    ? subjects.first.id
+                                    : null,
+                              ),
                   icon: const Icon(Icons.add_rounded),
-                  label: const Text('Adicionar aula'),
+                  label: Text(
+                    courseMode ? 'Adicionar estudo' : 'Adicionar aula',
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
-              if (subjects.isEmpty)
+              if (!courseMode && subjects.isEmpty)
                 const EmptyState(
                   icon: Icons.menu_book_outlined,
                   title: 'Cadastre uma matéria primeiro',
                   message:
-                      'O horário é sempre ligado a uma matéria da faculdade.',
+                      'O horário da faculdade é ligado a uma matéria cadastrada.',
                 )
               else if (sessions.isEmpty)
-                const EmptyState(
+                EmptyState(
                   icon: Icons.calendar_view_week_outlined,
-                  title: 'Nenhuma aula cadastrada',
-                  message: 'Use o botão acima para montar sua semana.',
+                  title: courseMode
+                      ? 'Nenhum estudo agendado'
+                      : 'Nenhuma aula cadastrada',
+                  message: courseMode
+                      ? 'Escolha os dias em que deseja avançar neste curso.'
+                      : 'Use o botão acima para montar sua semana.',
                 )
               else
                 ...AcademicData.weekdayLong.entries.map((day) {
@@ -1587,8 +1646,13 @@ class AcademicSchedulePage extends StatelessWidget {
                                     session.payload['subjectId'] as String? ??
                                         '',
                                   );
+                                  final course = store.byId(
+                                    session.payload['courseId'] as String? ??
+                                        '',
+                                  );
                                   return AcademicScheduleCard(
                                     subject: subject,
+                                    course: course,
                                     session: session,
                                     compact: columns <= 2,
                                     trailing: PopupMenuButton<String>(

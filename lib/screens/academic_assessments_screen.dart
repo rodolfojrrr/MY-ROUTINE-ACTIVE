@@ -39,8 +39,12 @@ class _AcademicAssessmentsScreenState extends State<AcademicAssessmentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = AcademicData.academicSubjects(widget.store)
-      ..sort(
+    final preferredSubject = subjectId ?? widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    )..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
         ),
@@ -365,9 +369,13 @@ class _AcademicAssessmentEditorDialogState
   @override
   void initState() {
     super.initState();
-    final subjects = AcademicData.academicSubjects(widget.store);
     final preferred = widget.entity?.payload['subjectId'] as String? ??
         widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferred,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferred),
+    );
     subjectId = subjects.any((item) => item.id == preferred)
         ? preferred
         : (subjects.isEmpty ? null : subjects.first.id);
@@ -410,8 +418,14 @@ class _AcademicAssessmentEditorDialogState
 
   @override
   Widget build(BuildContext context) {
-    final subjects = AcademicData.academicSubjects(widget.store)
-      ..sort(
+    final preferred = subjectId ??
+        widget.entity?.payload['subjectId'] as String? ??
+        widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferred,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferred),
+    )..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
         ),

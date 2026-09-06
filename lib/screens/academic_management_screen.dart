@@ -27,6 +27,7 @@ Future<void> showAcademicSubjectEditor(
   AppStore store, {
   SyncEntity? entity,
   String? initialSemesterId,
+  bool courseMode = false,
 }) =>
     showDialog<void>(
       context: context,
@@ -34,6 +35,7 @@ Future<void> showAcademicSubjectEditor(
         store: store,
         entity: entity,
         initialSemesterId: initialSemesterId,
+        courseMode: courseMode,
       ),
     );
 
@@ -42,6 +44,7 @@ Future<void> showAcademicContentEditor(
   AppStore store, {
   SyncEntity? entity,
   String? initialSubjectId,
+  bool courseMode = false,
 }) =>
     showDialog<void>(
       context: context,
@@ -49,6 +52,7 @@ Future<void> showAcademicContentEditor(
         store: store,
         entity: entity,
         initialSubjectId: initialSubjectId,
+        courseMode: courseMode,
       ),
     );
 
@@ -57,6 +61,7 @@ Future<void> showAcademicScheduleEditor(
   AppStore store, {
   SyncEntity? entity,
   String? initialSubjectId,
+  String? initialCourseId,
 }) =>
     showDialog<void>(
       context: context,
@@ -64,6 +69,7 @@ Future<void> showAcademicScheduleEditor(
         store: store,
         entity: entity,
         initialSubjectId: initialSubjectId,
+        initialCourseId: initialCourseId,
       ),
     );
 
@@ -370,9 +376,12 @@ class _ContentsTab extends StatelessWidget {
   final AppStore store;
 
   void _create(BuildContext context) {
-    if (AcademicData.academicSubjects(store).isEmpty) {
+    if (AcademicData.academicSubjects(store).isEmpty &&
+        AcademicData.sortedCourses(store).isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cadastre uma cadeira primeiro.')),
+        const SnackBar(
+          content: Text('Cadastre uma matéria ou um curso primeiro.'),
+        ),
       );
       return;
     }
@@ -533,10 +542,14 @@ class _SchedulesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final academicSubjectIds =
         AcademicData.academicSubjects(store).map((item) => item.id).toSet();
+    final courseIds =
+        AcademicData.sortedCourses(store).map((item) => item.id).toSet();
     final sessions = store
         .records(EntityTypes.classSession)
         .where(
-          (item) => academicSubjectIds.contains(item.payload['subjectId']),
+          (item) =>
+              academicSubjectIds.contains(item.payload['subjectId']) ||
+              courseIds.contains(item.payload['courseId']),
         )
         .toList()
       ..sort((a, b) {
@@ -555,7 +568,7 @@ class _SchedulesTab extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () => _create(context),
             icon: const Icon(Icons.add),
-            label: const Text('Adicionar aula'),
+            label: const Text('Adicionar aula ou estudo'),
           ),
         ),
         const SizedBox(height: 16),
@@ -587,22 +600,30 @@ class _SchedulesTab extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ...items.map(
-                      (item) => ListTile(
+                    ...items.map((item) {
+                      final courseId = item.payload['courseId'] as String?;
+                      final course =
+                          courseId == null ? null : store.byId(courseId);
+                      final courseMode = course != null;
+                      return ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: Icon(
-                          Icons.schedule,
+                          courseMode
+                              ? Icons.workspace_premium_outlined
+                              : Icons.schedule,
                           color: AppColors.primary,
                         ),
                         title: Text(
-                          AcademicData.subjectName(
-                            store,
-                            item.payload['subjectId'] as String?,
-                          ),
+                          course?.payload['name'] as String? ??
+                              AcademicData.subjectName(
+                                store,
+                                item.payload['subjectId'] as String?,
+                              ),
                           style: const TextStyle(fontWeight: FontWeight.w800),
                         ),
                         subtitle: Text(
                           '${item.payload['start']}–${item.payload['end']}'
+                          ' • ${courseMode ? 'Curso' : 'Faculdade'}'
                           '${(item.payload['room'] as String? ?? '').isEmpty ? '' : ' • ${item.payload['room']}'}',
                         ),
                         trailing: Row(
@@ -622,8 +643,8 @@ class _SchedulesTab extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -838,11 +859,13 @@ class _SubjectDialog extends StatefulWidget {
     required this.store,
     this.entity,
     this.initialSemesterId,
+    this.courseMode = false,
   });
 
   final AppStore store;
   final SyncEntity? entity;
   final String? initialSemesterId;
+  final bool courseMode;
 
   @override
   State<_SubjectDialog> createState() => _SubjectDialogState();
@@ -865,7 +888,9 @@ class _SubjectDialogState extends State<_SubjectDialog> {
   @override
   void initState() {
     super.initState();
-    final semesters = AcademicData.sortedSemesters(widget.store);
+    final semesters = widget.courseMode
+        ? AcademicData.sortedCourses(widget.store)
+        : AcademicData.sortedSemesters(widget.store);
     name = TextEditingController(
       text: widget.entity?.payload['name'] as String? ?? '',
     );
@@ -933,9 +958,15 @@ class _SubjectDialogState extends State<_SubjectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final semesters = AcademicData.sortedSemesters(widget.store);
+    final semesters = widget.courseMode
+        ? AcademicData.sortedCourses(widget.store)
+        : AcademicData.sortedSemesters(widget.store);
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Nova matéria' : 'Editar matéria'),
+      title: Text(
+        widget.entity == null
+            ? (widget.courseMode ? 'Novo módulo' : 'Nova matéria')
+            : (widget.courseMode ? 'Editar módulo' : 'Editar matéria'),
+      ),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
@@ -944,14 +975,20 @@ class _SubjectDialogState extends State<_SubjectDialog> {
             children: <Widget>[
               DropdownButtonFormField<String>(
                 initialValue: semesterId,
-                decoration: const InputDecoration(
-                  labelText: 'Semestre da faculdade',
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText:
+                      widget.courseMode ? 'Curso' : 'Semestre da faculdade',
                 ),
                 items: semesters
                     .map(
                       (item) => DropdownMenuItem<String>(
                         value: item.id,
-                        child: Text(item.payload['name'] as String? ?? ''),
+                        child: Text(
+                          item.payload['name'] as String? ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     )
                     .toList(),
@@ -961,7 +998,10 @@ class _SubjectDialogState extends State<_SubjectDialog> {
               TextField(
                 controller: name,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Nome da matéria'),
+                decoration: InputDecoration(
+                  labelText:
+                      widget.courseMode ? 'Nome do módulo' : 'Nome da matéria',
+                ),
               ),
               const SizedBox(height: 12),
               Row(
@@ -969,8 +1009,10 @@ class _SubjectDialogState extends State<_SubjectDialog> {
                   Expanded(
                     child: TextField(
                       controller: code,
-                      decoration: const InputDecoration(
-                        labelText: 'Código da disciplina',
+                      decoration: InputDecoration(
+                        labelText: widget.courseMode
+                            ? 'Código ou etapa'
+                            : 'Código da disciplina',
                       ),
                     ),
                   ),
@@ -989,7 +1031,10 @@ class _SubjectDialogState extends State<_SubjectDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: professor,
-                decoration: const InputDecoration(labelText: 'Professor(a)'),
+                decoration: InputDecoration(
+                  labelText:
+                      widget.courseMode ? 'Instrutor(a)' : 'Professor(a)',
+                ),
               ),
               const SizedBox(height: 12),
               Row(
@@ -997,8 +1042,10 @@ class _SubjectDialogState extends State<_SubjectDialog> {
                   Expanded(
                     child: TextField(
                       controller: room,
-                      decoration: const InputDecoration(
-                        labelText: 'Sala / laboratório',
+                      decoration: InputDecoration(
+                        labelText: widget.courseMode
+                            ? 'Plataforma / local'
+                            : 'Sala / laboratório',
                       ),
                     ),
                   ),
@@ -1067,7 +1114,9 @@ class _SubjectDialogState extends State<_SubjectDialog> {
                         onTap: () async {
                           final color = await showProColorPicker(
                             context,
-                            title: 'Cor personalizada da matéria',
+                            title: widget.courseMode
+                                ? 'Cor personalizada do módulo'
+                                : 'Cor personalizada da matéria',
                             initialColor: Color(folderColor),
                           );
                           if (color != null && mounted) {
@@ -1206,11 +1255,13 @@ class _ContentDialog extends StatefulWidget {
     required this.store,
     this.entity,
     this.initialSubjectId,
+    this.courseMode = false,
   });
 
   final AppStore store;
   final SyncEntity? entity;
   final String? initialSubjectId;
+  final bool courseMode;
 
   @override
   State<_ContentDialog> createState() => _ContentDialogState();
@@ -1231,7 +1282,12 @@ class _ContentDialogState extends State<_ContentDialog> {
   @override
   void initState() {
     super.initState();
-    final subjects = AcademicData.academicSubjects(widget.store);
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: widget.initialSubjectId ??
+          widget.entity?.payload['subjectId'] as String?,
+      courseMode: widget.courseMode,
+    );
     title = TextEditingController(
       text: widget.entity?.payload['title'] as String? ?? '',
     );
@@ -1285,8 +1341,12 @@ class _ContentDialogState extends State<_ContentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = AcademicData.academicSubjects(widget.store)
-      ..sort(
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: widget.initialSubjectId ??
+          widget.entity?.payload['subjectId'] as String?,
+      courseMode: widget.courseMode,
+    )..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
         ),
@@ -1302,7 +1362,9 @@ class _ContentDialogState extends State<_ContentDialog> {
               DropdownButtonFormField<String>(
                 initialValue: subjectId,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Matéria'),
+                decoration: InputDecoration(
+                  labelText: widget.courseMode ? 'Módulo do curso' : 'Matéria',
+                ),
                 items: subjects
                     .map(
                       (item) => DropdownMenuItem<String>(
@@ -1554,11 +1616,13 @@ class _ScheduleDialog extends StatefulWidget {
     required this.store,
     this.entity,
     this.initialSubjectId,
+    this.initialCourseId,
   });
 
   final AppStore store;
   final SyncEntity? entity;
   final String? initialSubjectId;
+  final String? initialCourseId;
 
   @override
   State<_ScheduleDialog> createState() => _ScheduleDialogState();
@@ -1569,17 +1633,26 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
   late final TextEditingController end;
   late final TextEditingController room;
   late final TextEditingController notes;
+  late bool courseMode;
   String? subjectId;
+  String? courseId;
   int weekday = 1;
 
   @override
   void initState() {
     super.initState();
     final subjects = AcademicData.academicSubjects(widget.store);
-    final existing = widget.entity?.payload['subjectId'] as String? ??
+    final courses = AcademicData.sortedCourses(widget.store);
+    final existingCourse =
+        widget.entity?.payload['courseId'] as String? ?? widget.initialCourseId;
+    courseMode = existingCourse != null && existingCourse.isNotEmpty;
+    courseId = courses.any((item) => item.id == existingCourse)
+        ? existingCourse
+        : (courses.isEmpty ? null : courses.first.id);
+    final existingSubject = widget.entity?.payload['subjectId'] as String? ??
         widget.initialSubjectId;
-    subjectId = subjects.any((item) => item.id == existing)
-        ? existing
+    subjectId = subjects.any((item) => item.id == existingSubject)
+        ? existingSubject
         : (subjects.isEmpty ? null : subjects.first.id);
     weekday = (widget.entity?.payload['weekday'] as num? ?? 1).toInt();
     start = TextEditingController(
@@ -1620,8 +1693,13 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
           b.payload['name'] as String? ?? '',
         ),
       );
+    final courses = AcademicData.sortedCourses(widget.store);
     return AlertDialog(
-      title: Text(widget.entity == null ? 'Adicionar aula' : 'Editar aula'),
+      title: Text(
+        widget.entity == null
+            ? 'Adicionar ao calendário'
+            : 'Editar horário de estudo',
+      ),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
@@ -1629,19 +1707,66 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              DropdownButtonFormField<String>(
-                initialValue: subjectId,
-                decoration: const InputDecoration(labelText: 'Cadeira'),
-                items: subjects
-                    .map(
-                      (item) => DropdownMenuItem<String>(
-                        value: item.id,
-                        child: Text(item.payload['name'] as String? ?? ''),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() => subjectId = value),
+              SegmentedButton<bool>(
+                key: const Key('schedule-source-type'),
+                segments: const <ButtonSegment<bool>>[
+                  ButtonSegment<bool>(
+                    value: false,
+                    icon: Icon(Icons.school_outlined),
+                    label: Text('Faculdade'),
+                  ),
+                  ButtonSegment<bool>(
+                    value: true,
+                    icon: Icon(Icons.workspace_premium_outlined),
+                    label: Text('Curso'),
+                  ),
+                ],
+                selected: <bool>{courseMode},
+                onSelectionChanged: (value) => setState(() {
+                  courseMode = value.first;
+                  if (courseMode && courseId == null && courses.isNotEmpty) {
+                    courseId = courses.first.id;
+                  }
+                  if (!courseMode && subjectId == null && subjects.isNotEmpty) {
+                    subjectId = subjects.first.id;
+                  }
+                }),
               ),
+              const SizedBox(height: 12),
+              if (courseMode)
+                DropdownButtonFormField<String>(
+                  key: const Key('schedule-course-field'),
+                  initialValue: courses.any((item) => item.id == courseId)
+                      ? courseId
+                      : null,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Curso'),
+                  items: courses
+                      .map(
+                        (item) => DropdownMenuItem<String>(
+                          value: item.id,
+                          child: Text(item.payload['name'] as String? ?? ''),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) => setState(() => courseId = value),
+                )
+              else
+                DropdownButtonFormField<String>(
+                  key: const Key('schedule-subject-field'),
+                  initialValue: subjectId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Matéria'),
+                  items: subjects
+                      .map(
+                        (item) => DropdownMenuItem<String>(
+                          value: item.id,
+                          child: Text(item.payload['name'] as String? ?? ''),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) => setState(() => subjectId = value),
+                ),
               const SizedBox(height: 12),
               DropdownButtonFormField<int>(
                 initialValue: weekday,
@@ -1701,7 +1826,7 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
               TextField(
                 controller: room,
                 decoration: const InputDecoration(
-                  labelText: 'Sala / laboratório nesta aula',
+                  labelText: 'Sala, plataforma ou local',
                 ),
               ),
               const SizedBox(height: 12),
@@ -1722,7 +1847,7 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
         ),
         FilledButton(
           onPressed: () async {
-            if (subjectId == null ||
+            if ((courseMode ? courseId == null : subjectId == null) ||
                 !_validTime(start.text) ||
                 !_validTime(end.text)) {
               return;
@@ -1731,7 +1856,9 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
                 EntityTypes.classSession,
                 <String, dynamic>{
                   ...?widget.entity?.payload,
-                  'subjectId': subjectId,
+                  'subjectId': courseMode ? null : subjectId,
+                  'courseId': courseMode ? courseId : null,
+                  'sourceType': courseMode ? 'course' : 'faculty',
                   'weekday': weekday,
                   'start': start.text.trim(),
                   'end': end.text.trim(),

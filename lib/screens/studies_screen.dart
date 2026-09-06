@@ -1164,15 +1164,20 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
   @override
   void initState() {
     super.initState();
-    final subjects = AcademicData.academicSubjects(widget.store);
+    final preferredSubject = widget.entity?.payload['subjectId'] as String? ??
+        widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    );
     front = TextEditingController(
       text: widget.entity?.payload['front'] as String?,
     );
     back = TextEditingController(
       text: widget.entity?.payload['back'] as String?,
     );
-    final existingSubjectId = widget.entity?.payload['subjectId'] as String? ??
-        widget.initialSubjectId;
+    final existingSubjectId = preferredSubject;
     subjectId = subjects.any((item) => item.id == existingSubjectId)
         ? existingSubjectId
         : (subjects.isEmpty ? null : subjects.first.id);
@@ -1193,7 +1198,14 @@ class _FlashcardDialogState extends State<_FlashcardDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = AcademicData.academicSubjects(widget.store);
+    final preferredSubject = subjectId ??
+        widget.entity?.payload['subjectId'] as String? ??
+        widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    );
     final contents = AcademicData.contentsForSubject(widget.store, subjectId);
     return AlertDialog(
       title: Text(

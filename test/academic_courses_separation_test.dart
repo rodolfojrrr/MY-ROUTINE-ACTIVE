@@ -25,6 +25,15 @@ void main() {
           .map((item) => item.id),
       <String>['course-module'],
     );
+    expect(AcademicData.isCourse(store.byId('course-current')), isTrue);
+    expect(AcademicData.isCourseSubject(store, 'course-module'), isTrue);
+    expect(
+      AcademicData.subjectsForSelection(
+        store,
+        preferredSubjectId: 'course-module',
+      ).map((item) => item.id),
+      <String>['course-module'],
+    );
   });
 
   test('imagens do certificado continuam dentro do registro do curso', () {

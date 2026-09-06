@@ -10,24 +10,29 @@ class AcademicScheduleCard extends StatelessWidget {
   const AcademicScheduleCard({
     required this.subject,
     required this.session,
+    this.course,
     this.compact = false,
     this.trailing,
     super.key,
   });
 
   final SyncEntity? subject;
+  final SyncEntity? course;
   final SyncEntity session;
   final bool compact;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    final color = subject == null
+    final source = course ?? subject;
+    final courseMode = course != null;
+    final color = source == null
         ? AppColors.primary
-        : AcademicFolderStyle.colorFor(subject!);
+        : AcademicFolderStyle.colorFor(source);
     final cover =
-        subject == null ? null : AcademicFolderStyle.coverBytes(subject!);
-    final name = subject?.payload['name'] as String? ?? 'Matéria removida';
+        source == null ? null : AcademicFolderStyle.coverBytes(source);
+    final name = source?.payload['name'] as String? ??
+        (courseMode ? 'Curso removido' : 'Matéria removida');
     final room = session.payload['room'] as String? ?? '';
     final start = session.payload['start'] as String? ?? '--:--';
     final end = session.payload['end'] as String? ?? '--:--';
@@ -38,7 +43,11 @@ class AcademicScheduleCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: <Widget>[
-            _ScheduleCover(cover: cover, color: color),
+            _ScheduleCover(
+              cover: cover,
+              color: color,
+              courseMode: courseMode,
+            ),
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -81,6 +90,30 @@ class AcademicScheduleCard extends StatelessWidget {
                 ),
               ),
             ),
+            Positioned(
+              right: trailing == null ? (compact ? 9 : 12) : 42,
+              top: compact ? 9 : 12,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: compact ? 6 : 8,
+                  vertical: compact ? 4 : 5,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xDC06111E),
+                  borderRadius: BorderRadius.circular(9),
+                  border: Border.all(color: color.withValues(alpha: .58)),
+                ),
+                child: Text(
+                  courseMode ? 'CURSO' : 'FACULDADE',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: compact ? 8 : 9,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: .55,
+                  ),
+                ),
+              ),
+            ),
             if (trailing != null)
               Positioned(right: 4, top: 4, child: trailing!),
             Positioned(
@@ -99,9 +132,11 @@ class AcademicScheduleCard extends StatelessWidget {
                       border: Border.all(color: color.withValues(alpha: .7)),
                     ),
                     child: Icon(
-                      subject == null
-                          ? Icons.school_outlined
-                          : AcademicFolderStyle.iconFor(subject!),
+                      source == null
+                          ? (courseMode
+                              ? Icons.workspace_premium_outlined
+                              : Icons.school_outlined)
+                          : AcademicFolderStyle.iconFor(source),
                       color: Colors.white,
                       size: compact ? 19 : 23,
                     ),
@@ -147,10 +182,15 @@ class AcademicScheduleCard extends StatelessWidget {
 }
 
 class _ScheduleCover extends StatelessWidget {
-  const _ScheduleCover({required this.cover, required this.color});
+  const _ScheduleCover({
+    required this.cover,
+    required this.color,
+    required this.courseMode,
+  });
 
   final Uint8List? cover;
   final Color color;
+  final bool courseMode;
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +217,7 @@ class _ScheduleCover extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Icon(
-            Icons.school_rounded,
+            courseMode ? Icons.workspace_premium_rounded : Icons.school_rounded,
             size: 58,
             color: color.withValues(alpha: .22),
           ),

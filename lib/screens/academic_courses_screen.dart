@@ -12,6 +12,8 @@ import '../core/file_transfer_service.dart';
 import '../core/sync_entity.dart';
 import '../widgets/premium_widgets.dart';
 import '../widgets/pro_color_picker.dart';
+import 'academic_faculty_screen.dart';
+import 'academic_management_screen.dart';
 import 'academic_shared.dart';
 import 'academic_summaries_screen.dart';
 
@@ -22,56 +24,422 @@ class AcademicCoursesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final courses = AcademicData.sortedCourses(store);
-    final completed =
-        courses.where((item) => item.payload['status'] == 'completed').length;
-    final inProgress =
-        courses.where((item) => item.payload['status'] == 'current').length;
-    return AcademicPageBody(
-      maxWidth: 1180,
-      children: <Widget>[
-        PageIntro(
-          eyebrow: 'Formação complementar',
-          title: 'Cursos e certificados',
-          subtitle:
-              'Cursos livres ficam separados da faculdade. Registre instituição, carga horária, progresso e as imagens dos certificados concluídos.',
-          color: AppColors.green,
-        ),
-        const SizedBox(height: 18),
-        _CourseOverview(
-          total: courses.length,
-          inProgress: inProgress,
-          completed: completed,
-          onCreate: () => _openEditor(context, store),
-        ),
-        const SizedBox(height: 18),
-        AcademicSectionTitle(
-          title: courses.isEmpty ? 'Seus cursos' : '${courses.length} curso(s)',
-          subtitle: 'Em andamento primeiro; concluídos ficam no seu histórico.',
-          trailing: TextButton.icon(
-            onPressed: () => _openEditor(context, store),
-            icon: const Icon(Icons.add),
-            label: const Text('Novo curso'),
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (courses.isEmpty)
-          const EmptyState(
-            icon: Icons.workspace_premium_outlined,
-            title: 'Nenhum curso cadastrado',
-            message:
-                'Adicione cursos de programação, tecnologia, idiomas ou qualquer outra área sem misturá-los aos semestres da faculdade.',
-          )
-        else
-          ...courses.map(
-            (course) => Padding(
-              padding: const EdgeInsets.only(bottom: 13),
-              child: _CourseCard(store: store, course: course),
+    return AnimatedBuilder(
+      animation: store,
+      builder: (context, _) {
+        final courses = AcademicData.sortedCourses(store);
+        final current = courses
+            .where((item) => item.payload['status'] == 'current')
+            .toList();
+        final other = courses
+            .where((item) => item.payload['status'] != 'current')
+            .toList();
+        final completed = courses
+            .where((item) => item.payload['status'] == 'completed')
+            .length;
+        return AcademicPageBody(
+          maxWidth: 1240,
+          children: <Widget>[
+            PageIntro(
+              eyebrow: 'Formação complementar',
+              title: 'Cursos',
+              subtitle:
+                  'Organize cada curso como uma pasta: curso, módulos, conteúdos e materiais. Tudo separado da faculdade e totalmente personalizável.',
+              color: AppColors.green,
             ),
-          ),
-      ],
+            const SizedBox(height: 18),
+            _CourseOverview(
+              total: courses.length,
+              inProgress: current.length,
+              completed: completed,
+              onCreate: () => _openEditor(context, store),
+            ),
+            if (current.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 24),
+              AcademicSectionTitle(
+                title: 'Cursando agora',
+                subtitle:
+                    'Seus cursos atuais ficam sempre no topo para acesso rápido.',
+                trailing: AcademicBadge(
+                  label: '${current.length} em andamento',
+                  color: AppColors.orange,
+                  icon: Icons.play_circle_outline_rounded,
+                ),
+              ),
+              const SizedBox(height: 14),
+              _CourseFolderGrid(
+                children: current
+                    .map((course) => _CourseFolderTile(
+                          store: store,
+                          course: course,
+                          highlighted: true,
+                        ))
+                    .toList(),
+              ),
+            ],
+            const SizedBox(height: 24),
+            AcademicSectionTitle(
+              title:
+                  current.isEmpty ? 'Seus cursos' : 'Planejados e concluídos',
+              subtitle: current.isEmpty
+                  ? 'O curso em andamento ficará destacado automaticamente.'
+                  : 'Seu próximo passo e o histórico de cursos concluídos.',
+              trailing: TextButton.icon(
+                key: const Key('courses-add-course'),
+                onPressed: () => _openEditor(context, store),
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Adicionar curso'),
+              ),
+            ),
+            const SizedBox(height: 14),
+            if (courses.isEmpty)
+              const EmptyState(
+                icon: Icons.create_new_folder_outlined,
+                title: 'Nenhum curso cadastrado',
+                message:
+                    'Crie um curso de programação, tecnologia, idiomas ou qualquer outro tema. Ele não será misturado à faculdade.',
+              )
+            else if (other.isNotEmpty)
+              _CourseFolderGrid(
+                children: other
+                    .map((course) => _CourseFolderTile(
+                          store: store,
+                          course: course,
+                        ))
+                    .toList(),
+              )
+            else
+              const PremiumCard(
+                child: Text(
+                  'Quando você planejar ou concluir um curso, ele aparecerá aqui sem sair da área Cursos.',
+                  style: TextStyle(color: AppColors.textMuted),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
+}
+
+class _CourseFolderGrid extends StatelessWidget {
+  const _CourseFolderGrid({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 1120
+            ? 4
+            : constraints.maxWidth >= 790
+                ? 3
+                : constraints.maxWidth >= 520
+                    ? 2
+                    : 1;
+        return GridView.count(
+          crossAxisCount: columns,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 14,
+          crossAxisSpacing: 14,
+          childAspectRatio: columns == 1 ? 1.55 : .98,
+          children: children,
+        );
+      },
+    );
+  }
+}
+
+class _CourseFolderTile extends StatelessWidget {
+  const _CourseFolderTile({
+    required this.store,
+    required this.course,
+    this.highlighted = false,
+  });
+
+  final AppStore store;
+  final SyncEntity course;
+  final bool highlighted;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = course.payload['status'] as String? ?? 'current';
+    final modules = AcademicData.subjectsForSemester(store, course.id);
+    final color = AcademicFolderStyle.colorFor(
+      course,
+      fallback: status == 'completed'
+          ? AppColors.green
+          : status == 'planned'
+              ? AppColors.cyan
+              : AppColors.orange,
+    );
+    return AcademicFolderCard(
+      key: ValueKey<String>('course-folder-${course.id}'),
+      title: course.payload['name'] as String? ?? 'Curso',
+      subtitle: <String>[
+        course.payload['institution'] as String? ?? '',
+        _workloadLabel(course.payload['workload']),
+      ].where((item) => item.isNotEmpty).join(' • '),
+      countLabel: '${modules.length} módulo(s)',
+      color: color,
+      icon: AcademicFolderStyle.iconFor(course),
+      coverBytes: AcademicFolderStyle.coverBytes(course),
+      badge:
+          highlighted ? 'CURSANDO AGORA' : _statusLabel(status).toUpperCase(),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => AcademicCourseFolderPage(
+            store: store,
+            courseId: course.id,
+          ),
+        ),
+      ),
+      onEdit: () => _openEditor(context, store, course),
+      onDelete: () => _confirmCourseDelete(context, store, course),
+    );
+  }
+}
+
+class AcademicCourseFolderPage extends StatelessWidget {
+  const AcademicCourseFolderPage({
+    required this.store,
+    required this.courseId,
+    super.key,
+  });
+
+  final AppStore store;
+  final String courseId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Conteúdos do curso')),
+      body: AnimatedBuilder(
+        animation: store,
+        builder: (context, _) {
+          final course = store.byId(courseId);
+          if (course == null) {
+            return const Center(child: Text('Curso não encontrado.'));
+          }
+          final modules = AcademicData.subjectsForSemester(store, courseId);
+          final color = AcademicFolderStyle.colorFor(
+            course,
+            fallback: AppColors.green,
+          );
+          return AcademicPageBody(
+            maxWidth: 1240,
+            children: <Widget>[
+              _CourseBreadcrumb(
+                items: <String>[
+                  'Cursos',
+                  course.payload['name'] as String? ?? 'Curso',
+                ],
+              ),
+              const SizedBox(height: 14),
+              _CourseCard(
+                store: store,
+                course: course,
+                showModules: false,
+              ),
+              const SizedBox(height: 18),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: <Widget>[
+                  ElevatedButton.icon(
+                    key: const Key('courses-add-module'),
+                    onPressed: () => showAcademicSubjectEditor(
+                      context,
+                      store,
+                      initialSemesterId: courseId,
+                      courseMode: true,
+                    ),
+                    icon: const Icon(Icons.create_new_folder_outlined),
+                    label: const Text('Adicionar módulo'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _openEditor(context, store, course),
+                    icon: const Icon(Icons.palette_outlined),
+                    label: const Text('Personalizar curso'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => AcademicSchedulePage(
+                          store: store,
+                          courseId: courseId,
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.calendar_view_week_outlined),
+                    label: const Text('Horários do curso'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              AcademicSectionTitle(
+                title: 'Módulos e conteúdos',
+                subtitle:
+                    'Abra um módulo para organizar aulas, capítulos e todos os materiais do curso.',
+                trailing: Text(
+                  '${modules.length} pasta(s)',
+                  style: const TextStyle(color: AppColors.textMuted),
+                ),
+              ),
+              const SizedBox(height: 14),
+              if (modules.isEmpty)
+                const EmptyState(
+                  icon: Icons.folder_open_outlined,
+                  title: 'Este curso ainda está vazio',
+                  message:
+                      'Use “Adicionar módulo” para criar a primeira etapa ou disciplina do curso.',
+                )
+              else
+                _CourseFolderGrid(
+                  children: modules.map((module) {
+                    final contents =
+                        AcademicData.contentsForSubject(store, module.id);
+                    final moduleColor = AcademicFolderStyle.colorFor(
+                      module,
+                      fallback: color,
+                    );
+                    return AcademicFolderCard(
+                      key: ValueKey<String>('course-module-${module.id}'),
+                      title: module.payload['name'] as String? ?? 'Módulo',
+                      subtitle: <String>[
+                        module.payload['code'] as String? ?? '',
+                        module.payload['professor'] as String? ?? '',
+                      ].where((item) => item.isNotEmpty).join(' • '),
+                      countLabel: '${contents.length} conteúdo(s)',
+                      color: moduleColor,
+                      icon: AcademicFolderStyle.iconFor(module),
+                      coverBytes: AcademicFolderStyle.coverBytes(module),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => AcademicSubjectFolderPage(
+                            store: store,
+                            semesterId: courseId,
+                            subjectId: module.id,
+                            courseMode: true,
+                          ),
+                        ),
+                      ),
+                      onEdit: () => showAcademicSubjectEditor(
+                        context,
+                        store,
+                        entity: module,
+                        initialSemesterId: courseId,
+                        courseMode: true,
+                      ),
+                      onDelete: () => _confirmModuleDelete(
+                        context,
+                        store,
+                        module,
+                      ),
+                    );
+                  }).toList(),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CourseBreadcrumb extends StatelessWidget {
+  const _CourseBreadcrumb({required this.items});
+
+  final List<String> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.workspace_premium_outlined,
+              size: 17, color: AppColors.green),
+          const SizedBox(width: 7),
+          for (var index = 0; index < items.length; index++) ...<Widget>[
+            if (index > 0) ...<Widget>[
+              const Icon(Icons.chevron_right_rounded,
+                  size: 18, color: AppColors.textMuted),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              items[index],
+              style: TextStyle(
+                color: index == items.length - 1
+                    ? Colors.white
+                    : AppColors.textMuted,
+                fontWeight: index == items.length - 1
+                    ? FontWeight.w900
+                    : FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _confirmCourseDelete(
+  BuildContext context,
+  AppStore store,
+  SyncEntity course,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Excluir curso?'),
+      content: const Text(
+        'O curso, os módulos, certificados e materiais vinculados irão para a lixeira.',
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Excluir'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) await AcademicData.deleteSemester(store, course);
+}
+
+Future<void> _confirmModuleDelete(
+  BuildContext context,
+  AppStore store,
+  SyncEntity module,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Excluir módulo?'),
+      content: const Text(
+        'Os conteúdos e materiais vinculados irão para a lixeira e poderão ser restaurados.',
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Excluir'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) await AcademicData.deleteSubject(store, module);
 }
 
 Future<void> _openEditor(
@@ -204,10 +572,15 @@ class _CourseStat extends StatelessWidget {
 }
 
 class _CourseCard extends StatelessWidget {
-  const _CourseCard({required this.store, required this.course});
+  const _CourseCard({
+    required this.store,
+    required this.course,
+    required this.showModules,
+  });
 
   final AppStore store;
   final SyncEntity course;
+  final bool showModules;
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +714,7 @@ class _CourseCard extends StatelessWidget {
               style: const TextStyle(color: AppColors.textMuted, height: 1.45),
             ),
           ],
-          if (legacySubjects.isNotEmpty) ...<Widget>[
+          if (showModules && legacySubjects.isNotEmpty) ...<Widget>[
             const SizedBox(height: 14),
             const Divider(),
             const SizedBox(height: 5),

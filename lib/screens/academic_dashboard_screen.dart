@@ -46,6 +46,8 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
     final currentSemester = currentItems.isEmpty ? null : currentItems.first;
     final allSubjects = AcademicData.academicSubjects(widget.store);
     final academicSubjectIds = allSubjects.map((item) => item.id).toSet();
+    final courseIds =
+        AcademicData.sortedCourses(widget.store).map((item) => item.id).toSet();
     final currentSubjects = currentSemester == null
         ? allSubjects
         : AcademicData.subjectsForSemester(widget.store, currentSemester.id);
@@ -54,7 +56,8 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
         .where(
           (item) =>
               item.payload['weekday'] == selectedWeekday &&
-              academicSubjectIds.contains(item.payload['subjectId']),
+              (academicSubjectIds.contains(item.payload['subjectId']) ||
+                  courseIds.contains(item.payload['courseId'])),
         )
         .toList()
       ..sort(
@@ -96,7 +99,8 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
         const SizedBox(height: 24),
         const AcademicSectionTitle(
           title: 'Horário de aulas',
-          subtitle: 'Selecione o dia para consultar a grade semanal.',
+          subtitle:
+              'Selecione o dia para consultar aulas da faculdade e estudos de cursos.',
         ),
         const SizedBox(height: 12),
         SingleChildScrollView(
@@ -131,8 +135,8 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           store: widget.store,
           goals: todayGoals,
           tasks: openKanban,
-          onOpenGoals: () => widget.onOpenSection(2),
-          onOpenKanban: () => widget.onOpenSection(4),
+          onOpenGoals: () => widget.onOpenSection(3),
+          onOpenKanban: () => widget.onOpenSection(5),
         ),
         const SizedBox(height: 24),
         AcademicSectionTitle(
@@ -213,7 +217,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           title: 'Próximas avaliações',
           subtitle: 'Provas, trabalhos, projetos e apresentações.',
           trailing: TextButton(
-            onPressed: () => widget.onOpenSection(6),
+            onPressed: () => widget.onOpenSection(7),
             child: const Text('Ver agenda'),
           ),
         ),
@@ -267,21 +271,21 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                 color: AppColors.primary,
                 title: 'Biblioteca de resumos',
                 subtitle: 'Texto, imagens e PDF por conteúdo.',
-                onTap: () => widget.onOpenSection(3),
+                onTap: () => widget.onOpenSection(4),
               ),
               AcademicActionCard(
                 icon: Icons.quiz_outlined,
                 color: AppColors.green,
                 title: 'Treinar com simulados',
                 subtitle: 'Questões filtradas por matéria e conteúdo.',
-                onTap: () => widget.onOpenSection(5),
+                onTap: () => widget.onOpenSection(6),
               ),
               AcademicActionCard(
                 icon: Icons.terminal_rounded,
                 color: AppColors.cyan,
                 title: 'Abrir IDE acadêmica',
                 subtitle: 'Projetos de código ligados às matérias.',
-                onTap: () => widget.onOpenSection(7),
+                onTap: () => widget.onOpenSection(8),
               ),
             ];
             if (constraints.maxWidth >= 960) {
@@ -588,7 +592,7 @@ class _ScheduleViewer extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                'Nenhuma aula cadastrada para este dia.',
+                'Nenhuma aula ou estudo cadastrado para este dia.',
                 style: TextStyle(color: AppColors.textMuted),
               ),
             )
@@ -611,8 +615,12 @@ class _ScheduleViewer extends StatelessWidget {
                     final subject = store.byId(
                       item.payload['subjectId'] as String? ?? '',
                     );
+                    final course = store.byId(
+                      item.payload['courseId'] as String? ?? '',
+                    );
                     return AcademicScheduleCard(
                       subject: subject,
+                      course: course,
                       session: item,
                       compact: columns <= 2,
                     );

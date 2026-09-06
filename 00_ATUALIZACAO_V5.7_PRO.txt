@@ -1,0 +1,40 @@
+SMART ROUTINE SI V5.7 PRO — ATUALIZAÇÃO SEGURA
+==============================================
+
+ESTA VERSÃO NÃO ZERA NEM SUBSTITUI O BANCO.
+
+Antes de atualizar:
+1. Abra Configurações e exporte um backup .mra.
+2. Não desinstale o aplicativo e não use "Limpar dados" no Android.
+3. Gere o APK com a mesma chave de assinatura usada na versão instalada.
+
+Para atualizar no Android:
+1. Baixe o novo app-release.apk gerado no GitHub Actions.
+2. Abra o APK e escolha Atualizar.
+3. Entre na mesma conta local.
+
+Para atualizar no Windows:
+1. Feche o Smart Routine SI.
+2. Execute o novo Setup.exe por cima da instalação atual.
+3. Abra normalmente; o banco no perfil do usuário será preservado.
+
+Novidades principais:
+- Cursos fica abaixo de Faculdade no menu.
+- O curso atual aparece primeiro e destacado.
+- Organização por pastas: curso -> módulo -> conteúdo -> materiais.
+- Cor, símbolo e capa em cursos, módulos e conteúdos.
+- Curso incluído no calendário semanal e na tela inicial.
+- Resumos e demais ferramentas funcionam também dentro de conteúdos de cursos.
+- Faixa do editor de resumos abre/recolhe como no Word/Excel em qualquer modo.
+- Ctrl+F1 alterna a faixa e a escolha fica salva por usuário.
+
+Compatibilidade:
+- não há mudança destrutiva no esquema SQLite;
+- registros anteriores continuam com os mesmos identificadores;
+- documentos ricos v1/v2/v3 continuam compatíveis;
+- backup .mra, .mra.gz e sincronização Wi-Fi permanecem compatíveis;
+- a atualização apenas acrescenta organização e novos vínculos opcionais.
+
+Se o Android mostrar "Aplicativo não instalado", não desinstale de imediato:
+isso normalmente significa que o APK foi assinado com uma chave diferente.
+Gere novamente usando os mesmos Secrets MRA_* do repositório.

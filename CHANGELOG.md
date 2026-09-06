@@ -1,5 +1,21 @@
 # Changelog
 
+## 5.7.0 PRO
+
+- Cursos foi reposicionado imediatamente abaixo de Faculdade no menu lateral do celular e do PC.
+- Área Cursos reconstruída como navegação por pastas, com o curso em andamento sempre destacado.
+- Nova hierarquia completa `curso → módulo → conteúdo → materiais`, reutilizando Resumos, Códigos, Imagens, Anexos, Simulados, Flashcards e Provas/Notas.
+- Cursos, módulos e conteúdos aceitam cor livre, símbolo acadêmico e capa local, sem misturar registros com a graduação.
+- Cadastros de módulos e conteúdos aparecem em tempo real na pasta aberta.
+- Cursos podem ser adicionados ao calendário semanal; a tela inicial mostra aulas e estudos de cursos juntos, com cartões personalizados e selo de origem.
+- Resumos, avaliações, simulados, flashcards e projetos de código abertos por um conteúdo de curso permanecem vinculados àquele módulo.
+- Faixa de ferramentas do editor de resumos agora abre e recolhe como no Word/Excel em qualquer modo, inclusive fora do modo foco.
+- O estado aberto/recolhido da faixa é lembrado por conta local, sem alterar texto, seleção ou rascunho; atalho `Ctrl+F1` incluído.
+- Exclusão de curso também envia seus horários vinculados para a lixeira, evitando registros órfãos.
+- Nenhuma mudança destrutiva no SQLite ou no formato de sincronização; dados da versão anterior são preservados.
+- Análise estática sem problemas e 66 testes automatizados validados.
+- Versão elevada para `5.7.0+58`.
+
 ## 5.6.0 PRO
 
 - Conteúdos de cada matéria agora podem ser reordenados por arrastar; a ordem é persistida no banco e segue no backup e na sincronização.

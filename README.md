@@ -1,6 +1,6 @@
 # Smart Routine SI
 
-**Versão 5.6.0 PRO — editor multimídia e organização visual**
+**Versão 5.7.0 PRO — Cursos por pastas e editor recolhível**
 
 Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação em **Sistemas de Informação**, mas também organiza cursos livres, trilhas, certificações e estudos pessoais. Não há WebView, nuvem, analytics ou login externo: banco, imagens, projetos e credenciais ficam somente nos aparelhos do usuário.
 
@@ -27,6 +27,10 @@ Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação
 - resumos com várias imagens, anexos de arquivos, rascunho automático e PDF individual;
 - imagens e anexos fixados continuam no app e no backup, mas não entram no PDF;
 - cursos livres separados, com instituição, carga horária, progresso e imagens de certificados;
+- Cursos logo abaixo de Faculdade no menu, com curso atual destacado e navegação por pastas em `curso → módulo → conteúdo → materiais`;
+- cursos, módulos e conteúdos com cor, símbolo e capa próprios, atualizados imediatamente após salvar;
+- calendário semanal unificado: aulas da faculdade e sessões de cursos aparecem nos mesmos dias, identificadas no cartão;
+- faixa de ferramentas do editor recolhível como no Word/Excel, tanto no modo normal quanto no modo foco, com a preferência lembrada por usuário;
 - conversor local de arquivos para PDF;
 - temas azul, roxo, cinza, verde, amarelo e colorido, além de editor avançado para fundo, superfícies, campos, bordas, menu, cor principal e secundária;
 - simulados, avaliações, flashcards e IDE acadêmica local;
@@ -56,8 +60,18 @@ Resumos
 └── Pasta personalizada (cor, símbolo e capa)
 
 Cursos
-└── Curso livre
-    └── Progresso, observações e certificados
+└── Curso (o atual aparece primeiro)
+    ├── Progresso, observações e certificados
+    ├── Horários no calendário semanal
+    └── Módulo (cor, símbolo e capa)
+        └── Conteúdo (cor, símbolo e capa)
+            ├── Resumos
+            ├── Códigos
+            ├── Imagens
+            ├── Anexos
+            ├── Simulados
+            ├── Flashcards
+            └── Provas, datas e notas
 ```
 
 O painel inicial é de consulta. Logo depois da saudação aparece o horário semanal, com borda e cor da matéria selecionada. Os antigos contadores soltos de matérias/resumos/avaliações/questões foram removidos. Cadastros e edições ficam no menu lateral, que aparece pelos três traços no celular e pode ser expandido ou recolhido no desktop.
@@ -74,6 +88,7 @@ Se o aplicativo for ocultado ou fechado, o estado é salvo e a sessão volta pau
 - restauração do rascunho ao reabrir o formulário;
 - matéria e conteúdo relacionados;
 - editor escuro integrado à paleta do aplicativo, amplo e responsivo;
+- faixa profissional recolhível em qualquer modo; fechada, deixa praticamente só a folha e pode ser reaberta pelo botão ou por `Ctrl+F1`;
 - formatação persistente por trecho e por parágrafo;
 - imagens JPG/PNG dentro do texto e até 20 anexos diversos por resumo;
 - imagens fixadas numa galeria separada, disponíveis somente no aplicativo;
@@ -129,7 +144,7 @@ No Android, os projetos podem ser criados, editados e sincronizados. No Windows,
 4. No GitHub, abra **Actions → Validar e gerar aplicativos**.
 5. Baixe `Smart-Routine-SI-Android` e `Smart-Routine-SI-Windows`.
 
-O workflow executa análise estática, 61 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
+O workflow executa análise estática, 66 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
 
 ## BATs incluídos
 

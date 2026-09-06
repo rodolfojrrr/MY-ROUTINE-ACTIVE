@@ -1,4 +1,4 @@
-# Arquitetura local — Smart Routine SI 5.6 PRO
+# Arquitetura local — Smart Routine SI 5.7 PRO
 
 ## Plataformas e privacidade
 
@@ -23,7 +23,9 @@ Senhas, respostas e códigos de recuperação recebem salt aleatório e derivaç
 
 ## Modelo acadêmico
 
-A hierarquia é `período → matéria → conteúdo`. Um período pode representar semestre, curso ou trilha. Resumos, avaliações, questões, flashcards, metas, cartões Kanban e projetos podem apontar para matéria/conteúdo sem obrigar o usuário a preencher relações quando a atividade for geral.
+A graduação usa `semestre → matéria → conteúdo → materiais`. Cursos permanecem em uma coleção visual separada e usam `curso → módulo → conteúdo → materiais`. Ambos reutilizam as entidades sincronizáveis existentes, mas a interface filtra cada área pelo tipo do pai para impedir mistura. Resumos, avaliações, questões, flashcards, metas, cartões Kanban e projetos podem apontar para matéria/módulo e conteúdo sem obrigar o usuário a preencher relações quando a atividade for geral.
+
+O calendário semanal aceita duas origens: matéria da faculdade (`subjectId`) ou curso (`courseId`). A tela inicial reúne as duas sem perder a identificação e a personalização da pasta de origem.
 
 Tipos legados continuam reconhecidos internamente para que atualizações antigas não descartem registros, embora módulos fora de estudos não apareçam na navegação.
 

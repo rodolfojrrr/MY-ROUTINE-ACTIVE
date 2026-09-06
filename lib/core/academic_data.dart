@@ -104,6 +104,48 @@ class AcademicData {
     return items;
   }
 
+  static bool isCourse(SyncEntity? entity) {
+    final kind = entity?.payload['kind'] as String?;
+    return kind == 'course' || kind == 'track';
+  }
+
+  static bool isCourseSubject(AppStore store, String? subjectId) {
+    if (subjectId == null || subjectId.isEmpty) return false;
+    final subject = store.byId(subjectId);
+    final parentId = subject?.payload['semesterId'] as String?;
+    return parentId != null && isCourse(store.byId(parentId));
+  }
+
+  static List<SyncEntity> subjectsForSelection(
+    AppStore store, {
+    String? preferredSubjectId,
+    bool courseMode = false,
+  }) {
+    final preferred =
+        preferredSubjectId == null ? null : store.byId(preferredSubjectId);
+    final parentId = preferred?.payload['semesterId'] as String?;
+    if (courseMode || isCourseSubject(store, preferredSubjectId)) {
+      if (parentId != null && isCourse(store.byId(parentId))) {
+        return subjectsForSemester(store, parentId);
+      }
+      final courseIds = sortedCourses(store).map((item) => item.id).toSet();
+      final items = store
+          .records(EntityTypes.subject)
+          .where((item) => courseIds.contains(item.payload['semesterId']))
+          .toList();
+      items.sort((a, b) {
+        final orderA = (a.payload['order'] as num? ?? 999).toInt();
+        final orderB = (b.payload['order'] as num? ?? 999).toInt();
+        if (orderA != orderB) return orderA.compareTo(orderB);
+        return (a.payload['name'] as String? ?? '').compareTo(
+          b.payload['name'] as String? ?? '',
+        );
+      });
+      return items;
+    }
+    return academicSubjects(store);
+  }
+
   static List<SyncEntity> subjectsForSemester(
     AppStore store,
     String? semesterId,
@@ -358,6 +400,15 @@ class AcademicData {
             'contentId': null,
           },
           id: project.id);
+    }
+    if (isCourse(semester)) {
+      final linkedSchedules = store
+          .records(EntityTypes.classSession)
+          .where((item) => item.payload['courseId'] == semester.id)
+          .toList();
+      for (final schedule in linkedSchedules) {
+        await store.remove(schedule.id);
+      }
     }
     await store.remove(semester.id);
   }

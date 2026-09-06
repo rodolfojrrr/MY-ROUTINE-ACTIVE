@@ -47,13 +47,16 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
   }
 
   void _newQuestion() {
-    final academicSubjectIds = AcademicData.academicSubjects(widget.store)
-        .map((item) => item.id)
-        .toSet();
-    final hasAcademicContent = widget.store
+    final preferredSubject = subjectId ?? widget.initialSubjectId;
+    final scopedSubjectIds = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    ).map((item) => item.id).toSet();
+    final hasContent = widget.store
         .records(EntityTypes.studyContent)
-        .any((item) => academicSubjectIds.contains(item.payload['subjectId']));
-    if (!hasAcademicContent) {
+        .any((item) => scopedSubjectIds.contains(item.payload['subjectId']));
+    if (!hasContent) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -74,13 +77,16 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
   }
 
   Future<void> _startMock() async {
-    final academicSubjectIds = AcademicData.academicSubjects(widget.store)
-        .map((item) => item.id)
-        .toSet();
-    final hasAcademicQuestions = widget.store
+    final preferredSubject = subjectId ?? widget.initialSubjectId;
+    final scopedSubjectIds = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    ).map((item) => item.id).toSet();
+    final hasQuestions = widget.store
         .records(EntityTypes.studyQuestion)
-        .any((item) => academicSubjectIds.contains(item.payload['subjectId']));
-    if (!hasAcademicQuestions) {
+        .any((item) => scopedSubjectIds.contains(item.payload['subjectId']));
+    if (!hasQuestions) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cadastre questões antes do simulado.')),
       );
@@ -107,8 +113,12 @@ class _AcademicSimulationsScreenState extends State<AcademicSimulationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = AcademicData.academicSubjects(widget.store)
-      ..sort(
+    final preferredSubject = subjectId ?? widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    )..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
         ),
@@ -466,9 +476,13 @@ class _AcademicQuestionEditorDialogState
   @override
   void initState() {
     super.initState();
-    final subjects = AcademicData.academicSubjects(widget.store);
     final preferredSubject = widget.entity?.payload['subjectId'] as String? ??
         widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    );
     subjectId = subjects.any((item) => item.id == preferredSubject)
         ? preferredSubject
         : (subjects.isEmpty ? null : subjects.first.id);
@@ -511,8 +525,14 @@ class _AcademicQuestionEditorDialogState
 
   @override
   Widget build(BuildContext context) {
-    final subjects = AcademicData.academicSubjects(widget.store)
-      ..sort(
+    final preferredSubject = subjectId ??
+        widget.entity?.payload['subjectId'] as String? ??
+        widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    )..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
         ),
@@ -726,11 +746,14 @@ class _AcademicMockSetupDialogState extends State<AcademicMockSetupDialog> {
   }
 
   List<SyncEntity> get available {
-    final academicSubjectIds = AcademicData.academicSubjects(widget.store)
-        .map((item) => item.id)
-        .toSet();
+    final preferredSubject = subjectId ?? widget.initialSubjectId;
+    final scopedSubjectIds = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    ).map((item) => item.id).toSet();
     return widget.store.records(EntityTypes.studyQuestion).where((item) {
-      if (!academicSubjectIds.contains(item.payload['subjectId'])) return false;
+      if (!scopedSubjectIds.contains(item.payload['subjectId'])) return false;
       if (subjectId != null && item.payload['subjectId'] != subjectId) {
         return false;
       }
@@ -743,8 +766,12 @@ class _AcademicMockSetupDialogState extends State<AcademicMockSetupDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = AcademicData.academicSubjects(widget.store)
-      ..sort(
+    final preferredSubject = subjectId ?? widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    )..sort(
         (a, b) => (a.payload['name'] as String? ?? '').compareTo(
           b.payload['name'] as String? ?? '',
         ),

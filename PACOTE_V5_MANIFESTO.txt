@@ -1,4 +1,4 @@
-SMART ROUTINE SI 5.6.0+57 PRO — MANIFESTO DO PACOTE
+SMART ROUTINE SI 5.7.0+58 PRO — MANIFESTO DO PACOTE
 ================================================
 
 ESCOPO
@@ -9,6 +9,10 @@ ESCOPO
   editor rico de resumos/anexos/PDF, conversor, temas, simulados,
   flashcards e IDE acadêmica.
 - Faculdade e cursos em áreas separadas; certificados locais nos cursos.
+- Cursos logo abaixo de Faculdade, com curso atual destacado e pastas de
+  módulos, conteúdos e materiais, todas personalizáveis.
+- Calendário semanal unificado para matérias e cursos, com cartões visuais.
+- Faixa do editor de resumos recolhível em qualquer modo e persistida por conta.
 - Faculdade em pastas com semestre atual destacado, matérias personalizadas
   e ferramentas ilustradas e personalizáveis dentro de cada conteúdo.
 - Editor avançado de cores para as camadas completas do aplicativo.
@@ -25,7 +29,7 @@ COMPATIBILIDADE
 
 VALIDAÇÃO DA ENTREGA
 - dart analyze: nenhum problema.
-- Suite automatizada: 61 testes executados pelo GitHub Actions.
+- Suite automatizada: 66 testes executados pelo GitHub Actions.
 - Migrações v1 → v2 → v3 com dados preservados.
 - Registros grandes fragmentados e reconstruídos sem alterar backup ou sync.
 - Contas isoladas e recuperação de senha testadas.
@@ -36,6 +40,7 @@ VALIDAÇÃO DA ENTREGA
 - Menu lateral do desktop testado aberto, recolhido e restaurado por preferência.
 - Editor rico e separação entre faculdade/cursos cobertos por testes.
 - Hierarquia de pastas e atualização imediata cobertas por testes responsivos.
+- Hierarquia de cursos, calendário de cursos e faixa recolhível cobertos por testes.
 - Folha A4, textos grandes, painéis recolhíveis e formatação v2 cobertos por testes.
 - Tema completo, recuo por Tab e tombstone de exclusão definitiva cobertos.
 - Repositório auditado sem banco, backup, chave privada ou credencial pessoal.

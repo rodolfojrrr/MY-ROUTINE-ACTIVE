@@ -42,8 +42,13 @@ void main() {
     expect(find.text('Kanban'), findsOneWidget);
     expect(find.text('Simulados'), findsOneWidget);
     expect(find.text('Faculdade'), findsOneWidget);
+    expect(find.text('Cursos'), findsOneWidget);
     expect(
       tester.getTopLeft(find.text('Faculdade')).dy,
+      lessThan(tester.getTopLeft(find.text('Cursos')).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text('Cursos')).dy,
       lessThan(tester.getTopLeft(find.text('Metas e foco')).dy),
     );
 
@@ -58,7 +63,6 @@ void main() {
       const Offset(0, -350),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Cursos'), findsOneWidget);
     expect(find.text('Lixeira'), findsOneWidget);
   });
 

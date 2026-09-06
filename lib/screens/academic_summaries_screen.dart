@@ -60,15 +60,21 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
   }
 
   Future<void> _openEditor([SyncEntity? entity]) async {
-    final academicSubjectIds = AcademicData.academicSubjects(widget.store)
-        .map((item) => item.id)
-        .toSet();
-    final hasAcademicContent = widget.store
+    final preferredSubjectId = entity?.payload['subjectId'] as String? ??
+        subjectId ??
+        widget.initialSubjectId;
+    final scopedSubjectIds = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubjectId,
+      courseMode:
+          AcademicData.isCourseSubject(widget.store, preferredSubjectId),
+    ).map((item) => item.id).toSet();
+    final hasContent = widget.store
         .records(EntityTypes.studyContent)
-        .any((item) => academicSubjectIds.contains(item.payload['subjectId']));
-    if (!hasAcademicContent) {
+        .any((item) => scopedSubjectIds.contains(item.payload['subjectId']));
+    if (!hasContent) {
       _message(
-        'Cadastre uma matéria e um conteúdo na área acadêmica primeiro.',
+        'Cadastre uma matéria ou módulo e um conteúdo primeiro.',
       );
       return;
     }
@@ -90,12 +96,21 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final semesters = AcademicData.sortedSemesters(widget.store);
-    final academicSubjects = AcademicData.academicSubjects(widget.store);
-    final subjects = academicSubjects.where((item) {
+    final preferredSubjectId = subjectId ?? widget.initialSubjectId;
+    final courseMode =
+        AcademicData.isCourseSubject(widget.store, preferredSubjectId);
+    final semesters = courseMode
+        ? AcademicData.sortedCourses(widget.store)
+        : AcademicData.sortedSemesters(widget.store);
+    final scopedSubjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubjectId,
+      courseMode: courseMode,
+    );
+    final subjects = scopedSubjects.where((item) {
       return semesterId == null || item.payload['semesterId'] == semesterId;
     }).toList();
-    final subjectIds = academicSubjects.map((item) => item.id).toSet();
+    final subjectIds = scopedSubjects.map((item) => item.id).toSet();
     final contents =
         widget.store.records(EntityTypes.studyContent).where((item) {
       final linkedSubject = item.payload['subjectId'] as String?;
@@ -179,9 +194,10 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
                 builder: (context, constraints) {
                   final filters = <Widget>[
                     _FilterBox(
-                      label: 'Semestre',
+                      label: courseMode ? 'Curso' : 'Semestre',
                       value: semesterId,
-                      allLabel: 'Todos os semestres',
+                      allLabel:
+                          courseMode ? 'Todos os cursos' : 'Todos os semestres',
                       items: semesters
                           .map(
                             (item) => _FilterItem(
@@ -197,9 +213,10 @@ class _AcademicSummariesScreenState extends State<AcademicSummariesScreen> {
                       }),
                     ),
                     _FilterBox(
-                      label: 'Matéria',
+                      label: courseMode ? 'Módulo' : 'Matéria',
                       value: subjectId,
-                      allLabel: 'Todas as matérias',
+                      allLabel:
+                          courseMode ? 'Todos os módulos' : 'Todas as matérias',
                       items: subjects
                           .map(
                             (item) => _FilterItem(
@@ -557,6 +574,8 @@ class AcademicSummaryEditorDialog extends StatefulWidget {
 
 class _AcademicSummaryEditorDialogState
     extends State<AcademicSummaryEditorDialog> {
+  static const String _toolbarPreferenceKey = 'summary_editor_toolbar_expanded';
+
   late final TextEditingController title;
   late final RichSummaryController body;
   late final FocusNode editorFocus;
@@ -578,6 +597,7 @@ class _AcademicSummaryEditorDialogState
   bool saved = false;
   bool draftPersisted = false;
   bool sidePanelsVisible = true;
+  bool editorToolbarExpanded = false;
   bool metadataExpanded = true;
   bool assetsExpanded = false;
   bool appearanceExpanded = false;
@@ -586,7 +606,13 @@ class _AcademicSummaryEditorDialogState
   @override
   void initState() {
     super.initState();
-    final subjects = AcademicData.academicSubjects(widget.store);
+    final preferredSubject = widget.entity?.payload['subjectId'] as String? ??
+        widget.initialSubjectId;
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: AcademicData.isCourseSubject(widget.store, preferredSubject),
+    );
     title = TextEditingController(
       text: widget.entity?.payload['title'] as String? ?? '',
     );
@@ -599,8 +625,6 @@ class _AcademicSummaryEditorDialogState
     undoHistory = UndoHistoryController();
     editorScroll = ScrollController(debugLabel: 'summary-editor-scroll');
     draftService = SummaryDraftService(widget.store);
-    final preferredSubject = widget.entity?.payload['subjectId'] as String? ??
-        widget.initialSubjectId;
     subjectId = subjects.any((item) => item.id == preferredSubject)
         ? preferredSubject
         : (subjects.isEmpty ? null : subjects.first.id);
@@ -631,7 +655,24 @@ class _AcademicSummaryEditorDialogState
     coverImageName = widget.entity?.payload['coverImageName'] as String? ?? '';
     title.addListener(_scheduleDraft);
     body.addListener(_scheduleDraft);
+    unawaited(_loadToolbarPreference());
     WidgetsBinding.instance.addPostFrameCallback((_) => _restoreDraft());
+  }
+
+  Future<void> _loadToolbarPreference() async {
+    final saved = await widget.store.readUserPreference(_toolbarPreferenceKey);
+    if (!mounted || saved == null) return;
+    setState(() => editorToolbarExpanded = saved == 'true');
+  }
+
+  void _toggleEditorToolbar() {
+    setState(() => editorToolbarExpanded = !editorToolbarExpanded);
+    unawaited(
+      widget.store.writeUserPreference(
+        _toolbarPreferenceKey,
+        editorToolbarExpanded.toString(),
+      ),
+    );
   }
 
   @override
@@ -657,7 +698,14 @@ class _AcademicSummaryEditorDialogState
       await draftService.clear(widget.entity?.id);
       return;
     }
-    final subjects = AcademicData.academicSubjects(widget.store);
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: draft.subjectId ?? subjectId,
+      courseMode: AcademicData.isCourseSubject(
+        widget.store,
+        draft.subjectId ?? subjectId,
+      ),
+    );
     final restoredSubject = subjects.any((item) => item.id == draft.subjectId)
         ? draft.subjectId
         : subjectId;
@@ -909,7 +957,16 @@ class _AcademicSummaryEditorDialogState
 
   @override
   Widget build(BuildContext context) {
-    final subjects = AcademicData.academicSubjects(widget.store);
+    final preferredSubject = subjectId ??
+        widget.entity?.payload['subjectId'] as String? ??
+        widget.initialSubjectId;
+    final courseMode =
+        AcademicData.isCourseSubject(widget.store, preferredSubject);
+    final subjects = AcademicData.subjectsForSelection(
+      widget.store,
+      preferredSubjectId: preferredSubject,
+      courseMode: courseMode,
+    );
     final contents = AcademicData.contentsForSubject(widget.store, subjectId);
     final compactAppBar = MediaQuery.sizeOf(context).width < 720;
     return PopScope(
@@ -977,6 +1034,7 @@ class _AcademicSummaryEditorDialogState
                   contents: contents,
                   subjectId: subjectId,
                   contentId: contentId,
+                  courseMode: courseMode,
                   onSubjectChanged: (value) {
                     setState(() {
                       subjectId = value;
@@ -1005,6 +1063,8 @@ class _AcademicSummaryEditorDialogState
                   onInsertCode: _insertCodeExample,
                   onEditEmbed: _editEmbed,
                   onDeleteEmbed: _removeEmbed,
+                  toolbarExpanded: editorToolbarExpanded,
+                  onToggleToolbar: _toggleEditorToolbar,
                   panelsVisible: sidePanelsVisible,
                   onTogglePanels: desktop
                       ? () => setState(
@@ -1124,6 +1184,7 @@ class _SummaryMetadataPanel extends StatelessWidget {
     required this.contents,
     required this.subjectId,
     required this.contentId,
+    required this.courseMode,
     required this.onSubjectChanged,
     required this.onContentChanged,
     required this.expanded,
@@ -1135,6 +1196,7 @@ class _SummaryMetadataPanel extends StatelessWidget {
   final List<SyncEntity> contents;
   final String? subjectId;
   final String? contentId;
+  final bool courseMode;
   final ValueChanged<String?> onSubjectChanged;
   final ValueChanged<String?> onContentChanged;
   final bool expanded;
@@ -1189,7 +1251,9 @@ class _SummaryMetadataPanel extends StatelessWidget {
                   ? subjectId
                   : null,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Matéria'),
+              decoration: InputDecoration(
+                labelText: courseMode ? 'Módulo do curso' : 'Matéria',
+              ),
               items: subjects
                   .map(
                     (item) => DropdownMenuItem<String>(
@@ -1226,8 +1290,10 @@ class _SummaryMetadataPanel extends StatelessWidget {
             ),
             if (contents.isEmpty) ...<Widget>[
               const SizedBox(height: 8),
-              const Text(
-                'Cadastre um conteúdo nessa matéria antes de salvar.',
+              Text(
+                courseMode
+                    ? 'Cadastre um conteúdo nesse módulo antes de salvar.'
+                    : 'Cadastre um conteúdo nessa matéria antes de salvar.',
                 style: TextStyle(color: AppColors.orange, fontSize: 12),
               ),
             ],
@@ -1248,6 +1314,8 @@ class _SummaryEditorCanvas extends StatelessWidget {
     required this.onInsertCode,
     required this.onEditEmbed,
     required this.onDeleteEmbed,
+    required this.toolbarExpanded,
+    required this.onToggleToolbar,
     required this.panelsVisible,
     this.onTogglePanels,
   });
@@ -1260,6 +1328,8 @@ class _SummaryEditorCanvas extends StatelessWidget {
   final VoidCallback onInsertCode;
   final ValueChanged<SummaryEmbed> onEditEmbed;
   final ValueChanged<SummaryEmbed> onDeleteEmbed;
+  final bool toolbarExpanded;
+  final VoidCallback onToggleToolbar;
   final bool panelsVisible;
   final VoidCallback? onTogglePanels;
 
@@ -1297,14 +1367,37 @@ class _SummaryEditorCanvas extends StatelessWidget {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    const Expanded(
-                      child: Text(
-                        'EDITOR DO RESUMO',
-                        style: TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 11,
-                          letterSpacing: 1.5,
-                          fontWeight: FontWeight.w900,
+                    Expanded(
+                      child: TextButton.icon(
+                        key: const Key('summary-toggle-toolbar'),
+                        onPressed: onToggleToolbar,
+                        style: TextButton.styleFrom(
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 5,
+                          ),
+                          foregroundColor: toolbarExpanded
+                              ? AppColors.primaryLight
+                              : AppColors.textMuted,
+                        ),
+                        icon: Icon(
+                          toolbarExpanded
+                              ? Icons.keyboard_arrow_up_rounded
+                              : Icons.keyboard_arrow_down_rounded,
+                          size: 20,
+                        ),
+                        label: Text(
+                          toolbarExpanded
+                              ? 'RECOLHER FERRAMENTAS'
+                              : 'ABRIR FERRAMENTAS',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            letterSpacing: 1.25,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ),
                     ),
@@ -1349,13 +1442,23 @@ class _SummaryEditorCanvas extends StatelessWidget {
                     ],
                   ],
                 ),
-                const SizedBox(height: 9),
-                _RichTextToolbar(
-                  controller: controller,
-                  focusNode: focusNode,
-                  undoController: undoController,
-                  onInsertInlineImage: onInsertInlineImage,
-                  onInsertCode: onInsertCode,
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.topCenter,
+                  child: toolbarExpanded
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 9),
+                          child: _RichTextToolbar(
+                            key: const Key('summary-editor-toolbar'),
+                            controller: controller,
+                            focusNode: focusNode,
+                            undoController: undoController,
+                            onInsertInlineImage: onInsertInlineImage,
+                            onInsertCode: onInsertCode,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
               ],
             ),
@@ -1447,6 +1550,10 @@ class _SummaryEditorCanvas extends StatelessWidget {
                                     control: true,
                                     shift: true,
                                   ): controller.toggleCodeBlock,
+                                  const SingleActivator(
+                                    LogicalKeyboardKey.f1,
+                                    control: true,
+                                  ): onToggleToolbar,
                                   const SingleActivator(
                                     LogicalKeyboardKey.tab,
                                   ): () => controller.indentParagraphs(
@@ -1573,6 +1680,7 @@ class _RichTextToolbar extends StatelessWidget {
     required this.undoController,
     required this.onInsertInlineImage,
     required this.onInsertCode,
+    super.key,
   });
 
   final RichSummaryController controller;

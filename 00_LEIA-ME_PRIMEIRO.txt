@@ -1,10 +1,24 @@
-SMART ROUTINE SI — V5.6 PRO EDITOR MULTIMÍDIA
-==============================================
+SMART ROUTINE SI — V5.7 PRO CURSOS E EDITOR RECOLHÍVEL
+=======================================================
 
 Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
 Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
 
-NOVIDADES DA V5.6 PRO
+NOVIDADES DA V5.7 PRO
+- Cursos agora fica imediatamente abaixo de Faculdade no menu.
+- O curso em andamento é destacado e abre como pasta.
+- Organização completa: curso -> módulo -> conteúdo -> materiais.
+- Curso, módulo e conteúdo aceitam cor, símbolo e imagem de fundo.
+- Cada conteúdo de curso reúne Resumos, Códigos, Imagens, Anexos,
+  Simulados, Flashcards e Provas/Notas, igual à organização da faculdade.
+- Cursos podem entrar no calendário semanal e aparecem na tela inicial
+  com cor, símbolo/capa e identificação CURSO.
+- A faixa profissional do editor de resumos pode abrir ou recolher em
+  qualquer modo, como no Word/Excel, sem alterar o texto ou o rascunho.
+- A preferência da faixa fica salva para cada usuário; Ctrl+F1 alterna.
+- Banco e sincronização permanecem compatíveis. Não desinstale o app.
+
+NOVIDADES ACUMULADAS DA V5.6 PRO
 - Arraste os conteúdos de uma matéria para salvar a ordem de estudo.
 - O horário usa cartões compactos com capa, cor e símbolo de cada matéria.
 - Imagens podem ser inseridas no meio do resumo e ajustadas em largura,
@@ -108,6 +122,7 @@ https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
 LEIA TAMBÉM
 - 00_RECUPERAR_BANCO_ANDROID_V5.5.1.txt
+- 00_ATUALIZACAO_V5.7_PRO.txt
 - 00_ATUALIZACAO_V5.6_PRO.txt
 - 00_CORRECAO_BUILD_WINDOWS_GITHUB.txt
 - 00_ATUALIZACAO_V5.5_PRO_SEM_PERDER_DADOS.txt

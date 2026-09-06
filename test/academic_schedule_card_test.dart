@@ -60,4 +60,61 @@ void main() {
     expect(find.text('18:30–20:10'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('cartão de curso usa a personalização do curso', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const course = SyncEntity(
+      id: 'course-1',
+      type: 'semester',
+      payload: <String, dynamic>{
+        'name': 'Flutter profissional',
+        'kind': 'course',
+        'folderColor': 0xFF00B894,
+        'folderIcon': 'code',
+      },
+      updatedAtMs: 1,
+      deviceId: 'teste',
+      revision: 1,
+    );
+    const courseSession = SyncEntity(
+      id: 'course-session-1',
+      type: 'class_session',
+      payload: <String, dynamic>{
+        'courseId': 'course-1',
+        'start': '19:00',
+        'end': '20:00',
+        'room': 'Estudo em casa',
+      },
+      updatedAtMs: 1,
+      deviceId: 'teste',
+      revision: 1,
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 160,
+              height: 145,
+              child: AcademicScheduleCard(
+                subject: null,
+                course: course,
+                session: courseSession,
+                compact: true,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Flutter profissional'), findsOneWidget);
+    expect(find.text('CURSO'), findsOneWidget);
+    expect(find.text('19:00–20:00'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

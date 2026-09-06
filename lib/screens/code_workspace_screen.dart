@@ -561,7 +561,12 @@ class _ProjectDialogState extends State<_ProjectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final semesters = AcademicData.sortedSemesters(widget.store);
+    final courseMode = AcademicData.isCourse(
+      semesterId == null ? null : widget.store.byId(semesterId!),
+    );
+    final semesters = courseMode
+        ? AcademicData.sortedCourses(widget.store)
+        : AcademicData.sortedSemesters(widget.store);
     final subjects = semesterId == null
         ? widget.store.records(EntityTypes.subject)
         : AcademicData.subjectsForSemester(widget.store, semesterId);
@@ -651,7 +656,9 @@ class _ProjectDialogState extends State<_ProjectDialog> {
               DropdownButtonFormField<String?>(
                 key: ValueKey<String?>('semester-$semesterId'),
                 initialValue: semesterId,
-                decoration: const InputDecoration(labelText: 'Semestre'),
+                decoration: InputDecoration(
+                  labelText: courseMode ? 'Curso' : 'Semestre',
+                ),
                 items: <DropdownMenuItem<String?>>[
                   const DropdownMenuItem<String?>(
                     child: Text('Sem vínculo'),
@@ -677,7 +684,9 @@ class _ProjectDialogState extends State<_ProjectDialog> {
               DropdownButtonFormField<String?>(
                 key: ValueKey<String?>('subject-$semesterId-$subjectId'),
                 initialValue: subjectId,
-                decoration: const InputDecoration(labelText: 'Matéria'),
+                decoration: InputDecoration(
+                  labelText: courseMode ? 'Módulo' : 'Matéria',
+                ),
                 items: <DropdownMenuItem<String?>>[
                   const DropdownMenuItem<String?>(
                     child: Text('Sem vínculo'),

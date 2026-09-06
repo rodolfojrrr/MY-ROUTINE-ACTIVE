@@ -8,27 +8,22 @@ import 'package:my_routine_active/core/sync_entity.dart';
 import 'package:my_routine_active/screens/academic_summaries_screen.dart';
 
 void main() {
-  testWidgets('campos continuam digitáveis e restauram rascunho',
-      (tester) async {
+  testWidgets('campos continuam digitáveis e restauram rascunho', (
+    tester,
+  ) async {
     final store = _MemorySummaryStore();
 
     Future<void> pumpEditor() => tester.pumpWidget(
           MaterialApp(
             theme: AppTheme.dark(),
-            home: Scaffold(
-              body: AcademicSummaryEditorDialog(store: store),
-            ),
+            home: Scaffold(body: AcademicSummaryEditorDialog(store: store)),
           ),
         );
 
     await pumpEditor();
     await tester.pump(const Duration(milliseconds: 100));
-    final title = find.byKey(
-      const ValueKey<String>('summary-title-field'),
-    );
-    final body = find.byKey(
-      const ValueKey<String>('summary-body-field'),
-    );
+    final title = find.byKey(const ValueKey<String>('summary-title-field'));
+    final body = find.byKey(const ValueKey<String>('summary-body-field'));
     await tester.enterText(title, 'Laços em Dart');
     await tester.enterText(body, 'for, while e do-while continuam digitáveis.');
     await tester.pump(const Duration(milliseconds: 900));
@@ -51,8 +46,9 @@ void main() {
     store.dispose();
   });
 
-  testWidgets('editor rico permanece encaixado no celular durante o autosave',
-      (tester) async {
+  testWidgets('editor rico permanece encaixado no celular durante o autosave', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(360, 760);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -78,13 +74,52 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 900));
 
-    expect(find.text('EDITOR DO RESUMO'), findsOneWidget);
+    expect(find.text('ABRIR FERRAMENTAS'), findsOneWidget);
+    expect(find.byKey(const Key('summary-editor-toolbar')), findsNothing);
     expect(find.byIcon(Icons.save_outlined), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Tab e Shift Tab recuam parágrafos como numa IDE',
-      (tester) async {
+  testWidgets(
+    'faixa de ferramentas recolhe em qualquer modo sem alterar o texto',
+    (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final store = _MemorySummaryStore();
+      addTearDown(store.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark(),
+          home: AcademicSummaryEditorDialog(store: store),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('summary-editor-toolbar')), findsNothing);
+      await tester.tap(find.byKey(const Key('summary-toggle-toolbar')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('summary-editor-toolbar')), findsOneWidget);
+      expect(store.preferences['summary_editor_toolbar_expanded'], 'true');
+
+      final body = find.byKey(const ValueKey<String>('summary-body-field'));
+      await tester.enterText(body, 'Texto preservado com a faixa recolhível.');
+      await tester.tap(find.byKey(const Key('summary-toggle-toolbar')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('summary-editor-toolbar')), findsNothing);
+      expect(find.text('Texto preservado com a faixa recolhível.'),
+          findsOneWidget);
+      expect(store.preferences['summary_editor_toolbar_expanded'], 'false');
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Tab e Shift Tab recuam parágrafos como numa IDE', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1280, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -99,9 +134,7 @@ void main() {
       ),
     );
     await tester.pump();
-    final bodyFinder = find.byKey(
-      const ValueKey<String>('summary-body-field'),
-    );
+    final bodyFinder = find.byKey(const ValueKey<String>('summary-body-field'));
     await tester.enterText(bodyFinder, 'linha de código');
     await tester.tap(bodyFinder);
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
@@ -114,12 +147,15 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
     await tester.pump();
-    expect(tester.widget<TextField>(bodyFinder).controller!.text,
-        'linha de código');
+    expect(
+      tester.widget<TextField>(bodyFinder).controller!.text,
+      'linha de código',
+    );
   });
 
-  testWidgets('folha A4 limita texto grande e painéis recolhem no desktop',
-      (tester) async {
+  testWidgets('folha A4 limita texto grande e painéis recolhem no desktop', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1920, 1080);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -170,8 +206,10 @@ void main() {
       find.byKey(const ValueKey<String>('summary-body-field')),
     );
     expect(field.clipBehavior, Clip.hardEdge);
-    expect(field.decoration?.contentPadding,
-        const EdgeInsets.fromLTRB(52, 46, 52, 88));
+    expect(
+      field.decoration?.contentPadding,
+      const EdgeInsets.fromLTRB(52, 46, 52, 88),
+    );
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.byKey(const Key('summary-toggle-side-panels')));

@@ -64,6 +64,12 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       selectedIcon: Icons.school,
     ),
     _AcademicDestination(
+      label: 'Cursos',
+      title: 'Cursos',
+      icon: Icons.workspace_premium_outlined,
+      selectedIcon: Icons.workspace_premium,
+    ),
+    _AcademicDestination(
       label: 'Metas e foco',
       title: 'Metas diárias e foco',
       icon: Icons.flag_outlined,
@@ -104,12 +110,6 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       title: 'Flashcards',
       icon: Icons.style_outlined,
       selectedIcon: Icons.style,
-    ),
-    _AcademicDestination(
-      label: 'Cursos',
-      title: 'Cursos e certificados',
-      icon: Icons.workspace_premium_outlined,
-      selectedIcon: Icons.workspace_premium,
     ),
     _AcademicDestination(
       label: 'Lixeira',
@@ -184,6 +184,7 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
         onOpenSection: (index) => setState(() => selectedIndex = index),
       ),
       AcademicFacultyScreen(store: widget.store),
+      AcademicCoursesScreen(store: widget.store),
       DailyGoalsScreen(store: widget.store, timer: studyTimer),
       AcademicSummariesScreen(store: widget.store),
       StudyKanbanScreen(store: widget.store),
@@ -191,7 +192,6 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
       AcademicAssessmentsScreen(store: widget.store),
       CodeWorkspaceScreen(store: widget.store),
       StudyFlashcardsPage(store: widget.store),
-      AcademicCoursesScreen(store: widget.store),
       RecycleBinScreen(store: widget.store, embedded: true),
       PdfToolsScreen(store: widget.store),
     ];
@@ -311,13 +311,13 @@ class _AcademicShellScreenState extends State<AcademicShellScreen> {
                 ],
               ),
             ),
-            if (studyTimer.isActive && selectedIndex != 2)
+            if (studyTimer.isActive && selectedIndex != 3)
               Positioned(
                 right: 16,
                 bottom: 16,
                 child: _FloatingStudyTimer(
                   timer: studyTimer,
-                  onTap: () => setState(() => selectedIndex = 2),
+                  onTap: () => setState(() => selectedIndex = 3),
                 ),
               ),
           ],
