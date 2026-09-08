@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
+import 'app_storage_paths.dart';
 import 'app_store.dart';
 import 'code_workspace.dart';
 import 'sync_entity.dart';
@@ -137,7 +137,8 @@ class LocalCodeRunner {
       if (!await File(mainPath).exists()) {
         return CodeRunResult(
           state: CodeRunState.failed,
-          output: 'O arquivo principal “$mainName” não existe. '
+          output:
+              'O arquivo principal “$mainName” não existe. '
               'Marque um arquivo como principal nas opções do projeto.',
           command: '',
           elapsed: stopwatch.elapsed,
@@ -149,7 +150,8 @@ class LocalCodeRunner {
       if (plan.missingRuntime != null) {
         return CodeRunResult(
           state: CodeRunState.runtimeMissing,
-          output: '${plan.missingRuntime}\n\n'
+          output:
+              '${plan.missingRuntime}\n\n'
               'O Studium SI não baixa compiladores sozinho e continua 100% local. '
               'Depois de instalar o ambiente no Windows, use “Verificar ambientes”.',
           command: '',
@@ -183,8 +185,8 @@ class LocalCodeRunner {
         state: lastExitCode == 0 ? CodeRunState.success : CodeRunState.failed,
         output: text.isEmpty
             ? (lastExitCode == 0
-                ? 'Programa finalizado sem saída.'
-                : 'A execução terminou com erro.')
+                  ? 'Programa finalizado sem saída.'
+                  : 'A execução terminou com erro.')
             : text,
         command: displayedCommands.join(' && '),
         elapsed: stopwatch.elapsed,
@@ -207,7 +209,8 @@ class LocalCodeRunner {
       stopwatch.stop();
       return CodeRunResult(
         state: CodeRunState.failed,
-        output: 'A execução passou de 30 segundos e foi interrompida. '
+        output:
+            'A execução passou de 30 segundos e foi interrompida. '
             'Verifique loops infinitos ou programas aguardando entrada.',
         command: '',
         elapsed: stopwatch.elapsed,
@@ -229,11 +232,10 @@ class LocalCodeRunner {
     String projectId,
     List<SyncEntity> files,
   ) async {
-    final support = await getApplicationSupportDirectory();
+    final support = await AppStoragePaths.dataDirectory();
     final directory = Directory(
       p.join(
         support.path,
-        'MyRoutineActive',
         'code_workspace',
         CodeWorkspaceData.runtimeFolderName(projectId),
       ),
@@ -322,7 +324,8 @@ class LocalCodeRunner {
         final java = await command(const <String>['java']);
         if (kotlinc == null || java == null) {
           return const _RunPlan.missing(
-              'Kotlin Compiler e JDK não encontrados.');
+            'Kotlin Compiler e JDK não encontrados.',
+          );
         }
         final sources = await _sourceFiles(directory, const <String>{'kt'});
         return _RunPlan(<_CommandStep>[
@@ -350,17 +353,21 @@ class LocalCodeRunner {
               ]);
       case 'cpp':
         final compiler = await command(const <String>['g++']);
-        final sources = await _sourceFiles(
-          directory,
-          const <String>{'cpp', 'cc', 'cxx', 'c'},
-        );
+        final sources = await _sourceFiles(directory, const <String>{
+          'cpp',
+          'cc',
+          'cxx',
+          'c',
+        });
         return compiler == null
             ? const _RunPlan.missing('G++ não encontrado.')
             : _RunPlan(<_CommandStep>[
-                _CommandStep(
-                  compiler,
-                  <String>[...sources, '-O2', '-o', 'programa.exe'],
-                ),
+                _CommandStep(compiler, <String>[
+                  ...sources,
+                  '-O2',
+                  '-o',
+                  'programa.exe',
+                ]),
                 _CommandStep(p.join(directory.path, 'programa.exe'), const []),
               ]);
       case 'csharp':
@@ -368,8 +375,9 @@ class LocalCodeRunner {
         if (dotnet == null) {
           return const _RunPlan.missing('.NET SDK não encontrado.');
         }
-        final projectFile =
-            File(p.join(directory.path, 'SmartRoutineCode.csproj'));
+        final projectFile = File(
+          p.join(directory.path, 'SmartRoutineCode.csproj'),
+        );
         await projectFile.writeAsString('''<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -380,10 +388,11 @@ class LocalCodeRunner {
 </Project>
 ''');
         return _RunPlan(<_CommandStep>[
-          _CommandStep(
-            dotnet,
-            const <String>['run', '--project', 'SmartRoutineCode.csproj'],
-          ),
+          _CommandStep(dotnet, const <String>[
+            'run',
+            '--project',
+            'SmartRoutineCode.csproj',
+          ]),
         ]);
       case 'php':
         final php = await command(const <String>['php']);
@@ -406,10 +415,12 @@ class LocalCodeRunner {
               ]);
       case 'web':
         return _RunPlan(<_CommandStep>[
-          _CommandStep(
-            'cmd.exe',
-            <String>['/c', 'start', '', p.join(directory.path, mainName)],
-          ),
+          _CommandStep('cmd.exe', <String>[
+            '/c',
+            'start',
+            '',
+            p.join(directory.path, mainName),
+          ]),
         ]);
       default:
         return const _RunPlan.missing('Linguagem sem executor configurado.');
@@ -419,41 +430,41 @@ class LocalCodeRunner {
   List<List<String>> _requiredCommands(String languageId) {
     return switch (languageId) {
       'dart' => const <List<String>>[
-          <String>['dart'],
-        ],
+        <String>['dart'],
+      ],
       'python' => const <List<String>>[
-          <String>['python', 'py'],
-        ],
+        <String>['python', 'py'],
+      ],
       'java' => const <List<String>>[
-          <String>['javac'],
-          <String>['java'],
-        ],
+        <String>['javac'],
+        <String>['java'],
+      ],
       'javascript' => const <List<String>>[
-          <String>['node'],
-        ],
+        <String>['node'],
+      ],
       'typescript' => const <List<String>>[
-          <String>['tsc'],
-          <String>['node'],
-        ],
+        <String>['tsc'],
+        <String>['node'],
+      ],
       'c' => const <List<String>>[
-          <String>['gcc'],
-        ],
+        <String>['gcc'],
+      ],
       'cpp' => const <List<String>>[
-          <String>['g++'],
-        ],
+        <String>['g++'],
+      ],
       'csharp' => const <List<String>>[
-          <String>['dotnet'],
-        ],
+        <String>['dotnet'],
+      ],
       'kotlin' => const <List<String>>[
-          <String>['kotlinc'],
-          <String>['java'],
-        ],
+        <String>['kotlinc'],
+        <String>['java'],
+      ],
       'php' => const <List<String>>[
-          <String>['php'],
-        ],
+        <String>['php'],
+      ],
       'sql' => const <List<String>>[
-          <String>['sqlite3'],
-        ],
+        <String>['sqlite3'],
+      ],
       _ => const <List<String>>[],
     };
   }
@@ -465,8 +476,10 @@ class LocalCodeRunner {
     final names = <String>[];
     await for (final entry in directory.list(followLinks: false)) {
       if (entry is! File) continue;
-      final extension =
-          p.extension(entry.path).replaceFirst('.', '').toLowerCase();
+      final extension = p
+          .extension(entry.path)
+          .replaceFirst('.', '')
+          .toLowerCase();
       if (extensions.contains(extension)) {
         names.add(p.basename(entry.path));
       }
@@ -479,11 +492,9 @@ class LocalCodeRunner {
     if (!Platform.isWindows) return null;
     for (final name in alternatives) {
       try {
-        final result = await Process.run(
-          'where.exe',
-          <String>[name],
-          runInShell: false,
-        ).timeout(const Duration(seconds: 3));
+        final result = await Process.run('where.exe', <String>[
+          name,
+        ], runInShell: false).timeout(const Duration(seconds: 3));
         if (result.exitCode == 0) {
           final lines = result.stdout
               .toString()
@@ -537,11 +548,12 @@ class LocalCodeRunner {
 
   Future<void> _terminateProcessTree(Process process) async {
     try {
-      final result = await Process.run(
-        'taskkill.exe',
-        <String>['/PID', '${process.pid}', '/T', '/F'],
-        runInShell: false,
-      ).timeout(const Duration(seconds: 3));
+      final result = await Process.run('taskkill.exe', <String>[
+        '/PID',
+        '${process.pid}',
+        '/T',
+        '/F',
+      ], runInShell: false).timeout(const Duration(seconds: 3));
       if (result.exitCode == 0) return;
     } catch (_) {}
     process.kill();
@@ -558,11 +570,7 @@ class _RunPlan {
 }
 
 class _CommandStep {
-  const _CommandStep(
-    this.executable,
-    this.arguments, {
-    this.stdinText,
-  });
+  const _CommandStep(this.executable, this.arguments, {this.stdinText});
 
   final String executable;
   final List<String> arguments;
@@ -602,8 +610,9 @@ class _LimitedOutputBuffer {
       _truncated = true;
       return;
     }
-    final value =
-        chunk.length > remaining ? chunk.substring(0, remaining) : chunk;
+    final value = chunk.length > remaining
+        ? chunk.substring(0, remaining)
+        : chunk;
     _buffer.write(value);
     _length += value.length;
     if (value.length < chunk.length) _truncated = true;

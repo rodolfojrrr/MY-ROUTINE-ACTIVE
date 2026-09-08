@@ -95,7 +95,7 @@ BEGIN
             VALUE "InternalName", "my_routine_active" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 Rodolfo Junior. All rights reserved." "\0"
             VALUE "OriginalFilename", "my_routine_active.exe" "\0"
-            VALUE "ProductName", "Studium SI" "\0"
+            VALUE "ProductName", "Smart Routine SI" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

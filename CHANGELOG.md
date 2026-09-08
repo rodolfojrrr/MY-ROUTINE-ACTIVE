@@ -1,5 +1,15 @@
 # Changelog
 
+## 5.8.1 PRO
+
+- Corrigido o caminho do banco no Windows após a troca visual de Smart Routine SI para Studium SI.
+- O aplicativo detecta primeiro o banco existente em `%APPDATA%\Rodolfo Junior\Smart Routine SI\MyRoutineActive` e volta a exibi-lo sem apagar ou substituir arquivos.
+- Se existir somente uma base criada pela V5.8 em `Studium SI`, ela também continua sendo reconhecida.
+- Banco, backups automáticos e arquivos temporários da IDE agora compartilham o mesmo resolvedor de armazenamento estável.
+- `ProductName` interno do executável permanece compatível com o caminho antigo; nome da janela, instalador, atalhos e interface continuam **Studium SI**.
+- Três testes novos protegem a escolha do banco antigo, a base Studium isolada e instalações limpas.
+- Versão elevada para `5.8.1+60`.
+
 ## 5.8.0 PRO
 
 - Nova identidade visual **Studium SI** em todas as telas, notificações, PDFs, Android e Windows.

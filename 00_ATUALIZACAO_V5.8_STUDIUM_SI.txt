@@ -1,6 +1,11 @@
 STUDIUM SI V5.8 PRO — NOVA IDENTIDADE E ATUALIZAÇÃO SEGURA
 ===========================================================
 
+ATENÇÃO: A V5.8.0 FOI SUBSTITUÍDA PELA V5.8.1
+A primeira revisão mudou o diretório-base do banco no Windows ao alterar o
+ProductName. O banco antigo não foi apagado, mas ficou oculto na pasta anterior.
+Use somente a V5.8.1 e leia 00_RECUPERAR_BANCO_WINDOWS_V5.8.1.txt.
+
 Esta versão substitui o nome visual Smart Routine SI por Studium SI e adota
 um novo ícone criado para a faculdade, cursos, programação e sincronização.
 

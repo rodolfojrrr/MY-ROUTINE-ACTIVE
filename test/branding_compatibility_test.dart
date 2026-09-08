@@ -3,23 +3,44 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Studium SI preserva identificadores e dados da instalação anterior',
-      () {
-    final manifest = File(
-      'android/app/src/main/AndroidManifest.xml',
-    ).readAsStringSync();
-    final gradle = File('android/app/build.gradle.kts').readAsStringSync();
-    final database = File('lib/core/local_database.dart').readAsStringSync();
-    final installer = File('installer/MyRoutineActive.iss').readAsStringSync();
+  test(
+    'Studium SI preserva identificadores e dados da instalação anterior',
+    () {
+      final manifest =
+          File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
+      final gradle = File('android/app/build.gradle.kts').readAsStringSync();
+      final database = File('lib/core/local_database.dart').readAsStringSync();
+      final installer =
+          File('installer/MyRoutineActive.iss').readAsStringSync();
+      final windowsResource =
+          File('windows/runner/Runner.rc').readAsStringSync();
+      final storagePaths =
+          File('lib/core/app_storage_paths.dart').readAsStringSync();
 
-    expect(manifest, contains('android:label="Studium SI"'));
-    expect(manifest, contains('android:roundIcon="@mipmap/ic_launcher"'));
-    expect(gradle, contains('applicationId = "com.rodolfo.myroutineactive"'));
-    expect(database, contains("'MyRoutineActive'"));
-    expect(database, contains("'my_routine_active.db'"));
-    expect(installer, contains('2DDA2A48-8C38-4F7B-A006-C98D12CF79E8'));
-    expect(installer, contains('#define MyAppName "Studium SI"'));
-  });
+      expect(manifest, contains('android:label="Studium SI"'));
+      expect(manifest, contains('android:roundIcon="@mipmap/ic_launcher"'));
+      expect(gradle, contains('applicationId = "com.rodolfo.myroutineactive"'));
+      expect(database, contains('AppStoragePaths.dataDirectory()'));
+      expect(storagePaths, contains("dataFolderName = 'MyRoutineActive'"));
+      expect(
+          storagePaths, contains("databaseFileName = 'my_routine_active.db'"));
+      expect(installer, contains('2DDA2A48-8C38-4F7B-A006-C98D12CF79E8'));
+      expect(installer, contains('#define MyAppName "Studium SI"'));
+      expect(
+        windowsResource,
+        contains('VALUE "FileDescription", "Studium SI"'),
+      );
+      expect(
+        windowsResource,
+        contains('VALUE "ProductName", "Smart Routine SI"'),
+        reason: 'O ProductName interno mantém o caminho do banco no Windows.',
+      );
+      expect(
+        storagePaths,
+        contains("legacyWindowsProductName = 'Smart Routine SI'"),
+      );
+    },
+  );
 
   test('nova identidade possui recursos para Android e Windows', () {
     final resources = <String>[

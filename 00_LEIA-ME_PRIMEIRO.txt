@@ -1,8 +1,17 @@
-STUDIUM SI — V5.8 PRO NOVA IDENTIDADE
-========================================
+STUDIUM SI — V5.8.1 PRO RECUPERAÇÃO DO BANCO WINDOWS
+=====================================================
 
 Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
 Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
+
+CORREÇÃO URGENTE DA V5.8.1
+- A primeira V5.8 mudou sem querer o diretório-base do Windows ao trocar o nome
+  interno do produto. O banco antigo não foi apagado; ficou na pasta anterior.
+- Esta revisão volta automaticamente para a base da instalação Smart Routine SI.
+- O nome visível continua Studium SI no aplicativo, instalador e atalhos.
+- Não desinstale nem apague pastas. Instale a V5.8.1 por cima da V5.8.
+- Antes de atualizar, copie a pasta antiga MyRoutineActive para outro local por
+  segurança. Leia 00_RECUPERAR_BANCO_WINDOWS_V5.8.1.txt.
 
 NOVIDADES DA V5.8 PRO
 - O aplicativo agora se chama Studium SI.

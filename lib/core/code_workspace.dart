@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
+import 'app_storage_paths.dart';
 import 'app_store.dart';
 import 'sync_entity.dart';
 
@@ -237,10 +237,7 @@ SELECT * FROM alunos;
   ];
 
   static CodeLanguageDefinition byId(String? id) {
-    return all.firstWhere(
-      (language) => language.id == id,
-      orElse: () => dart,
-    );
+    return all.firstWhere((language) => language.id == id, orElse: () => dart);
   }
 
   static CodeLanguageDefinition forFileName(
@@ -271,8 +268,8 @@ class CodeWorkspaceData {
     final items = store.records(EntityTypes.codeProject).toList();
     items.sort(
       (a, b) => (a.payload['name'] as String? ?? '').toLowerCase().compareTo(
-            (b.payload['name'] as String? ?? '').toLowerCase(),
-          ),
+        (b.payload['name'] as String? ?? '').toLowerCase(),
+      ),
     );
     return items;
   }
@@ -287,8 +284,8 @@ class CodeWorkspaceData {
       final mainB = b.payload['isMain'] == true ? 0 : 1;
       if (mainA != mainB) return mainA.compareTo(mainB);
       return (a.payload['name'] as String? ?? '').toLowerCase().compareTo(
-            (b.payload['name'] as String? ?? '').toLowerCase(),
-          );
+        (b.payload['name'] as String? ?? '').toLowerCase(),
+      );
     });
     return files;
   }
@@ -329,10 +326,7 @@ class CodeWorkspaceData {
     await store.remove(file.id);
   }
 
-  static Future<void> deleteProject(
-    AppStore store,
-    SyncEntity project,
-  ) async {
+  static Future<void> deleteProject(AppStore store, SyncEntity project) async {
     for (final file in filesForProject(store, project.id)) {
       await store.remove(file.id);
     }
@@ -344,14 +338,9 @@ class CodeWorkspaceData {
       await store.remove(run.id);
     }
     await store.remove(project.id);
-    final support = await getApplicationSupportDirectory();
+    final support = await AppStoragePaths.dataDirectory();
     final directory = Directory(
-      p.join(
-        support.path,
-        'MyRoutineActive',
-        'code_workspace',
-        runtimeFolderName(project.id),
-      ),
+      p.join(support.path, 'code_workspace', runtimeFolderName(project.id)),
     );
     if (await directory.exists()) {
       await directory.delete(recursive: true);

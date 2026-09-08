@@ -1,4 +1,4 @@
-STUDIUM SI 5.8.0+59 PRO — MANIFESTO DO PACOTE
+STUDIUM SI 5.8.1+60 PRO — MANIFESTO DO PACOTE
 ================================================
 
 ESCOPO
@@ -29,7 +29,7 @@ COMPATIBILIDADE
 
 VALIDAÇÃO DA ENTREGA
 - dart analyze: nenhum problema.
-- Suite automatizada: 68 testes executados pelo GitHub Actions.
+- Suite automatizada: 71 testes executados pelo GitHub Actions.
 - Migrações v1 → v2 → v3 com dados preservados.
 - Registros grandes fragmentados e reconstruídos sem alterar backup ou sync.
 - Contas isoladas e recuperação de senha testadas.

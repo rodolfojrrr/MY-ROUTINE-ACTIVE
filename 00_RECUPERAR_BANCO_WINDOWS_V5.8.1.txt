@@ -1,0 +1,41 @@
+STUDIUM SI V5.8.1 — RECUPERAR O BANCO DO WINDOWS
+================================================
+
+O QUE ACONTECEU
+A V5.8 trocou o nome visual para Studium SI. No Windows, o componente usado
+para localizar a pasta de suporte também usou esse nome e abriu uma pasta nova
+e vazia. O banco antigo não foi excluído.
+
+ONDE ESTÃO OS DADOS ANTIGOS
+%APPDATA%\Rodolfo Junior\Smart Routine SI\MyRoutineActive
+
+O banco principal se chama:
+my_routine_active.db
+
+Os backups automáticos ficam em:
+%APPDATA%\Rodolfo Junior\Smart Routine SI\MyRoutineActive\backups
+
+ANTES DE ATUALIZAR
+1. Feche completamente o Studium SI.
+2. Pressione Win + R e abra o caminho antigo mostrado acima.
+3. Copie a pasta MyRoutineActive inteira para a Área de Trabalho ou outro disco.
+4. Não apague, renomeie nem substitua o banco original.
+
+COMO RECUPERAR
+1. Envie esta V5.8.1 ao GitHub e gere o instalador Windows.
+2. Feche o aplicativo.
+3. Execute Studium-SI-Setup.exe e instale por cima.
+4. Abra o Studium SI. Ele dará prioridade ao banco antigo quando encontrá-lo.
+5. Confira semestres, matérias, resumos, imagens e demais registros.
+6. Exporte um novo backup .mra depois da conferência.
+
+SE O BANCO PRINCIPAL NÃO EXISTIR
+Os backups .mra de maior tamanho ainda podem restaurar os dados. Abra o app já
+corrigido, use Importar e mesclar backup e escolha o arquivo mais recente de
+tamanho completo. Não use arquivos antigos de apenas 1 KB se houver backups
+recentes de vários MB.
+
+PROTEÇÃO PERMANENTE
+O nome exibido continua Studium SI, mas o caminho interno ficou independente da
+marca. Um teste automatizado impede que uma futura renomeação volte a esconder
+o banco do Windows.

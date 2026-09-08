@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
+import 'app_storage_paths.dart';
 import 'sync_entity.dart';
 
 class BackupBundle {
@@ -91,11 +91,16 @@ class BackupService {
     List<int> bytes, {
     required String reason,
   }) async {
-    final support = snapshotRootOverrideForTesting ??
-        await getApplicationSupportDirectory();
-    final directory = Directory(
-      p.join(support.path, 'MyRoutineActive', 'backups'),
-    );
+    final Directory directory;
+    final supportOverride = snapshotRootOverrideForTesting;
+    if (supportOverride != null) {
+      directory = Directory(
+        p.join(supportOverride.path, AppStoragePaths.dataFolderName, 'backups'),
+      );
+    } else {
+      final dataDirectory = await AppStoragePaths.dataDirectory();
+      directory = Directory(p.join(dataDirectory.path, 'backups'));
+    }
     await directory.create(recursive: true);
     final stamp = DateTime.now()
         .toUtc()

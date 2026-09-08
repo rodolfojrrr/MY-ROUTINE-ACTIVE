@@ -3,10 +3,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'app_storage_paths.dart';
 import 'sync_entity.dart';
 import 'local_account.dart';
 
@@ -55,10 +55,9 @@ class LocalDatabase {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    final support = await getApplicationSupportDirectory();
-    final dataDir = Directory(p.join(support.path, 'MyRoutineActive'));
+    final dataDir = await AppStoragePaths.dataDirectory();
     await dataDir.create(recursive: true);
-    final dbPath = p.join(dataDir.path, 'my_routine_active.db');
+    final dbPath = p.join(dataDir.path, AppStoragePaths.databaseFileName);
 
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       sqfliteFfiInit();
@@ -192,11 +191,14 @@ class LocalDatabase {
   }
 
   Future<void> _migrateLegacyLargeValues(DatabaseExecutor db) async {
-    final entities = await db.rawQuery('''
+    final entities = await db.rawQuery(
+      '''
       SELECT id
       FROM entities
       WHERE length(CAST(payload AS BLOB)) > ?
-    ''', <Object?>[_largeValueThreshold]);
+    ''',
+      <Object?>[_largeValueThreshold],
+    );
     for (final row in entities) {
       final id = row['id'] as String;
       await _moveColumnToChunks(
@@ -210,11 +212,14 @@ class LocalDatabase {
       );
     }
 
-    final settings = await db.rawQuery('''
+    final settings = await db.rawQuery(
+      '''
       SELECT key
       FROM settings
       WHERE length(CAST(value AS BLOB)) > ?
-    ''', <Object?>[_largeValueThreshold]);
+    ''',
+      <Object?>[_largeValueThreshold],
+    );
     for (final row in settings) {
       final key = row['key'] as String;
       await _moveColumnToChunks(
@@ -228,14 +233,17 @@ class LocalDatabase {
       );
     }
 
-    final conflicts = await db.rawQuery('''
+    final conflicts = await db.rawQuery(
+      '''
       SELECT id,
              length(CAST(local_json AS BLOB)) AS local_size,
              length(CAST(remote_json AS BLOB)) AS remote_size
       FROM sync_conflicts
       WHERE length(CAST(local_json AS BLOB)) > ?
          OR length(CAST(remote_json AS BLOB)) > ?
-    ''', <Object?>[_largeValueThreshold, _largeValueThreshold]);
+    ''',
+      <Object?>[_largeValueThreshold, _largeValueThreshold],
+    );
     for (final row in conflicts) {
       final numericId = (row['id'] as num).toInt();
       final ownerId = '$numericId';
@@ -291,22 +299,25 @@ class LocalDatabase {
     final batch = db.batch();
     var index = 0;
     for (var offset = 0; offset < byteLength; offset += _largeValueChunkSize) {
-      batch.rawInsert('''
+      batch.rawInsert(
+        '''
         INSERT INTO large_value_chunks (
           owner_kind, owner_id, field_name, chunk_index, chunk_data
         )
         SELECT ?, ?, ?, ?, substr(CAST($fieldName AS BLOB), ?, ?)
         FROM $table
         WHERE $idColumn = ?
-      ''', <Object?>[
-        ownerKind,
-        ownerId,
-        fieldName,
-        index,
-        offset + 1,
-        _largeValueChunkSize,
-        rowId,
-      ]);
+      ''',
+        <Object?>[
+          ownerKind,
+          ownerId,
+          fieldName,
+          index,
+          offset + 1,
+          _largeValueChunkSize,
+          rowId,
+        ],
+      );
       index++;
     }
     await batch.commit(noResult: true);
@@ -349,7 +360,8 @@ class LocalDatabase {
     );
     if (rows.isEmpty) {
       throw StateError(
-          'As partes de um registro grande não foram encontradas.');
+        'As partes de um registro grande não foram encontradas.',
+      );
     }
     final bytes = BytesBuilder(copy: false);
     for (final row in rows) {
@@ -404,10 +416,7 @@ class LocalDatabase {
     });
   }
 
-  Future<void> _upsertEntity(
-    DatabaseExecutor db,
-    SyncEntity entity,
-  ) async {
+  Future<void> _upsertEntity(DatabaseExecutor db, SyncEntity entity) async {
     await db.insert(
       'entities',
       entity.toMap(),
@@ -453,14 +462,10 @@ class LocalDatabase {
   Future<void> writeSetting(String key, String value) async {
     final db = await database;
     await db.transaction((txn) async {
-      await txn.insert(
-        'settings',
-        <String, Object?>{
-          'key': key,
-          'value': value,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await txn.insert('settings', <String, Object?>{
+        'key': key,
+        'value': value,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
       await _deleteLargeValueChunks(
         txn,
         ownerKind: 'setting',
