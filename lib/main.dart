@@ -81,7 +81,7 @@ class _MyRoutineBootstrapState extends State<MyRoutineBootstrap> {
     return AnimatedBuilder(
       animation: appearance,
       builder: (context, _) => MaterialApp(
-        title: 'Smart Routine SI',
+        title: 'Studium SI',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark(),
         locale: const Locale('pt', 'BR'),

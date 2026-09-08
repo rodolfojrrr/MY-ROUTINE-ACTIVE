@@ -99,7 +99,7 @@ jobs:
       - name: Publicar APK
         uses: actions/upload-artifact@v4
         with:
-          name: Smart-Routine-SI-Android
+          name: Studium-SI-Android
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
@@ -183,7 +183,7 @@ jobs:
 
       - name: Compactar pacote Windows
         shell: pwsh
-        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath Smart-Routine-SI-Windows.zip
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath Studium-SI-Windows.zip
 
       - name: Instalar Inno Setup
         shell: pwsh
@@ -196,8 +196,8 @@ jobs:
       - name: Publicar aplicativo Windows
         uses: actions/upload-artifact@v4
         with:
-          name: Smart-Routine-SI-Windows
+          name: Studium-SI-Windows
           path: |
-            Smart-Routine-SI-Windows.zip
-            ENTREGAS/Smart-Routine-SI-Setup.exe
+            Studium-SI-Windows.zip
+            ENTREGAS/Studium-SI-Setup.exe
           if-no-files-found: error

@@ -1,8 +1,8 @@
-SMART ROUTINE SI 5.6 PRO — ATUALIZAR SEM PERDER DADOS
+STUDIUM SI 5.6 PRO — ATUALIZAR SEM PERDER DADOS
 =====================================================
 
 Esta versão foi preparada para ser instalada diretamente sobre qualquer
-versão anterior do Smart Routine SI. Não é necessário instalar a 5.3 antes.
+versão anterior do Studium SI. Não é necessário instalar a 5.3 antes.
 
 ANTES DE ATUALIZAR
 1. Abra Configurações no aplicativo atual.
@@ -10,13 +10,13 @@ ANTES DE ATUALIZAR
 3. Guarde o arquivo fora da pasta do aplicativo.
 
 NO ANDROID
-1. NÃO desinstale o Smart Routine SI e NÃO limpe os dados.
+1. NÃO desinstale o Studium SI e NÃO limpe os dados.
 2. Gere o APK usando a mesma chave de assinatura da versão já instalada.
 3. Instale o APK 5.6 PRO por cima do aplicativo atual.
 
 NO WINDOWS
 1. Feche o aplicativo no PC ou notebook.
-2. Execute o novo Smart-Routine-SI-Setup.exe.
+2. Execute o novo Studium-SI-Setup.exe.
 3. Instale no mesmo local da versão anterior.
 4. Não apague a pasta de dados do usuário.
 

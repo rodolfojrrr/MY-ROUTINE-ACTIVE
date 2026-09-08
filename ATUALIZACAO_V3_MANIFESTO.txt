@@ -1,7 +1,7 @@
 MANIFESTO V3 ARQUIVADO — NÃO APLICAR
 =====================================
 
-A versão atual é Smart Routine SI 5.7.0+58. Este arquivo permanece somente para
+A versão atual é Studium SI 5.8.0+59. Este arquivo permanece somente para
 que instalações antigas não confundam o material V3 com a atualização atual.
 
 Consulte 00_LEIA-ME_PRIMEIRO.txt, 00_MIGRACAO_PARA_V5.txt e

@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.8.0 PRO
+
+- Nova identidade visual **Studium SI** em todas as telas, notificações, PDFs, Android e Windows.
+- Novo ícone oficial de alto contraste combinando livro, código e sincronização.
+- Recursos específicos para cada densidade do Android e ícone adaptativo com margem segura.
+- Tela de abertura escura e consistente nas versões antigas e atuais do Android.
+- Executável, instalador e atalhos do Windows atualizados com a nova marca.
+- Identificador Android, assinatura, AppId do Windows e pasta `MyRoutineActive` preservados para manter instalação e banco existentes.
+- Artefatos do GitHub renomeados para `Studium-SI-Android` e `Studium-SI-Windows`.
+- Análise estática sem problemas e 68 testes automatizados aprovados.
+- Versão elevada para `5.8.0+59`.
+
 ## 5.7.0 PRO
 
 - Cursos foi reposicionado imediatamente abaixo de Faculdade no menu lateral do celular e do PC.

@@ -24,7 +24,7 @@ Teste opcional no navegador do celular:
 http://IP_DO_PC:8765/health
 ```
 
-A resposta esperada é `Smart Routine SI local`.
+A resposta esperada é `Studium SI local`.
 
 ## Mesclagem e segurança
 
@@ -40,7 +40,7 @@ A resposta esperada é `Smart Routine SI local`.
 
 ## Firewall e roteador
 
-Autorize o Smart Routine SI somente em **Redes privadas** no Firewall do Windows. Evite Wi‑Fi de convidados e desative isolamento de clientes/AP Isolation. VPN nos aparelhos também pode impedir a rota local.
+Autorize o Studium SI somente em **Redes privadas** no Firewall do Windows. Evite Wi‑Fi de convidados e desative isolamento de clientes/AP Isolation. VPN nos aparelhos também pode impedir a rota local.
 
 ## Alternativa manual
 

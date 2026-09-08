@@ -1,10 +1,19 @@
-SMART ROUTINE SI — V5.7 PRO CURSOS E EDITOR RECOLHÍVEL
-=======================================================
+STUDIUM SI — V5.8 PRO NOVA IDENTIDADE
+========================================
 
 Esta é a atualização completa do aplicativo acadêmico para Android e Windows.
 Ela funciona offline, não abre site, não usa nuvem e não envia seus dados.
 
-NOVIDADES DA V5.7 PRO
+NOVIDADES DA V5.8 PRO
+- O aplicativo agora se chama Studium SI.
+- Novo ícone de alto contraste com livro, código e sincronização.
+- Ícone adaptativo preparado para recortes redondos e quadrados do Android.
+- Nova identidade aplicada no aplicativo, Windows, PDFs, avisos e instaladores.
+- Tela de abertura escura com a nova marca.
+- O identificador Android e a pasta de dados foram preservados: a atualização
+  instala por cima e mantém o banco existente.
+
+NOVIDADES ACUMULADAS DA V5.7 PRO
 - Cursos agora fica imediatamente abaixo de Faculdade no menu.
 - O curso em andamento é destacado e abre como pasta.
 - Organização completa: curso -> módulo -> conteúdo -> materiais.
@@ -115,12 +124,13 @@ PARA ENVIAR AO GITHUB
 2. Execute 07_SUBIR_GITHUB.bat.
 3. Digite apenas a mensagem do commit ou aperte Enter.
 4. Abra a aba Actions no GitHub.
-5. Baixe Smart-Routine-SI-Android e Smart-Routine-SI-Windows.
+5. Baixe Studium-SI-Android e Studium-SI-Windows.
 
 REPOSITÓRIO CONFIGURADO
 https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git
 
 LEIA TAMBÉM
+- 00_ATUALIZACAO_V5.8_STUDIUM_SI.txt
 - 00_RECUPERAR_BANCO_ANDROID_V5.5.1.txt
 - 00_ATUALIZACAO_V5.7_PRO.txt
 - 00_ATUALIZACAO_V5.6_PRO.txt

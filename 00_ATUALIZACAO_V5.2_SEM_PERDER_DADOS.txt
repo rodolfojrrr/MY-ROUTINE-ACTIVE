@@ -1,4 +1,4 @@
-SMART ROUTINE SI 5.2 — ATUALIZAR SEM PERDER DADOS
+STUDIUM SI 5.2 — ATUALIZAR SEM PERDER DADOS
 =================================================
 
 Esta atualização NÃO zera nem recria o banco acadêmico.
@@ -9,13 +9,13 @@ ANTES DE ATUALIZAR
 3. Guarde esse arquivo fora da pasta do aplicativo.
 
 NO ANDROID
-1. Não desinstale o Smart Routine SI.
+1. Não desinstale o Studium SI.
 2. Gere/baixe o novo APK usando a mesma chave de assinatura das versões anteriores.
 3. Instale o APK por cima da versão atual.
 
 NO WINDOWS
 1. Feche o aplicativo.
-2. Execute o novo Smart-Routine-SI-Setup.exe por cima da instalação atual.
+2. Execute o novo Studium-SI-Setup.exe por cima da instalação atual.
 3. Não marque nem execute nenhuma opção de apagar dados.
 
 O QUE ACONTECE COM OS REGISTROS ANTIGOS

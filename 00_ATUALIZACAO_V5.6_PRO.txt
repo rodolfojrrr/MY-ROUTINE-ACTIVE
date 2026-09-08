@@ -1,4 +1,4 @@
-SMART ROUTINE SI V5.6 PRO — ATUALIZAÇÃO SEGURA
+STUDIUM SI V5.6 PRO — ATUALIZAÇÃO SEGURA
 ==============================================
 
 ESTA VERSÃO NÃO ZERA NEM SUBSTITUI O BANCO.
@@ -14,7 +14,7 @@ Para atualizar no Android:
 3. Entre na mesma conta local.
 
 Para atualizar no Windows:
-1. Feche o Smart Routine SI.
+1. Feche o Studium SI.
 2. Execute o novo Setup.exe por cima da instalação atual.
 3. Abra normalmente; o banco no perfil do usuário será preservado.
 

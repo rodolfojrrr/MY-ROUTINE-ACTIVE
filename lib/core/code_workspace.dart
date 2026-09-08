@@ -34,7 +34,7 @@ class CodeLanguageCatalog {
     extensions: <String>['dart'],
     runtimeLabel: 'Dart SDK',
     template: '''void main() {
-  print('Olá, Smart Routine SI!');
+  print('Olá, Studium SI!');
 }
 ''',
   );
@@ -46,7 +46,7 @@ class CodeLanguageCatalog {
     extensions: <String>['py'],
     runtimeLabel: 'Python 3',
     template: '''def main():
-    print("Olá, Smart Routine SI!")
+    print("Olá, Studium SI!")
 
 
 if __name__ == "__main__":
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     runtimeLabel: 'JDK',
     template: '''public class Main {
     public static void main(String[] args) {
-        System.out.println("Olá, Smart Routine SI!");
+        System.out.println("Olá, Studium SI!");
     }
 }
 ''',
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     extensions: <String>['js', 'mjs', 'cjs'],
     runtimeLabel: 'Node.js',
     template: '''function main() {
-  console.log('Olá, Smart Routine SI!');
+  console.log('Olá, Studium SI!');
 }
 
 main();
@@ -92,7 +92,7 @@ main();
   return 'Olá, ' + nome + '!';
 }
 
-console.log(saudacao('Smart Routine SI'));
+console.log(saudacao('Studium SI'));
 ''',
   );
 
@@ -105,7 +105,7 @@ console.log(saudacao('Smart Routine SI'));
     template: '''#include <stdio.h>
 
 int main(void) {
-    printf("Olá, Smart Routine SI!\\n");
+    printf("Olá, Studium SI!\\n");
     return 0;
 }
 ''',
@@ -120,7 +120,7 @@ int main(void) {
     template: '''#include <iostream>
 
 int main() {
-    std::cout << "Olá, Smart Routine SI!" << std::endl;
+    std::cout << "Olá, Studium SI!" << std::endl;
     return 0;
 }
 ''',
@@ -138,7 +138,7 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine("Olá, Smart Routine SI!");
+        Console.WriteLine("Olá, Studium SI!");
     }
 }
 ''',
@@ -151,7 +151,7 @@ class Program
     extensions: <String>['kt', 'kts'],
     runtimeLabel: 'Kotlin/JDK',
     template: '''fun main() {
-    println("Olá, Smart Routine SI!")
+    println("Olá, Studium SI!")
 }
 ''',
   );
@@ -164,7 +164,7 @@ class Program
     runtimeLabel: 'PHP',
     template: '''<?php
 
-echo "Olá, Smart Routine SI!\\n";
+echo "Olá, Studium SI!\\n";
 ''',
   );
 
@@ -201,7 +201,7 @@ SELECT * FROM alunos;
     </style>
   </head>
   <body>
-    <h1>Olá, Smart Routine SI!</h1>
+    <h1>Olá, Studium SI!</h1>
   </body>
 </html>
 ''',

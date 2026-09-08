@@ -36,7 +36,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
 
-    expect(find.text('Smart Routine SI'), findsOneWidget);
+    expect(find.text('Studium SI'), findsOneWidget);
     expect(find.text('Metas e foco'), findsOneWidget);
     expect(find.text('Resumos'), findsWidgets);
     expect(find.text('Kanban'), findsOneWidget);
@@ -85,7 +85,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Smart Routine SI'), findsOneWidget);
+    expect(find.text('Studium SI'), findsOneWidget);
     expect(find.text('Menu principal'), findsOneWidget);
     expect(find.text('Sincronização Wi‑Fi'), findsOneWidget);
     expect(find.byIcon(Icons.menu), findsNothing);

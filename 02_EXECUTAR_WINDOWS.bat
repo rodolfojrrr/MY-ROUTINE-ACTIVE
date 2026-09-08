@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Smart Routine SI - Executar no Windows
+title Studium SI - Executar no Windows
 cd /d "%~dp0"
 
 where flutter >nul 2>nul

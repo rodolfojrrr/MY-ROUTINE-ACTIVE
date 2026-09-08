@@ -26,7 +26,7 @@ class NotificationService {
 
     const android = AndroidInitializationSettings('ic_notification');
     final windows = WindowsInitializationSettings(
-      appName: 'Smart Routine SI',
+      appName: 'Studium SI',
       appUserModelId: 'Rodolfo.MyRoutineActive',
       guid: 'a623f2ce-5c4f-4a73-a6a8-a916db44d6ec',
     );
@@ -56,7 +56,7 @@ class NotificationService {
     if (!enabled || date == null || !date.isAfter(DateTime.now())) return;
     await _plugin.zonedSchedule(
       id: id,
-      title: reminder.payload['title'] as String? ?? 'Smart Routine SI',
+      title: reminder.payload['title'] as String? ?? 'Studium SI',
       body: reminder.payload['notes'] as String? ??
           'Você tem um lembrete agendado.',
       scheduledDate: tz.TZDateTime.from(date, tz.local),

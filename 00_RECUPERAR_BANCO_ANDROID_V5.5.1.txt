@@ -1,4 +1,4 @@
-SMART ROUTINE SI V5.5.1 — RECUPERAR BANCO NO ANDROID
+STUDIUM SI V5.5.1 — RECUPERAR BANCO NO ANDROID
 ====================================================
 
 ESTA ATUALIZAÇÃO CORRIGE
@@ -10,14 +10,14 @@ anexos, capas, rascunhos e outros conteúdos grandes em blocos menores antes
 de executar a consulta que estava falhando.
 
 O QUE NÃO FAZER
-- NÃO desinstale o Smart Routine SI.
+- NÃO desinstale o Studium SI.
 - NÃO limpe dados nem armazenamento nas configurações do Android.
 - NÃO instale um APK assinado por uma chave diferente.
 
 COMO RECUPERAR
 1. Envie esta versão ao GitHub executando 07_SUBIR_GITHUB.bat.
 2. Aguarde a tarefa Gerar APK Android ficar verde em Actions.
-3. Baixe o novo APK Smart-Routine-SI-Android.
+3. Baixe o novo APK Studium-SI-Android.
 4. Instale o APK por cima do aplicativo atual.
 5. Abra o aplicativo e aguarde a primeira inicialização terminar.
 6. Assim que entrar, exporte um backup .mra atualizado.

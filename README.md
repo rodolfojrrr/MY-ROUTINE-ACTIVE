@@ -1,11 +1,15 @@
-# Smart Routine SI
+# Studium SI
 
-**Versão 5.7.0 PRO — Cursos por pastas e editor recolhível**
+**Versão 5.8.0 PRO — Nova identidade Studium SI**
 
 Aplicativo Flutter nativo para Android e Windows. Foi pensado para a graduação em **Sistemas de Informação**, mas também organiza cursos livres, trilhas, certificações e estudos pessoais. Não há WebView, nuvem, analytics ou login externo: banco, imagens, projetos e credenciais ficam somente nos aparelhos do usuário.
 
 ## O que há nesta versão
 
+- nova marca **Studium SI**, aplicada no Android, Windows, documentos e interface;
+- novo ícone de alto contraste que combina livro, programação e sincronização;
+- ícone adaptativo com margem segura para os diferentes recortes dos celulares;
+- tela de abertura escura com a nova identidade;
 - contas locais para vários usuários, com senha, pergunta de segurança e código de recuperação;
 - migração automática dos dados existentes para a primeira conta, sem zerar o banco;
 - Faculdade logo abaixo do Menu principal, separada de cursos e das demais ferramentas;
@@ -142,9 +146,9 @@ No Android, os projetos podem ser criados, editados e sincronizados. No Windows,
 2. Execute `07_SUBIR_GITHUB.bat`.
 3. Digite apenas uma mensagem de commit ou pressione Enter.
 4. No GitHub, abra **Actions → Validar e gerar aplicativos**.
-5. Baixe `Smart-Routine-SI-Android` e `Smart-Routine-SI-Windows`.
+5. Baixe `Studium-SI-Android` e `Studium-SI-Windows`.
 
-O workflow executa análise estática, 66 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
+O workflow executa análise estática, 68 testes, auditoria de arquivos pessoais e gera o APK, o Windows portátil e o instalador `Setup.exe`.
 
 ## BATs incluídos
 

@@ -48,9 +48,9 @@ class AcademicPdfService {
 
     final document = pw.Document(
       title: title,
-      author: 'Smart Routine SI',
+      author: 'Studium SI',
       subject: '$subject • $content',
-      creator: 'Smart Routine SI',
+      creator: 'Studium SI',
     );
     document.addPage(
       pw.MultiPage(
@@ -67,7 +67,7 @@ class AcademicPdfService {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: <pw.Widget>[
               pw.Text(
-                'SMART ROUTINE SI',
+                'STUDIUM SI',
                 style: pw.TextStyle(
                   color: PdfColors.blue700,
                   fontSize: 10,
@@ -142,7 +142,7 @@ class AcademicPdfService {
               ),
             ),
             pw.Text(
-              'Os arquivos originais permanecem anexados ao resumo no Smart Routine SI.',
+              'Os arquivos originais permanecem anexados ao resumo no Studium SI.',
               style: const pw.TextStyle(
                 color: PdfColors.grey600,
                 fontSize: 8.5,

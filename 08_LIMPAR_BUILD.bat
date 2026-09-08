@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Smart Routine SI - Limpar arquivos de compilacao
+title Studium SI - Limpar arquivos de compilacao
 cd /d "%~dp0"
 
 echo Este comando remove somente arquivos de compilacao.

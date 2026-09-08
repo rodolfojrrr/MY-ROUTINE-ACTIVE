@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Smart Routine SI - Preparar projeto
+title Studium SI - Preparar projeto
 cd /d "%~dp0"
 
 where flutter >nul 2>nul

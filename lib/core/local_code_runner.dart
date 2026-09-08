@@ -150,7 +150,7 @@ class LocalCodeRunner {
         return CodeRunResult(
           state: CodeRunState.runtimeMissing,
           output: '${plan.missingRuntime}\n\n'
-              'O Smart Routine não baixa compiladores sozinho e continua 100% local. '
+              'O Studium SI não baixa compiladores sozinho e continua 100% local. '
               'Depois de instalar o ambiente no Windows, use “Verificar ambientes”.',
           command: '',
           elapsed: stopwatch.elapsed,

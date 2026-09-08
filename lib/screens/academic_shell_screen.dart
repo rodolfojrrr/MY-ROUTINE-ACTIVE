@@ -454,7 +454,7 @@ class _AcademicSidebar extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
-                            'Smart Routine SI',
+                            'Studium SI',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

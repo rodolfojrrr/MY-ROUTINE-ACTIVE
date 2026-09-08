@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-title Smart Routine SI - Enviar ao GitHub
+title Studium SI - Enviar ao GitHub
 cd /d "%~dp0"
 set "REPO_URL=https://github.com/rodolfojrrr/MY-ROUTINE-ACTIVE.git"
 set "COMMIT_MSG="
@@ -49,11 +49,11 @@ if errorlevel 1 goto :erro
 git diff --cached --quiet
 if not errorlevel 1 goto :sem_alteracoes
 
-set /p "COMMIT_MSG=Mensagem do commit [Smart Routine SI v5.7 PRO - cursos e editor recolhivel]: "
-if not defined COMMIT_MSG set "COMMIT_MSG=Smart Routine SI v5.7 PRO - cursos e editor recolhivel"
+set /p "COMMIT_MSG=Mensagem do commit [Studium SI v5.8 PRO - nova identidade]: "
+if not defined COMMIT_MSG set "COMMIT_MSG=Studium SI v5.8 PRO - nova identidade"
 if /I "%COMMIT_MSG:~0,4%"=="http" (
   echo A URL do repositorio ja esta configurada. Usando a mensagem padrao.
-  set "COMMIT_MSG=Smart Routine SI v5.7 PRO - cursos e editor recolhivel"
+  set "COMMIT_MSG=Studium SI v5.8 PRO - nova identidade"
 )
 git commit -m "%COMMIT_MSG%"
 if errorlevel 1 goto :erro
@@ -65,7 +65,7 @@ git push -u origin main
 if errorlevel 1 goto :erro
 echo.
 echo Projeto enviado com sucesso.
-echo Abra Actions para baixar Smart-Routine-SI-Android e Smart-Routine-SI-Windows.
+echo Abra Actions para baixar Studium-SI-Android e Studium-SI-Windows.
 pause
 exit /b 0
 

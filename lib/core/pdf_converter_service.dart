@@ -134,7 +134,7 @@ class PdfConverterService {
   ) async {
     final document = pw.Document(
       title: p.basenameWithoutExtension(sourceName),
-      creator: 'Smart Routine SI',
+      creator: 'Studium SI',
     );
     final image = pw.MemoryImage(bytes);
     document.addPage(
@@ -159,7 +159,7 @@ class PdfConverterService {
     final cleanText = text.trim().isEmpty ? 'Arquivo sem texto legível.' : text;
     final document = pw.Document(
       title: p.basenameWithoutExtension(sourceName),
-      creator: 'Smart Routine SI',
+      creator: 'Studium SI',
     );
     document.addPage(
       pw.MultiPage(
@@ -202,7 +202,7 @@ class PdfConverterService {
           pw.SizedBox(height: 20),
           pw.Divider(color: PdfColors.grey300),
           pw.Text(
-            'Gerado localmente pelo Smart Routine SI. Método: $method.',
+            'Gerado localmente pelo Studium SI. Método: $method.',
             style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 8),
           ),
         ],

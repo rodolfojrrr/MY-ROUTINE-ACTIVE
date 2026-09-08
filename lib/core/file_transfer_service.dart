@@ -14,7 +14,7 @@ class FileTransferService {
     final bytes = await store.exportBundle();
     final stamp = DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
     return FilePicker.platform.saveFile(
-      dialogTitle: 'Salvar backup do Smart Routine SI',
+      dialogTitle: 'Salvar backup do Studium SI',
       fileName: 'smart-routine-si_$stamp.mra',
       type: FileType.custom,
       allowedExtensions: const <String>['mra'],
@@ -24,7 +24,7 @@ class FileTransferService {
 
   static Future<MergeResult?> importBackup(AppStore store) async {
     final picked = await FilePicker.platform.pickFiles(
-      dialogTitle: 'Importar backup do Smart Routine SI',
+      dialogTitle: 'Importar backup do Studium SI',
       type: FileType.custom,
       allowedExtensions: const <String>['mra', 'gz'],
       withData: true,

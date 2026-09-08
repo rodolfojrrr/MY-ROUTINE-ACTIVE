@@ -1,0 +1,31 @@
+STUDIUM SI V5.8 PRO — NOVA IDENTIDADE E ATUALIZAÇÃO SEGURA
+===========================================================
+
+Esta versão substitui o nome visual Smart Routine SI por Studium SI e adota
+um novo ícone criado para a faculdade, cursos, programação e sincronização.
+
+O QUE MUDA
+- Nome exibido no Android, Windows, interface, notificações e documentos.
+- Ícone oficial no Android, no executável e no instalador do Windows.
+- Ícone adaptativo com margem segura para diferentes formatos de launcher.
+- Tela de abertura com fundo escuro e a nova identidade.
+- Entregas do GitHub passam a se chamar Studium-SI-Android e
+  Studium-SI-Windows.
+
+O QUE NÃO MUDA
+- Identificador interno do aplicativo Android.
+- Assinatura Android e Secrets MRA_* do GitHub.
+- Nome interno do executável e AppId do instalador Windows.
+- Pasta MyRoutineActive que contém o banco e os backups.
+- Banco SQLite, contas, imagens, anexos, resumos e projetos.
+- Formato .mra/.mra.gz e sincronização Wi-Fi.
+
+COMO ATUALIZAR SEM PERDER DADOS
+1. Exporte um backup .mra por segurança.
+2. NÃO desinstale o aplicativo e NÃO limpe os dados.
+3. Gere o APK usando a mesma chave de assinatura da versão instalada.
+4. Instale o novo APK por cima e escolha Atualizar.
+5. No Windows, feche o aplicativo e execute Studium-SI-Setup.exe.
+
+Se o Android informar conflito de pacote, não desinstale: isso indica que o
+APK foi assinado com outra chave. Gere novamente com os mesmos Secrets MRA_*.

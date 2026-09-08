@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Smart Routine SI - Validar
+title Studium SI - Validar
 cd /d "%~dp0"
 
 where flutter >nul 2>nul

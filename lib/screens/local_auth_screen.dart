@@ -406,7 +406,7 @@ class _LocalAuthScreenState extends State<LocalAuthScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Text(
-              registerMode ? 'Criar conta local' : 'Entrar no Smart Routine',
+              registerMode ? 'Criar conta local' : 'Entrar no Studium SI',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 7),
@@ -605,7 +605,7 @@ class _AuthHero extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         const Text(
-          'Smart Routine SI',
+          'Studium SI',
           style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 10),

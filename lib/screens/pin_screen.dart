@@ -72,7 +72,7 @@ class _PinScreenState extends State<PinScreen> {
                     ),
                     const SizedBox(height: 22),
                     const Text(
-                      'Smart Routine SI',
+                      'Studium SI',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w800,

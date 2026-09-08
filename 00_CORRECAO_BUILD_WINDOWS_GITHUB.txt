@@ -1,4 +1,4 @@
-SMART ROUTINE SI V5.5 PRO — CORREÇÃO DO BUILD WINDOWS
+STUDIUM SI V5.5 PRO — CORREÇÃO DO BUILD WINDOWS
 =====================================================
 
 O QUE ACONTECEU
@@ -19,7 +19,7 @@ COMO APLICAR
 2. Execute 07_SUBIR_GITHUB.bat.
 3. Na mensagem do commit, aperte Enter.
 4. Abra a aba Actions do GitHub e acompanhe a nova execução.
-5. Quando concluir, baixe Smart-Routine-SI-Windows.
+5. Quando concluir, baixe Studium-SI-Windows.
 
-Não é necessário alterar, desinstalar ou apagar o Smart Routine SI já
+Não é necessário alterar, desinstalar ou apagar o Studium SI já
 instalado. Esta correção modifica somente a automação de compilação.

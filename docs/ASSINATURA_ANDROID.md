@@ -1,4 +1,4 @@
-# Assinatura Android fixa — Smart Routine SI
+# Assinatura Android fixa — Studium SI
 
 A assinatura é a identidade criptográfica do APK. Para que o Android aceite uma versão nova por cima da antiga, as duas versões precisam usar a mesma chave.
 
@@ -14,7 +14,7 @@ A assinatura é a identidade criptográfica do APK. Para que o Android aceite um
    - `MRA_KEYSTORE_PASSWORD`
    - `MRA_KEY_ALIAS`
    - `MRA_KEY_PASSWORD`
-7. Execute `07_SUBIR_GITHUB.bat` e baixe `Smart-Routine-SI-Android` em Actions.
+7. Execute `07_SUBIR_GITHUB.bat` e baixe `Studium-SI-Android` em Actions.
 
 ## Primeira migração
 

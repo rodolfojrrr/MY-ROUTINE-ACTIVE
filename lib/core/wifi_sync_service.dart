@@ -79,7 +79,7 @@ class WifiSyncService extends ChangeNotifier {
     if (request.uri.path == '/health' && request.method == 'GET') {
       request.response
         ..statusCode = HttpStatus.ok
-        ..write('Smart Routine SI local');
+        ..write('Studium SI local');
       await request.response.close();
       return;
     }

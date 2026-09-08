@@ -1,6 +1,6 @@
 # IDE acadêmica local
 
-A IDE do Smart Routine SI foi criada para exercícios, trabalhos e pequenos projetos da graduação. O mesmo editor funciona no Android e no Windows. Todos os projetos ficam no banco local, acompanham o backup `.mra` e podem ser sincronizados diretamente pela rede Wi‑Fi.
+A IDE do Studium SI foi criada para exercícios, trabalhos e pequenos projetos da graduação. O mesmo editor funciona no Android e no Windows. Todos os projetos ficam no banco local, acompanham o backup `.mra` e podem ser sincronizados diretamente pela rede Wi‑Fi.
 
 ## Recursos do editor
 

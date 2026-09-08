@@ -1,4 +1,4 @@
-# Arquitetura local — Smart Routine SI 5.7 PRO
+# Arquitetura local — Studium SI 5.7 PRO
 
 ## Plataformas e privacidade
 
